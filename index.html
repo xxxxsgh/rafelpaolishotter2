@@ -502,6 +502,106 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
     ::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.3); }
+
+    /* ─── TOUCH CONTROLS ─── */
+    #touchControls {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: none; z-index: 9;
+      padding: 10px 20px 28px;
+      justify-content: space-between; align-items: flex-end;
+      pointer-events: none;
+    }
+    #touchControls.visible { display: flex; }
+    .touch-side { display: flex; gap: 10px; pointer-events: all; align-items: flex-end; }
+    .touch-btn {
+      width: 68px; height: 68px;
+      background: rgba(2,8,23,0.7);
+      border: 2px solid rgba(0,245,255,0.35);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; color: rgba(0,245,255,0.75);
+      user-select: none; -webkit-user-select: none;
+      cursor: pointer; transition: background 0.1s, border-color 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .touch-btn.pressed {
+      background: rgba(0,245,255,0.18);
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(0,245,255,0.45);
+    }
+    .touch-btn-fire {
+      width: 86px; height: 86px; font-size: 30px;
+      border-color: rgba(57,255,20,0.45);
+      color: rgba(57,255,20,0.85);
+    }
+    .touch-btn-fire.pressed {
+      background: rgba(57,255,20,0.18);
+      border-color: var(--neon-green);
+      box-shadow: 0 0 20px rgba(57,255,20,0.5);
+    }
+    .touch-btn-ability {
+      border-color: rgba(255,0,110,0.4);
+      color: rgba(255,0,110,0.85);
+    }
+    .touch-btn-ability.pressed {
+      background: rgba(255,0,110,0.15);
+      border-color: var(--hot-pink);
+      box-shadow: 0 0 16px rgba(255,0,110,0.45);
+    }
+
+    /* ─── SETTINGS PANEL ─── */
+    #settingsPanel { width: min(380px, 92vw); }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 1px;
+    }
+    .settings-control { display: flex; align-items: center; gap: 10px; }
+    .vol-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 110px; height: 3px;
+      background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--cyan); cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,245,255,0.6);
+    }
+    .toggle-btn {
+      padding: 5px 14px; font-family: 'Orbitron', monospace;
+      font-size: 10px; letter-spacing: 1px; cursor: pointer;
+      background: transparent; border: 1px solid var(--cyan); color: var(--cyan);
+      transition: all 0.2s;
+    }
+    .toggle-btn.off { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.3); }
+    .toggle-btn:hover { background: rgba(0,245,255,0.08); }
+
+    /* ─── HIGH SCORE TABLE ─── */
+    .hs-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .hs-mode { font-family: 'Orbitron', monospace; font-size: 9px; color: rgba(255,255,255,0.35); letter-spacing: 1px; flex: 1; }
+    .hs-score { font-family: 'Orbitron', monospace; font-size: 13px; color: var(--gold); font-weight: 700; }
+
+    /* ─── NEW HIGH SCORE BADGE ─── */
+    .hs-badge {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px; font-weight: 900;
+      color: var(--gold); text-align: center;
+      text-shadow: 0 0 20px rgba(255,214,10,0.8);
+      letter-spacing: 3px; margin-top: 8px;
+      animation: hsPulse 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes hsPulse {
+      from { transform: scale(1); filter: brightness(1); }
+      to   { transform: scale(1.06); filter: brightness(1.4); }
+    }
   </style>
 </head>
 <body>
@@ -524,7 +624,12 @@
 <!-- Main Menu Title Screen -->
 <div id="titleScreen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:10; align-items:center; justify-content:center; flex-direction:column;">
   <div class="main-title" style="font-family:'Orbitron',monospace; font-size:clamp(28px,5vw,64px); font-weight:900; color:transparent; background:linear-gradient(135deg,#00f5ff,#7b2fff,#ff006e); -webkit-background-clip:text; background-clip:text; letter-spacing:6px; text-align:center; text-transform:uppercase; animation:titlePulse 3s ease-in-out infinite;">RAFA PAOLI'S SHOOTER</div>
-  <div style="font-family:'Rajdhani',sans-serif; font-size:14px; color:rgba(224,247,250,0.4); letter-spacing:8px; text-transform:uppercase; margin-top:8px; margin-bottom:40px;">ULTIMATE EDITION V2</div>
+  <div style="font-family:'Rajdhani',sans-serif; font-size:14px; color:rgba(224,247,250,0.4); letter-spacing:8px; text-transform:uppercase; margin-top:8px; margin-bottom:20px;">ULTIMATE EDITION V2</div>
+  <!-- High Score mini-table -->
+  <div id="titleHighScores" style="margin-bottom:18px; width:min(320px,85vw); background:rgba(2,8,23,0.55); border:1px solid rgba(0,245,255,0.1); padding:10px 14px; display:none;">
+    <div style="font-family:'Orbitron',monospace; font-size:9px; color:rgba(0,245,255,0.45); letter-spacing:2px; margin-bottom:6px;">BEST SCORES</div>
+    <div id="titleHsContent"></div>
+  </div>
   <div style="width:min(320px,85vw);">
     <button onclick="showGameModeSelect()">▶ START GAME</button>
     <button onclick="showInstructions()">INSTRUCTIONS</button>
@@ -532,7 +637,8 @@
     <button onclick="showSurvivorMode()">⏱ SURVIVOR MODE</button>
     <div style="margin-top:16px; display:flex; gap:8px;">
       <button class="btn-gold" onclick="showShop()" style="font-size:10px; padding:9px;">🛍 SHOP</button>
-      <button style="font-size:10px; padding:9px; border-color:var(--purple); color:var(--purple);" onclick="showAchievements()">🏆 ACHIEVEMENTS</button>
+      <button style="font-size:10px; padding:9px; border-color:var(--purple); color:var(--purple);" onclick="showAchievements()">🏆 ACH</button>
+      <button style="font-size:10px; padding:9px; border-color:rgba(255,255,255,0.25); color:rgba(255,255,255,0.45);" onclick="showSettings()">⚙ SETTINGS</button>
     </div>
     <div style="margin-top:12px; font-family:'Orbitron',monospace; font-size:9px; color:rgba(255,255,255,0.3); text-align:center; letter-spacing:2px;">COINS: <span id="menuCoins" style="color:var(--gold);">0</span></div>
   </div>
@@ -602,8 +708,9 @@
 <!-- Game Over -->
 <div id="gameOver" class="overlay">
   <h1 style="color:var(--hot-pink);">GAME OVER</h1>
-  <p id="finalScore" style="font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); margin-bottom:8px;"></p>
-  <p id="finalScoreP2" style="display:none; font-family:'Orbitron',monospace; font-size:13px; color:rgba(255,200,0,0.7);"></p>
+  <p id="finalScore" style="font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); margin-bottom:4px;"></p>
+  <div id="newHsBadge" class="hs-badge" style="display:none;">★ NEW HIGH SCORE! ★</div>
+  <p id="finalScoreP2" style="display:none; font-family:'Orbitron',monospace; font-size:13px; color:rgba(255,200,0,0.7); margin-top:4px;"></p>
   <p id="survivorTimeEl" style="display:none; font-family:'Orbitron',monospace; font-size:13px; color:var(--cyan); margin-top:4px;"></p>
   <button onclick="restartGame()" style="margin-top:16px;">RETRY</button>
   <button onclick="backToMenu()" class="btn-danger">MAIN MENU</button>
@@ -612,7 +719,8 @@
 <!-- Victory -->
 <div id="finalEnding" class="overlay">
   <h1 style="color:var(--gold);">VICTORY!</h1>
-  <p id="finalEndingScore" style="font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); margin-bottom:8px;"></p>
+  <p id="finalEndingScore" style="font-family:'Orbitron',monospace; font-size:16px; color:var(--gold); margin-bottom:4px;"></p>
+  <div id="newHsBadgeVic" class="hs-badge" style="display:none;">★ NEW HIGH SCORE! ★</div>
   <p id="finalEndingScoreP2" style="display:none;"></p>
   <button onclick="restartGame()" style="margin-top:16px; border-color:var(--gold); color:var(--gold);">PLAY AGAIN</button>
   <button onclick="backToMenu()" class="btn-danger">MAIN MENU</button>
@@ -752,14 +860,47 @@
 <button id="fabShop" class="fab" onclick="showShop()">🛍 SHOP</button>
 <button id="fabAch"  class="fab" onclick="showAchievements()">🏆 ACH</button>
 
-<!-- Audio -->
-<audio id="shootSound"     src="shoot.wav"></audio>
-<audio id="explosionSound" src="explosion.wav"></audio>
-<audio id="powerupSound"   src="powerup.wav"></audio>
-<audio id="levelUpSound"   src="levelup.wav"></audio>
-<audio id="abilitySound"   src="powerup.wav"></audio>
-<audio id="laserSound"     src="laser.wav"></audio>
-<audio id="xpSound"        src="powerup.wav"></audio>
+<!-- Touch Controls (Mobile) -->
+<div id="touchControls">
+  <div class="touch-side">
+    <div class="touch-btn" id="tcLeft">◀</div>
+    <div class="touch-btn touch-btn-ability" id="tcAbility">★</div>
+  </div>
+  <div class="touch-side">
+    <div class="touch-btn touch-btn-fire" id="tcFire">▲</div>
+    <div class="touch-btn" id="tcRight">▶</div>
+  </div>
+</div>
+
+<!-- Settings Panel -->
+<div id="settingsPanel" class="overlay">
+  <h1>SETTINGS</h1>
+  <div class="settings-row">
+    <div class="settings-label">MASTER VOLUME</div>
+    <div class="settings-control">
+      <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="50" oninput="setVolume(this.value/100)">
+      <span id="volDisplay" style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);width:34px;text-align:right;">50%</span>
+    </div>
+  </div>
+  <div class="settings-row">
+    <div class="settings-label">SOUND EFFECTS</div>
+    <div class="settings-control">
+      <button class="toggle-btn" id="soundToggle" onclick="toggleSound()">ON</button>
+    </div>
+  </div>
+  <div class="settings-row">
+    <div class="settings-label">PARTICLES / FX</div>
+    <div class="settings-control">
+      <button class="toggle-btn" id="fxToggle" onclick="toggleFX()">HIGH</button>
+    </div>
+  </div>
+  <div style="margin-top:16px;">
+    <div style="font-family:'Orbitron',monospace; font-size:10px; color:rgba(0,245,255,0.4); letter-spacing:2px; margin-bottom:8px;">HIGH SCORES</div>
+    <div id="settingsHsList"></div>
+    <button onclick="confirmResetScores()" style="margin-top:10px;font-size:9px;border-color:rgba(255,60,60,0.3);color:rgba(255,80,80,0.45);padding:6px 10px;">RESET HIGH SCORES</button>
+  </div>
+  <button onclick="hideSettings()" class="btn-danger" style="margin-top:8px;">CLOSE</button>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════
@@ -770,13 +911,101 @@ const CTX    = CANVAS.getContext('2d');
 const BGCANVAS = document.getElementById('bgCanvas');
 const BGCTX    = BGCANVAS.getContext('2d');
 
-const SOUNDS = {};
-['shootSound','explosionSound','powerupSound','levelUpSound','abilitySound','laserSound','xpSound']
-  .forEach(id => { SOUNDS[id] = document.getElementById(id); });
+// ─ Web Audio API – Synthesized Sounds ─
+let _audioCtx = null;
+let masterVolume = 0.5;
+let soundEnabled = true;
+
+function getACtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function _g(ctx, vol) {
+  const g = ctx.createGain();
+  g.gain.value = Math.max(0.001, vol * masterVolume);
+  g.connect(ctx.destination);
+  return g;
+}
 
 function playSound(name) {
-  const el = SOUNDS[name];
-  if (el) { try { el.currentTime = 0; el.play().catch(()=>{}); } catch(e){} }
+  if (!soundEnabled) return;
+  try {
+    const ctx = getACtx();
+    switch (name) {
+      case 'shootSound': {
+        const o = ctx.createOscillator(), g = _g(ctx, 0.12);
+        o.type = 'square';
+        o.frequency.setValueAtTime(900, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.07);
+        g.gain.setValueAtTime(0.12 * masterVolume, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+        o.connect(g); o.start(); o.stop(ctx.currentTime + 0.07);
+        break;
+      }
+      case 'explosionSound': {
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.45, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const f = ctx.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.setValueAtTime(500, ctx.currentTime);
+        f.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.45);
+        const g = _g(ctx, 0.35);
+        g.gain.setValueAtTime(0.35 * masterVolume, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        src.connect(f); f.connect(g);
+        src.start(); src.stop(ctx.currentTime + 0.45);
+        break;
+      }
+      case 'powerupSound':
+      case 'abilitySound': {
+        [523, 659, 784, 1047].forEach((freq, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          g.connect(ctx.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          const t = ctx.currentTime + i * 0.08;
+          g.gain.setValueAtTime(0.14 * masterVolume, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+          o.connect(g); o.start(t); o.stop(t + 0.1);
+        });
+        break;
+      }
+      case 'levelUpSound': {
+        [392, 523, 659, 784, 1047, 1319].forEach((freq, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          g.connect(ctx.destination);
+          o.type = 'sine'; o.frequency.value = freq;
+          const t = ctx.currentTime + i * 0.1;
+          g.gain.setValueAtTime(0.22 * masterVolume, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+          o.connect(g); o.start(t); o.stop(t + 0.15);
+        });
+        break;
+      }
+      case 'laserSound': {
+        const o = ctx.createOscillator(), g = _g(ctx, 0.18);
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(1400, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.18);
+        g.gain.setValueAtTime(0.18 * masterVolume, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+        o.connect(g); o.start(); o.stop(ctx.currentTime + 0.18);
+        break;
+      }
+      case 'xpSound': {
+        const o = ctx.createOscillator(), g = _g(ctx, 0.08);
+        o.type = 'sine'; o.frequency.value = 1400;
+        g.gain.setValueAtTime(0.08 * masterVolume, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+        o.connect(g); o.start(); o.stop(ctx.currentTime + 0.06);
+        break;
+      }
+    }
+  } catch(e) {}
 }
 
 // ─ Difficulty ─
@@ -894,6 +1123,163 @@ function getDifficultyMult() { return DIFFICULTY_CFG[State.difficulty]?.multipli
 function rand(a,b) { return a+Math.random()*(b-a); }
 
 // ═══════════════════════════════════════════════════════════════════
+// SECTION 3B – HIGH SCORE SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+const HS_KEY = 'rpshooter_hs2';
+
+function loadHighScores() {
+  try { return JSON.parse(localStorage.getItem(HS_KEY)) || {campaign:0,infinite:0,survivor:0}; }
+  catch(e) { return {campaign:0,infinite:0,survivor:0}; }
+}
+
+function saveHighScore(mode, score) {
+  const hs = loadHighScores();
+  if (score > (hs[mode]||0)) {
+    hs[mode] = score;
+    try { localStorage.setItem(HS_KEY, JSON.stringify(hs)); } catch(e) {}
+    return true; // new record
+  }
+  return false;
+}
+
+function getCurrentHSMode() {
+  if (State.infiniteMode) return 'infinite';
+  if (State.survivorMode) return 'survivor';
+  return 'campaign';
+}
+
+function renderHSList(containerId) {
+  const hs = loadHighScores();
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const modes = [{k:'campaign',label:'CAMPAIGN'},{k:'infinite',label:'INFINITE'},{k:'survivor',label:'SURVIVOR'}];
+  el.innerHTML = modes.map(m=>`<div class="hs-row"><span class="hs-mode">${m.label}</span><span class="hs-score">${(hs[m.k]||0).toLocaleString()}</span></div>`).join('');
+}
+
+function updateTitleHighScores() {
+  const hs = loadHighScores();
+  const any = Object.values(hs).some(v=>v>0);
+  const wrap = document.getElementById('titleHighScores');
+  if (!wrap) return;
+  wrap.style.display = any ? 'block' : 'none';
+  renderHSList('titleHsContent');
+}
+
+function confirmResetScores() {
+  if (confirm('Reset all high scores?')) {
+    try { localStorage.removeItem(HS_KEY); } catch(e) {}
+    renderHSList('settingsHsList');
+    updateTitleHighScores();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SECTION 3C – SETTINGS
+// ═══════════════════════════════════════════════════════════════════
+let fxHighQuality = true;
+
+function showSettings() {
+  hideAllOverlays();
+  renderHSList('settingsHsList');
+  const s = document.getElementById('settingsPanel');
+  s.classList.add('active');
+  document.getElementById('volSlider').value = Math.round(masterVolume * 100);
+  document.getElementById('volDisplay').textContent = Math.round(masterVolume * 100) + '%';
+  document.getElementById('soundToggle').textContent = soundEnabled ? 'ON' : 'OFF';
+  document.getElementById('soundToggle').classList.toggle('off', !soundEnabled);
+  document.getElementById('fxToggle').textContent = fxHighQuality ? 'HIGH' : 'LOW';
+  document.getElementById('fxToggle').classList.toggle('off', !fxHighQuality);
+}
+
+function hideSettings() {
+  document.getElementById('settingsPanel').classList.remove('active');
+  navigateMenu('main');
+}
+
+function setVolume(v) {
+  masterVolume = Math.max(0, Math.min(1, v));
+  document.getElementById('volDisplay').textContent = Math.round(masterVolume * 100) + '%';
+  try { localStorage.setItem('rpshooter_vol', masterVolume); } catch(e) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundToggle');
+  btn.textContent = soundEnabled ? 'ON' : 'OFF';
+  btn.classList.toggle('off', !soundEnabled);
+  try { localStorage.setItem('rpshooter_sfx', soundEnabled ? '1' : '0'); } catch(e) {}
+}
+
+function toggleFX() {
+  fxHighQuality = !fxHighQuality;
+  const btn = document.getElementById('fxToggle');
+  btn.textContent = fxHighQuality ? 'HIGH' : 'LOW';
+  btn.classList.toggle('off', !fxHighQuality);
+}
+
+function loadSettings() {
+  try {
+    const vol = parseFloat(localStorage.getItem('rpshooter_vol'));
+    if (!isNaN(vol)) masterVolume = clamp(vol, 0, 1);
+    const sfx = localStorage.getItem('rpshooter_sfx');
+    if (sfx !== null) soundEnabled = sfx === '1';
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SECTION 3D – TOUCH CONTROLS
+// ═══════════════════════════════════════════════════════════════════
+const _touchState = { left:false, right:false, fire:false, ability:false };
+let _fireInterval = null;
+
+function isTouchDevice() { return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
+
+function initTouchControls() {
+  if (!isTouchDevice()) return;
+  const tc = document.getElementById('touchControls');
+
+  function bindBtn(id, key, onDown, onUp) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('touchstart', e => { e.preventDefault(); btn.classList.add('pressed'); onDown && onDown(); }, {passive:false});
+    btn.addEventListener('touchend',   e => { e.preventDefault(); btn.classList.remove('pressed'); onUp && onUp(); }, {passive:false});
+    btn.addEventListener('touchcancel',e => { e.preventDefault(); btn.classList.remove('pressed'); onUp && onUp(); }, {passive:false});
+  }
+
+  bindBtn('tcLeft',
+    null,
+    () => { _touchState.left=true; const p=State.players[0]; if(p) p.isMovingLeft=true; },
+    () => { _touchState.left=false; const p=State.players[0]; if(p) p.isMovingLeft=false; }
+  );
+  bindBtn('tcRight',
+    null,
+    () => { _touchState.right=true; const p=State.players[0]; if(p) p.isMovingRight=true; },
+    () => { _touchState.right=false; const p=State.players[0]; if(p) p.isMovingRight=false; }
+  );
+  bindBtn('tcFire',
+    null,
+    () => {
+      _touchState.fire=true;
+      const p=State.players[0];
+      if(p&&State.running&&!State.paused) p.shoot();
+      _fireInterval = setInterval(()=>{ const p2=State.players[0]; if(p2&&State.running&&!State.paused) p2.shoot(); }, 120);
+    },
+    () => { _touchState.fire=false; clearInterval(_fireInterval); _fireInterval=null; }
+  );
+  bindBtn('tcAbility',
+    null,
+    () => { const p=State.players[0]; if(p&&State.running&&!State.paused){ State.survivorMode?useSurvivorAbility(0):p.activateAbility(); } },
+    () => {}
+  );
+}
+
+function setTouchHUDVisible(v) {
+  if (!isTouchDevice()) return;
+  const tc = document.getElementById('touchControls');
+  if (tc) tc.classList.toggle('visible', v);
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // SECTION 4 – BACKGROUND (IMPROVEMENT 3: animated neon grid)
 // ═══════════════════════════════════════════════════════════════════
 let gridOffset = 0;
@@ -976,7 +1362,8 @@ class Explosion {
 }
 
 function triggerExplosion(x,y,color='#ff6600',count=25) {
-  State.explosions.push(new Explosion(x,y,color,count));
+  const c = fxHighQuality ? count : Math.max(6, Math.floor(count * 0.4));
+  State.explosions.push(new Explosion(x,y,color,c));
   playSound('explosionSound');
   // IMPROVEMENT 2: screen shake
   State.screenShake = Math.max(State.screenShake, 5);
@@ -1063,11 +1450,20 @@ class AllyRobot {
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
   draw() {
-    CTX.fillStyle='#8a9bb0'; CTX.fillRect(this.x,this.y,this.width,this.height);
-    CTX.fillStyle='#4a5568'; CTX.fillRect(this.x+5,this.y-8,this.width-10,8);
-    CTX.fillStyle=this.bulletColor; CTX.shadowColor=this.bulletColor; CTX.shadowBlur=6;
-    CTX.fillRect(this.x+8,this.y-4,4,4);
-    CTX.fillRect(this.x+this.width-12,this.y-4,4,4);
+    const cx=this.x+this.width/2;
+    // Body
+    CTX.fillStyle='#7a8fa8'; CTX.shadowColor=this.bulletColor; CTX.shadowBlur=8;
+    CTX.fillRect(this.x+3,this.y+6,this.width-6,this.height-6);
+    // Head
+    CTX.fillStyle='#5a6e84';
+    CTX.fillRect(this.x+5,this.y,this.width-10,10);
+    // Dual cannons
+    CTX.fillStyle=this.bulletColor; CTX.shadowBlur=6;
+    CTX.fillRect(this.x+4,this.y-8,5,10);
+    CTX.fillRect(this.x+this.width-9,this.y-8,5,10);
+    // Eye
+    CTX.fillStyle='#fff'; CTX.fillRect(cx-4,this.y+2,8,5);
+    CTX.fillStyle=this.bulletColor; CTX.beginPath(); CTX.arc(cx,this.y+4.5,2.5,0,Math.PI*2); CTX.fill();
     CTX.shadowBlur=0;
   }
   shoot() {
@@ -1218,26 +1614,99 @@ class Player {
     CTX.shadowColor=skin.color; CTX.shadowBlur=12;
     CTX.fillStyle=skin.color;
 
+    const sc = skin.color;
     switch(this.character) {
-      case 'marcelo':
-        CTX.beginPath(); CTX.moveTo(cx,top); CTX.lineTo(this.x,bot); CTX.lineTo(this.x+this.width,bot); CTX.closePath(); CTX.fill();
-        CTX.shadowBlur=0; CTX.fillStyle='#00f5ff'; CTX.font='bold 10px Orbitron,monospace';
-        CTX.textAlign='center'; CTX.fillText('AI',cx,this.y+this.height/2+4); break;
-      case 'robos':
-        CTX.fillRect(this.x,top,this.width,this.height);
-        CTX.fillStyle='#ff3333'; CTX.fillRect(this.x+10,top+10,10,10); CTX.fillRect(this.x+this.width-20,top+10,10,10); break;
-      case 'felipe':
-        CTX.beginPath(); CTX.arc(cx,this.y+this.height/2,this.width/2,0,Math.PI*2); CTX.fill();
-        CTX.fillStyle='rgba(200,200,200,0.6)'; CTX.beginPath(); CTX.arc(cx-5,bot+5,8,0,Math.PI*2); CTX.arc(cx+10,bot+15,12,0,Math.PI*2); CTX.fill(); break;
-      case 'takeshi':
-        CTX.beginPath(); CTX.moveTo(cx,top); CTX.lineTo(this.x,bot); CTX.lineTo(this.x+this.width,bot); CTX.closePath(); CTX.fill();
-        CTX.fillStyle='#111'; CTX.fillRect(cx-5,this.y+this.height/2,10,10); break;
-      case 'deepseek':
-        CTX.beginPath(); CTX.moveTo(cx,top); CTX.lineTo(this.x,bot); CTX.lineTo(cx,bot-20); CTX.lineTo(this.x+this.width,bot); CTX.closePath(); CTX.fill();
-        CTX.fillStyle='#00f5ff'; CTX.fillRect(cx-3,top+10,6,20); break;
-      default:
-        CTX.beginPath(); CTX.moveTo(cx,top); CTX.lineTo(this.x,bot); CTX.lineTo(this.x+this.width,bot); CTX.closePath(); CTX.fill();
-        CTX.fillStyle=this.index===0?'#00f5ff':'#ffff00'; CTX.fillRect(cx-5,this.y+this.height/2,10,this.height/2);
+      case 'marcelo': {
+        // Body – wide fighter with AI core
+        CTX.beginPath();
+        CTX.moveTo(cx,top+2);
+        CTX.lineTo(cx-14,this.y+22); CTX.lineTo(cx-20,bot);
+        CTX.lineTo(cx,bot-8); CTX.lineTo(cx+20,bot);
+        CTX.lineTo(cx+14,this.y+22); CTX.closePath(); CTX.fill();
+        // Wings
+        CTX.fillStyle=sc; CTX.globalAlpha=0.55;
+        CTX.beginPath(); CTX.moveTo(cx-14,this.y+22); CTX.lineTo(this.x-10,bot); CTX.lineTo(cx-20,bot); CTX.closePath(); CTX.fill();
+        CTX.beginPath(); CTX.moveTo(cx+14,this.y+22); CTX.lineTo(this.x+this.width+10,bot); CTX.lineTo(cx+20,bot); CTX.closePath(); CTX.fill();
+        CTX.globalAlpha=1;
+        // AI core glow
+        CTX.fillStyle='#00f5ff'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=10;
+        CTX.beginPath(); CTX.arc(cx,this.y+this.height*0.45,6,0,Math.PI*2); CTX.fill();
+        CTX.shadowBlur=0;
+        break;
+      }
+      case 'robos': {
+        // Blocky mech
+        CTX.fillRect(cx-18,top+6,36,this.height-6);
+        // Head
+        CTX.fillStyle=sc; CTX.globalAlpha=0.8;
+        CTX.fillRect(cx-10,top,20,10);
+        CTX.globalAlpha=1;
+        // Arm cannons
+        CTX.fillStyle=sc; CTX.globalAlpha=0.6;
+        CTX.fillRect(this.x,this.y+14,10,22);
+        CTX.fillRect(this.x+this.width-10,this.y+14,10,22);
+        CTX.globalAlpha=1;
+        // Eyes
+        CTX.fillStyle='#ff3333'; CTX.shadowColor='#ff4444'; CTX.shadowBlur=8;
+        CTX.fillRect(cx-9,top+8,6,5); CTX.fillRect(cx+3,top+8,6,5);
+        CTX.shadowBlur=0;
+        break;
+      }
+      case 'felipe': {
+        // Sleek speedster – elongated teardrop
+        CTX.beginPath();
+        CTX.moveTo(cx,top);
+        CTX.bezierCurveTo(cx+20,top+14, cx+22,bot-10, cx,bot);
+        CTX.bezierCurveTo(cx-22,bot-10, cx-20,top+14, cx,top);
+        CTX.closePath(); CTX.fill();
+        // Speed fins
+        CTX.fillStyle=sc; CTX.globalAlpha=0.5;
+        CTX.beginPath(); CTX.moveTo(cx-16,this.y+28); CTX.lineTo(this.x-8,bot+10); CTX.lineTo(cx-8,bot); CTX.closePath(); CTX.fill();
+        CTX.beginPath(); CTX.moveTo(cx+16,this.y+28); CTX.lineTo(this.x+this.width+8,bot+10); CTX.lineTo(cx+8,bot); CTX.closePath(); CTX.fill();
+        CTX.globalAlpha=1;
+        // Cockpit
+        CTX.fillStyle='rgba(200,240,255,0.35)';
+        CTX.beginPath(); CTX.ellipse(cx,this.y+16,6,9,0,0,Math.PI*2); CTX.fill();
+        break;
+      }
+      case 'takeshi': {
+        // Ninja blade ship – diamond body
+        CTX.beginPath();
+        CTX.moveTo(cx,top); CTX.lineTo(cx+22,this.y+this.height*0.55);
+        CTX.lineTo(cx,bot); CTX.lineTo(cx-22,this.y+this.height*0.55);
+        CTX.closePath(); CTX.fill();
+        // Inner blade
+        CTX.fillStyle='rgba(255,255,255,0.18)';
+        CTX.beginPath();
+        CTX.moveTo(cx,top+8); CTX.lineTo(cx+10,this.y+this.height*0.5);
+        CTX.lineTo(cx,bot-8); CTX.lineTo(cx-10,this.y+this.height*0.5);
+        CTX.closePath(); CTX.fill();
+        // Core gem
+        CTX.fillStyle='#ff006e'; CTX.shadowColor='#ff006e'; CTX.shadowBlur=12;
+        CTX.beginPath(); CTX.arc(cx,this.y+this.height*0.4,5,0,Math.PI*2); CTX.fill();
+        CTX.shadowBlur=0;
+        break;
+      }
+      case 'deepseek': {
+        // Cannon ship – heavy front-mounted beam
+        CTX.beginPath();
+        CTX.moveTo(cx,top);
+        CTX.lineTo(cx-8,top+12); CTX.lineTo(cx-18,bot);
+        CTX.lineTo(cx,bot-6); CTX.lineTo(cx+18,bot);
+        CTX.lineTo(cx+8,top+12); CTX.closePath(); CTX.fill();
+        // Cannon barrel
+        CTX.fillStyle='#00f5ff'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=12;
+        CTX.fillRect(cx-4,top-6,8,18);
+        // Energy cells
+        CTX.fillStyle='rgba(0,245,255,0.4)';
+        CTX.fillRect(cx-14,this.y+20,8,14); CTX.fillRect(cx+6,this.y+20,8,14);
+        CTX.shadowBlur=0;
+        break;
+      }
+      default: {
+        CTX.beginPath(); CTX.moveTo(cx,top); CTX.lineTo(cx-20,bot); CTX.lineTo(cx,bot-8); CTX.lineTo(cx+20,bot); CTX.closePath(); CTX.fill();
+        CTX.fillStyle=this.index===0?'#00f5ff':'#ffff00'; CTX.fillRect(cx-4,this.y+this.height*0.4,8,this.height*0.4);
+      }
     }
     CTX.shadowBlur=0;
   }
@@ -1269,24 +1738,46 @@ class Enemy {
     CTX.fillRect(this.x,this.y-8,this.width*pct,4);
   }
   draw() {
-    CTX.fillStyle='#cc2222'; CTX.shadowColor='#ff3333'; CTX.shadowBlur=8;
-    CTX.fillRect(this.x,this.y,this.width,this.height);
+    // Basic enemy – angular invader shape
+    const cx=this.x+this.width/2, cy=this.y+this.height/2;
+    CTX.fillStyle='#cc2222'; CTX.shadowColor='#ff4444'; CTX.shadowBlur=10;
+    CTX.beginPath();
+    CTX.moveTo(cx,this.y+4); CTX.lineTo(this.x+this.width-4,this.y+8);
+    CTX.lineTo(this.x+this.width,this.y+this.height-4); CTX.lineTo(this.x+this.width-8,this.y+this.height);
+    CTX.lineTo(this.x+8,this.y+this.height); CTX.lineTo(this.x,this.y+this.height-4);
+    CTX.lineTo(this.x+4,this.y+8); CTX.closePath(); CTX.fill();
+    // Inner detail
+    CTX.fillStyle='rgba(255,100,100,0.35)';
+    CTX.beginPath(); CTX.arc(cx,cy,8,0,Math.PI*2); CTX.fill();
+    CTX.fillStyle='#ff6666'; CTX.shadowBlur=6;
+    CTX.beginPath(); CTX.arc(cx,cy,4,0,Math.PI*2); CTX.fill();
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
 
 class UniqueEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.y=-60; this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.y=-60; this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; this._angle=0; }
   draw() {
-    CTX.fillStyle='#ffd700'; CTX.shadowColor='#ffaa00'; CTX.shadowBlur=12;
-    CTX.fillRect(this.x,this.y,this.width,this.height);
-    CTX.fillStyle='#ff8c00'; CTX.fillRect(this.x+10,this.y+10,this.width-20,this.height-20);
+    this._angle=(this._angle||0)+0.02;
+    const cx=this.x+this.width/2, cy=this.y+this.height/2;
+    CTX.save(); CTX.translate(cx,cy); CTX.rotate(this._angle);
+    CTX.fillStyle='#ffd700'; CTX.shadowColor='#ffcc00'; CTX.shadowBlur=16;
+    // Star shape
+    CTX.beginPath();
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4, r=i%2===0?26:14;
+      i===0?CTX.moveTo(Math.cos(a)*r,Math.sin(a)*r):CTX.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+    }
+    CTX.closePath(); CTX.fill();
+    CTX.fillStyle='#ff8c00'; CTX.shadowBlur=8;
+    CTX.beginPath(); CTX.arc(0,0,10,0,Math.PI*2); CTX.fill();
+    CTX.restore();
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
 
 class UFO extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.width=60; this.height=30; this.speed=3+Math.random(); this.type='ufo'; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.width=60; this.height=28; this.speed=3+Math.random(); this.type='ufo'; }
   update() {
     this.x+=Math.sin(Date.now()/300)*2; this.y+=this.speed;
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
@@ -1294,37 +1785,76 @@ class UFO extends Enemy {
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
   draw() {
-    CTX.fillStyle='#cc00cc'; CTX.shadowColor='#ff00ff'; CTX.shadowBlur=10;
-    CTX.beginPath(); CTX.ellipse(this.x+this.width/2,this.y+this.height/2,this.width/2,this.height/2,0,0,Math.PI*2); CTX.fill();
+    const cx=this.x+this.width/2, cy=this.y+this.height/2;
+    // Saucer body
+    CTX.fillStyle='#bb00bb'; CTX.shadowColor='#ff00ff'; CTX.shadowBlur=12;
+    CTX.beginPath(); CTX.ellipse(cx,cy+4,this.width/2,this.height/2-2,0,0,Math.PI*2); CTX.fill();
+    // Top dome
+    CTX.fillStyle='#dd55dd'; CTX.shadowBlur=6;
+    CTX.beginPath(); CTX.ellipse(cx,cy-2,this.width/3.5,this.height/2,0,Math.PI,Math.PI*2); CTX.fill();
+    // Lights
+    [-16,-8,0,8,16].forEach((ox,i)=>{
+      CTX.fillStyle=i%2===0?'#ffff00':'#00ffff';
+      CTX.beginPath(); CTX.arc(cx+ox,cy+8,3,0,Math.PI*2); CTX.fill();
+    });
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
 
 class TankEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-70); this.y=-70; this.width=70; this.height=50; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-70); this.y=-70; this.width=70; this.height=52; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
   draw() {
-    CTX.fillStyle='#5a3e1b'; CTX.shadowColor='#8b5e3c'; CTX.shadowBlur=6;
-    CTX.fillRect(this.x,this.y,this.width,this.height);
-    CTX.fillStyle='#2d5a1b'; CTX.fillRect(this.x+10,this.y+10,this.width-20,this.height-20);
+    const cx=this.x+this.width/2;
+    // Hull
+    CTX.fillStyle='#4a3010'; CTX.shadowColor='#8b6030'; CTX.shadowBlur=8;
+    CTX.fillRect(this.x+4,this.y+10,this.width-8,this.height-10);
+    // Armor plates
+    CTX.fillStyle='#2d5a1b';
+    CTX.fillRect(this.x+8,this.y+14,this.width-16,this.height-22);
+    CTX.fillRect(this.x+4,this.y+28,8,14); CTX.fillRect(this.x+this.width-12,this.y+28,8,14);
+    // Turret
+    CTX.fillStyle='#3a2a08'; CTX.shadowBlur=4;
+    CTX.fillRect(cx-12,this.y,24,16);
+    // Cannon
+    CTX.fillStyle='#555'; CTX.fillRect(cx-4,this.y-10,8,16);
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
 
 class FastEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-30); this.y=-30; this.width=30; this.height=30; this.speed=5+Math.random()*2; this.type='fast'; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-32); this.y=-32; this.width=32; this.height=32; this.speed=5+Math.random()*2; this.type='fast'; }
   draw() {
-    CTX.fillStyle='#00bfff'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=8;
-    CTX.beginPath(); CTX.moveTo(this.x+this.width/2,this.y); CTX.lineTo(this.x,this.y+this.height); CTX.lineTo(this.x+this.width,this.y+this.height); CTX.closePath(); CTX.fill();
+    const cx=this.x+this.width/2;
+    CTX.fillStyle='#0090cc'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=10;
+    // Arrowhead
+    CTX.beginPath();
+    CTX.moveTo(cx,this.y); CTX.lineTo(this.x+this.width,this.y+this.height*0.7);
+    CTX.lineTo(cx+6,this.y+this.height*0.55); CTX.lineTo(cx,this.y+this.height);
+    CTX.lineTo(cx-6,this.y+this.height*0.55); CTX.lineTo(this.x,this.y+this.height*0.7);
+    CTX.closePath(); CTX.fill();
+    CTX.fillStyle='rgba(0,245,255,0.5)'; CTX.beginPath(); CTX.arc(cx,this.y+12,5,0,Math.PI*2); CTX.fill();
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
 
 class SpinnerEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-50); this.y=-50; this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-50); this.y=-50; this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; this._rot=0; }
   draw() {
-    CTX.fillStyle='#6600cc'; CTX.shadowColor='#9900ff'; CTX.shadowBlur=10;
-    CTX.beginPath(); CTX.arc(this.x+this.width/2,this.y+this.height/2,this.width/2,0,Math.PI*2); CTX.fill();
-    CTX.fillStyle='#ffff00'; CTX.fillRect(this.x+this.width/2-5,this.y+this.height/2-5,10,10);
+    this._rot=(this._rot||0)+0.04;
+    const cx=this.x+this.width/2, cy=this.y+this.height/2;
+    CTX.save(); CTX.translate(cx,cy); CTX.rotate(this._rot);
+    CTX.fillStyle='#6600cc'; CTX.shadowColor='#aa00ff'; CTX.shadowBlur=12;
+    // Spinning star
+    for(let i=0;i<6;i++){
+      const a=i*Math.PI/3;
+      CTX.beginPath(); CTX.moveTo(0,0);
+      CTX.arc(0,0,22,a,a+Math.PI/6); CTX.closePath(); CTX.fill();
+    }
+    CTX.fillStyle='#cc00ff'; CTX.shadowBlur=8;
+    CTX.beginPath(); CTX.arc(0,0,10,0,Math.PI*2); CTX.fill();
+    CTX.fillStyle='#ffff00'; CTX.shadowBlur=4;
+    CTX.beginPath(); CTX.arc(0,0,5,0,Math.PI*2); CTX.fill();
+    CTX.restore();
     CTX.shadowBlur=0; this.drawHealthBar();
   }
   shoot() {
@@ -1341,8 +1871,15 @@ class DiverEnemy extends Enemy {
     else { this.isDiving=true; const tx=this.target.x+this.target.width/2, ty=this.target.y+this.target.height/2; const a=Math.atan2(ty-this.y,tx-this.x); this.x+=Math.cos(a)*this.speed*1.5; this.y+=Math.sin(a)*this.speed*1.5; }
   }
   draw() {
-    CTX.fillStyle='#00008b'; CTX.shadowColor='#0000ff'; CTX.shadowBlur=8;
-    CTX.beginPath(); CTX.moveTo(this.x+this.width/2,this.y); CTX.lineTo(this.x,this.y+this.height); CTX.lineTo(this.x+this.width,this.y+this.height); CTX.closePath(); CTX.fill();
+    const cx=this.x+this.width/2, cy=this.y+this.height/2;
+    const angle=this.isDiving&&this.target?Math.atan2((this.target.y-cy),(this.target.x-cx)):Math.PI/2;
+    CTX.save(); CTX.translate(cx,cy); CTX.rotate(angle-Math.PI/2);
+    CTX.fillStyle='#0000cc'; CTX.shadowColor='#4444ff'; CTX.shadowBlur=10;
+    CTX.beginPath();
+    CTX.moveTo(0,-18); CTX.lineTo(-14,16); CTX.lineTo(0,8); CTX.lineTo(14,16); CTX.closePath(); CTX.fill();
+    CTX.fillStyle='rgba(100,100,255,0.4)';
+    CTX.beginPath(); CTX.arc(0,-4,6,0,Math.PI*2); CTX.fill();
+    CTX.restore();
     CTX.shadowBlur=0; this.drawHealthBar();
   }
 }
@@ -1610,7 +2147,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14 – MENU NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen'];
+const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel'];
 
 function hideAllOverlays() {
   document.getElementById('titleScreen').style.display='none';
@@ -1689,6 +2226,7 @@ function backToMenu() {
   State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false;
   hideAllOverlays(); setHUDVisible(false);
   document.getElementById('bossBarWrap').classList.remove('visible');
+  updateTitleHighScores();
   navigateMenu('main');
 }
 function restartGame() { State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; startGame(); }
@@ -1708,6 +2246,7 @@ function setHUDVisible(v) {
   document.getElementById('fabAch').style.display=v&&!State.twoPlayer?'block':'none';
   document.getElementById('hud2').classList.toggle('visible',v&&State.twoPlayer);
   document.getElementById('coinDisplay').style.display=v&&!State.twoPlayer?'flex':'none';
+  setTouchHUDVisible(v);
 }
 
 function updateScoreDisplay() {
@@ -1951,6 +2490,9 @@ function gameOver() {
   if(State.twoPlayer){p2el.style.display='block';p2el.textContent='P2: '+State.scores[1].toLocaleString();}else p2el.style.display='none';
   const stEl=document.getElementById('survivorTimeEl');
   if(State.survivorMode){stEl.style.display='block';stEl.textContent='TIME: '+formatTime(State.survivorElapsed);}else stEl.style.display='none';
+  const isNew = saveHighScore(getCurrentHSMode(), State.scores[0]);
+  const badge = document.getElementById('newHsBadge');
+  badge.style.display = isNew ? 'block' : 'none';
   setHUDVisible(false); navigateMenu('gameOver');
 }
 
@@ -1960,6 +2502,9 @@ function finalEnding() {
   document.getElementById('finalEndingScore').textContent='SCORE: '+State.scores[0].toLocaleString();
   const p2el=document.getElementById('finalEndingScoreP2');
   if(State.twoPlayer){p2el.style.display='block';p2el.textContent='P2: '+State.scores[1].toLocaleString();State.stats.multiplayerWins++;checkAchievements();}else p2el.style.display='none';
+  const isNew = saveHighScore(getCurrentHSMode(), State.scores[0]);
+  const badgeVic = document.getElementById('newHsBadgeVic');
+  badgeVic.style.display = isNew ? 'block' : 'none';
   setHUDVisible(false); navigateMenu('finalEnding');
 }
 
@@ -2426,9 +2971,11 @@ function bgLoop() { drawBackground(); requestAnimationFrame(bgLoop); }
 window.addEventListener('load',()=>{
   resizeCanvas();
   loadGameData();
+  loadSettings();
   updateHUD();
   buildDifficultyOptions('difficultyOptions',setDifficulty);
   bgLoop();
+  initTouchControls();
 
   // Loading animation
   const bar=document.getElementById('loadingProgress');
@@ -2438,6 +2985,7 @@ window.addEventListener('load',()=>{
     if(prog>=100) {
       clearInterval(iv);
       document.getElementById('loading').classList.remove('active');
+      updateTitleHighScores();
       navigateMenu('main');
     }
   },25);
