@@ -850,6 +850,7 @@
         <button onclick="showInfiniteMode()">∞ INFINITE</button>
         <button onclick="showSurvivorMode()">⏱ SURVIVOR</button>
         <button onclick="showBossRush()" style="border-color:#ff6600;color:#ff6600;">⚔ BOSS RUSH</button>
+        <button onclick="startDailyChallenge()" style="border-color:var(--gold);color:var(--gold);" id="dailyBtn">📅 DAILY</button>
         <button onclick="showInstructions()">CONTROLS</button>
       </div>
       <!-- Secondary row -->
@@ -902,9 +903,18 @@
 <div id="gameModeSelect" class="overlay">
   <h1>GAME MODE</h1>
   <button onclick="selectGameMode('single')">1 PLAYER</button>
-  <button onclick="selectGameMode('multi')">2 PLAYERS</button>
-  <button onclick="showOnlineScreen()" style="border-color:#b57bff;color:#b57bff;">🌐 ONLINE CO-OP</button>
+  <button onclick="selectGameMode('multi')">2 PLAYERS (LOCAL)</button>
+  <button onclick="selectGameMode('pvp')" style="border-color:#ff006e;color:#ff006e;">⚔ PvP — PLAYER VS PLAYER</button>
+  <button onclick="showOnlineScreen()" style="border-color:#b57bff;color:#b57bff;">🌐 ONLINE CO-OP / PvP</button>
   <button onclick="navigateMenu('main')" class="btn-danger">← BACK</button>
+</div>
+
+<!-- PvP Game Over -->
+<div id="pvpOver" class="overlay">
+  <h1 id="pvpWinnerTitle" style="color:var(--hot-pink);">P1 WINS!</h1>
+  <p id="pvpScores" style="font-family:'Orbitron',monospace;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:12px;"></p>
+  <button onclick="selectGameMode('pvp')">REMATCH</button>
+  <button onclick="backToMenu()" class="btn-danger">MAIN MENU</button>
 </div>
 
 <!-- Online Co-op Screen -->
@@ -982,6 +992,7 @@
 <div id="pauseScreen" class="overlay">
   <h1>PAUSED</h1>
   <button onclick="resumeGame()" style="border-color:var(--neon-green); color:var(--neon-green);">RESUME</button>
+  <button onclick="showCrafting()" style="border-color:#b57bff;color:#b57bff;" id="pauseCraftBtn">⚗️ CRAFTING</button>
   <button onclick="restartGame()">RESTART</button>
   <button onclick="backToMenu()" class="btn-danger">MAIN MENU</button>
 </div>
@@ -1601,6 +1612,8 @@ const State = {
   activeSynergies:[],
   materialInventory:{},
   collectedItems:[],
+  // PvP
+  pvpMode:false, pvpWinner:-1,
   // Online
   onlineBossKillCount:0,
 };
@@ -1971,22 +1984,25 @@ class FloatingText {
 // SECTION 6 – BULLETS
 // ═══════════════════════════════════════════════════════════════════
 class PlayerBullet {
-  constructor(x,y,color='#39ff14',angleOffset=0,dmgMult=1) {
+  constructor(x,y,color='#39ff14',angleOffset=0,dmgMult=1,direction=-1) {
     this.x=x; this.y=y;
     this.width=5; this.height=16;
     this.speed=11; this.color=color;
     this.angleOffset=angleOffset; this.damage=1*dmgMult;
+    this.direction=direction; // -1=up (normal), +1=down (PvP P2)
   }
-  update() { this.y-=this.speed; this.x+=this.angleOffset*3; }
+  update() { this.y+=this.direction*this.speed; this.x+=this.angleOffset*3; }
   draw() {
-    // IMPROVEMENT 5: glowing bullets with gradient
-    const grad = CTX.createLinearGradient(this.x,this.y+this.height,this.x,this.y);
+    // glowing bullets with gradient; flip gradient for downward bullets
+    const y0 = this.direction>0 ? this.y : this.y+this.height;
+    const y1 = this.direction>0 ? this.y+this.height : this.y;
+    const grad = CTX.createLinearGradient(this.x,y0,this.x,y1);
     grad.addColorStop(0,'transparent'); grad.addColorStop(1,this.color);
     CTX.fillStyle = grad;
     CTX.shadowColor = this.color; CTX.shadowBlur = 8;
     CTX.fillRect(this.x,this.y,this.width,this.height);
     CTX.fillStyle = '#fff'; CTX.globalAlpha = 0.8;
-    CTX.fillRect(this.x+1,this.y,2,4);
+    CTX.fillRect(this.x+1,this.direction>0?this.y+this.height-4:this.y,2,4);
     CTX.globalAlpha = 1; CTX.shadowBlur = 0;
   }
 }
@@ -2059,7 +2075,7 @@ class Player {
     this.index=playerIndex;
     const cfg = CHARACTER_CFG[characterId]||CHARACTER_CFG.marcelo;
     this.x = playerIndex===0 ? CANVAS.width/4-25 : CANVAS.width*3/4-25;
-    this.y = CANVAS.height - 100;
+    this.y = (State.pvpMode && playerIndex===1) ? 60 : CANVAS.height - 100;
     this.width=50; this.height=50;
     this.speed=cfg.speed;
     this.isMovingLeft=false; this.isMovingRight=false;
@@ -2099,10 +2115,11 @@ class Player {
     // IMPROVEMENT 7: engine trail
     if(Date.now()-this.lastTrail>50) {
       const cx=this.x+this.width/2;
-      const bot=this.y+this.height;
+      const pvpFlip = State.pvpMode && this.index===1;
+      const trailY = pvpFlip ? this.y : this.y+this.height;
+      const trailDir = pvpFlip ? -1 : 1;
       const c=this.index===0?'rgba(0,245,255,0.4)':'rgba(255,119,0,0.4)';
-      State.floatingTexts; // reuse State arrays is fine but trails are visual only
-      this.trailParticles.push({x:cx+rand(-5,5),y:bot,a:0.6,vx:rand(-0.5,0.5),vy:rand(0.5,1.5),size:rand(2,5),color:c});
+      this.trailParticles.push({x:cx+rand(-5,5),y:trailY,a:0.6,vx:rand(-0.5,0.5),vy:rand(0.5,1.5)*trailDir,size:rand(2,5),color:c});
       this.lastTrail=Date.now();
     }
     this.trailParticles=this.trailParticles.filter(p=>{
@@ -2123,35 +2140,40 @@ class Player {
     if(now-this.lastShootTime<=this.shootCooldown) return;
     this.lastShootTime=now;
     const cx=this.x+this.width/2;
+    // PvP: P2 shoots downward; bullets origin from bottom of ship
+    const pvpFlip = State.pvpMode && this.index===1;
+    const dir = pvpFlip ? 1 : -1;
+    const sy = pvpFlip ? this.y+this.height : this.y;
+    const _b=(x,y,ao,dm)=>new PlayerBullet(x,y,this.bulletColor,ao,dm,dir);
     switch(this.character) {
       case 'takeshi':
-        [-0.5,0,0.5].forEach(off=>this.bullets.push(new PlayerBullet(cx,this.y,this.bulletColor,off,this.damageMultiplier)));
+        [-0.5,0,0.5].forEach(off=>this.bullets.push(_b(cx,sy,off,this.damageMultiplier)));
         break;
       case 'deepseek':
         if(!this.laserActive){ this.laserActive=true; this.laserEndTime=now+1000; playSound('laserSound'); }
         break;
       case 'robos':
-        [-15,0,15].forEach(off=>this.bullets.push(new PlayerBullet(cx+off,this.y,this.bulletColor,0,this.damageMultiplier)));
+        [-15,0,15].forEach(off=>this.bullets.push(_b(cx+off,sy,0,this.damageMultiplier)));
         break;
       case 'omega':
-        this.bullets.push(new PlayerBullet(cx,this.y,this.bulletColor,0,this.damageMultiplier));
+        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
         break;
       case 'phantom': {
-        const pb=new PlayerBullet(cx,this.y,this.bulletColor,0,this.damageMultiplier);
-        pb.width=8; this.bullets.push(pb); break;
+        const pb=_b(cx,sy,0,this.damageMultiplier); pb.width=8; this.bullets.push(pb); break;
       }
       case 'titan': {
-        const tb=new PlayerBullet(cx-10,this.y,this.bulletColor,0,this.damageMultiplier);
+        const tb=_b(cx-10,sy,0,this.damageMultiplier);
         tb.width=20; tb.height=20; tb.damage=this.damageMultiplier*3; this.bullets.push(tb); break;
       }
       default:
-        this.bullets.push(new PlayerBullet(cx,this.y,this.bulletColor,0,this.damageMultiplier));
+        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
         if(this.index===0 && State.powerUpActive && this.shootCooldown===100) {
-          this.bullets.push(new PlayerBullet(cx-10,this.y,this.bulletColor,0,this.damageMultiplier));
-          this.bullets.push(new PlayerBullet(cx+10,this.y,this.bulletColor,0,this.damageMultiplier));
+          this.bullets.push(_b(cx-10,sy,0,this.damageMultiplier));
+          this.bullets.push(_b(cx+10,sy,0,this.damageMultiplier));
         }
     }
     playSound('shootSound');
+    if(_onlineMode) sendOnlineShoot();
   }
 
   activateAbility() {
@@ -2203,6 +2225,15 @@ class Player {
     this.drawTrail();
     // IMPROVEMENT 6: flash when invincible
     if(this.invincible && Math.floor(Date.now()/100)%2===0) return;
+
+    // Flip P2 vertically in PvP mode
+    const pvpFlip = State.pvpMode && this.index===1;
+    if(pvpFlip) {
+      CTX.save();
+      CTX.translate(this.x+this.width/2, this.y+this.height/2);
+      CTX.scale(1,-1);
+      CTX.translate(-(this.x+this.width/2), -(this.y+this.height/2));
+    }
 
     // Shield ring
     if(this.hasShield()) {
@@ -2351,6 +2382,15 @@ class Player {
       }
     }
     CTX.shadowBlur=0;
+    // Restore canvas transform for PvP P2 flip
+    if(pvpFlip) CTX.restore();
+    // PvP: draw player label
+    if(State.pvpMode) {
+      CTX.fillStyle=this.index===0?'rgba(0,245,255,0.8)':'rgba(255,119,0,0.8)';
+      CTX.font='bold 10px Orbitron, monospace'; CTX.textAlign='center';
+      const labelY = this.index===0 ? this.y-8 : this.y+this.height+16;
+      CTX.fillText(this.index===0?'P1':'P2', this.x+this.width/2, labelY);
+    }
   }
 }
 
@@ -2880,7 +2920,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14 – MENU NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen','onlineScreen','equipScreen'];
+const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen','onlineScreen','equipScreen','pvpOver'];
 
 function hideAllOverlays() {
   document.getElementById('titleScreen').style.display='none';
@@ -2934,9 +2974,16 @@ function buildSurvivorDiffOptions() {
 
 function showGameModeSelect() { navigateMenu('gameModeSelect'); }
 function selectGameMode(mode) {
-  State.twoPlayer=(mode==='multi');
-  if(State.twoPlayer) showCharacterSelect();
-  else { navigateMenu('difficultyScreen'); buildDifficultyOptions('difficultyOptions',setDifficulty); }
+  State.pvpMode=(mode==='pvp');
+  State.twoPlayer=(mode==='multi'||mode==='pvp');
+  if(State.pvpMode) {
+    State.selectedChar=['marcelo','marcelo'];
+    showCharacterSelect();
+  } else if(State.twoPlayer) {
+    showCharacterSelect();
+  } else {
+    navigateMenu('difficultyScreen'); buildDifficultyOptions('difficultyOptions',setDifficulty);
+  }
 }
 function setDifficulty(key) { State.difficulty=key; saveGameData(); showCharacterSelect(); }
 function showCharacterSelect() {
@@ -2962,7 +3009,7 @@ function hideInstructions() { navigateMenu('main'); }
 function pauseGame() { if(!State.running) return; State.paused=true; navigateMenu('pauseScreen'); }
 function resumeGame() { State.paused=false; hideAllOverlays(); gameLoop(); }
 function backToMenu() {
-  State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false;
+  State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false;
   if(_onlineMode) endOnlineSession();
   hideAllOverlays(); setHUDVisible(false);
   document.getElementById('bossBarWrap').classList.remove('visible');
@@ -2971,7 +3018,7 @@ function backToMenu() {
   updateTitleHighScores();
   navigateMenu('main');
 }
-function restartGame() { State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.bossRushMode=false; startGame(); }
+function restartGame() { State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false; State.bossRushMode=false; if(_onlineMode) endOnlineSession(); startGame(); }
 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14B – SKILL TREE
@@ -3020,7 +3067,7 @@ function buySkill(id) {
 function applySkillBonuses(player) {
   const sk=State.unlockedSkills;
   // Extra bullet (fp1)
-  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const cx=this.x+this.width/2;this.bullets.push(new PlayerBullet(cx-12,this.y,this.bulletColor,-0.2,this.damageMultiplier));this.bullets.push(new PlayerBullet(cx+12,this.y,this.bulletColor,0.2,this.damageMultiplier));}}; }
+  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const cx=this.x+this.width/2;const pvpFlip=State.pvpMode&&this.index===1;const dir=pvpFlip?1:-1;const sy=pvpFlip?this.y+this.height:this.y;this.bullets.push(new PlayerBullet(cx-12,sy,this.bulletColor,-0.2,this.damageMultiplier,dir));this.bullets.push(new PlayerBullet(cx+12,sy,this.bulletColor,0.2,this.damageMultiplier,dir));}}; }
   // Damage boost (fp2)
   if(sk.fp2) player.damageMultiplier*=(1+0.25*(sk.fp2||0));
   // Rapid fire (fp3)
@@ -3414,6 +3461,87 @@ function updateTitleStats() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// SECTION 14G2 – DAILY CHALLENGE
+// ═══════════════════════════════════════════════════════════════════
+function getDailyKey() {
+  const d = new Date();
+  return `daily_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+}
+
+function getDailySeed() {
+  const d = new Date();
+  return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+}
+
+function seededRandom(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+const DAILY_MODIFIERS = [
+  { label:'SPEED DEMON', desc:'Enemies move 2× faster', apply:()=>{ /* applied in enemy speed */ } },
+  { label:'COIN RUSH',   desc:'Triple coin rewards today', apply:()=>{ State._dailyCoinMult=3; } },
+  { label:'NO SHIELD',   desc:'Shield power-ups disabled', apply:()=>{ State._dailyNoShield=true; } },
+  { label:'HARD CORE',   desc:'Start with 1 life only', apply:()=>{ State.players.forEach(p=>p.lives=1); } },
+  { label:'DOUBLE XP',   desc:'Double XP gain', apply:()=>{ State.xpMultiplier*=2; } },
+  { label:'RAPID BOSSES',desc:'Bosses appear 2× faster', apply:()=>{ State._dailyFastBoss=true; } },
+  { label:'GOLDEN RUN',  desc:'+50% score multiplier', apply:()=>{ State._dailyScoreMult=1.5; } },
+];
+
+function startDailyChallenge() {
+  const key = getDailyKey();
+  const seed = getDailySeed();
+  const modIdx = Math.floor(seededRandom(seed) * DAILY_MODIFIERS.length);
+  const mod = DAILY_MODIFIERS[modIdx];
+  const diffIdx = Math.floor(seededRandom(seed+1) * 3);
+  const diffs = ['normal','hard','extreme'];
+  const charIdx = Math.floor(seededRandom(seed+2) * CHARACTER_IDS.length);
+
+  // Reset daily state flags
+  State._dailyCoinMult=1; State._dailyNoShield=false; State._dailyFastBoss=false; State._dailyScoreMult=1;
+
+  State.difficulty = diffs[diffIdx];
+  State.selectedChar[0] = CHARACTER_IDS[charIdx];
+  State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false;
+  State.pvpMode=false;
+
+  const done = localStorage.getItem(key);
+  const doneMsg = done ? ` (COMPLETED — BEST: ${parseInt(done).toLocaleString()})` : '';
+
+  const confirm = window.confirm(
+    `DAILY CHALLENGE\n\n` +
+    `CHARACTER: ${CHARACTER_IDS[charIdx].toUpperCase()}\n` +
+    `DIFFICULTY: ${diffs[diffIdx].toUpperCase()}\n` +
+    `MODIFIER: ${mod.label} — ${mod.desc}\n\n` +
+    `${doneMsg ? '⚠ ' + doneMsg + '\n\n' : ''}Start?`
+  );
+  if (!confirm) return;
+
+  State._dailyMode = true;
+  State._dailyModifier = mod;
+  showEquipScreen(() => {
+    startGame();
+    // Apply modifier after game starts
+    setTimeout(() => {
+      try { mod.apply(); } catch(e){}
+      showWaveAnnounce(`${mod.label}!`, '#ffd60a');
+    }, 500);
+  });
+}
+
+function checkDailyComplete(score) {
+  if(!State._dailyMode) return;
+  const key = getDailyKey();
+  const prev = parseInt(localStorage.getItem(key)||'0');
+  if(score > prev) {
+    localStorage.setItem(key, score);
+    showWaveAnnounce('DAILY BEST!', '#ffd60a');
+    addCoins(200); // Daily completion bonus
+  }
+  State._dailyMode=false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // SECTION 14H – ONLINE MULTIPLAYER (PeerJS WebRTC)
 // ═══════════════════════════════════════════════════════════════════
 let _peer = null;
@@ -3446,7 +3574,18 @@ function initPeer() {
     setOnlineStatus('PLAYER 2 CONNECTED! STARTING...');
     _onlineMode = true;
     State.twoPlayer = true;
-    setTimeout(startOnlineGame, 1500);
+    // Give connection time to stabilize, then send game config to client
+    setTimeout(() => {
+      if(_conn && _conn.open) {
+        _conn.send({
+          type:'gameStart',
+          chars: State.selectedChar,
+          difficulty: State.difficulty,
+          pvp: State.pvpMode,
+        });
+      }
+      startOnlineGame();
+    }, 800);
   });
 
   _peer.on('error', err => {
@@ -3544,10 +3683,21 @@ function handleNetworkData(data) {
     if (p) p.shoot();
   }
   if (data.type === 'gameStart' && !_isHost) {
-    State.selectedChar[0] = data.chars[0] || 'marcelo';
-    State.selectedChar[1] = data.chars[1] || 'marcelo';
+    State.selectedChar[0] = data.chars?.[0] || 'marcelo';
+    State.selectedChar[1] = data.chars?.[1] || 'marcelo';
     State.difficulty = data.difficulty || 'normal';
+    State.pvpMode = !!data.pvp;
+    State.twoPlayer = true;
     startOnlineGame();
+  }
+
+  if (data.type === 'pvphit') {
+    const p = State.players[data.target];
+    if(p) {
+      handlePlayerDamage(p);
+      const attackerIdx = 1 - data.target;
+      if(data.score !== undefined) State.scores[attackerIdx] = data.score;
+    }
   }
 }
 
@@ -3799,6 +3949,7 @@ function startGame() {
   State.stats.phaseDamageTaken=0; State.stats.currentCombo=0; State.stats.lastKillTime=0;
   State.screenShake=0;
   State.doubleDamage=false; State.phoenixUsed=false;
+  State._dailyCoinMult=1; State._dailyNoShield=false; State._dailyFastBoss=false; State._dailyScoreMult=1;
   // Reset run-specific equipment state
   State.runEquipment={ weapon:null, armor:null, accessory:null, relic:null };
   State.activeSynergies=[];
@@ -3855,6 +4006,7 @@ function gameOver() {
   badge.style.display = isNew ? 'block' : 'none';
   const pName = getPlayerName();
   if (pName) submitScore(getCurrentHSMode(), State.scores[0], pName);
+  checkDailyComplete(State.scores[0]);
   if (_onlineMode) endOnlineSession();
   setHUDVisible(false); navigateMenu('gameOver');
 }
@@ -3870,6 +4022,7 @@ function finalEnding() {
   badgeVic.style.display = isNew ? 'block' : 'none';
   const pName2 = getPlayerName();
   if (pName2) submitScore(getCurrentHSMode(), State.scores[0], pName2);
+  checkDailyComplete(State.scores[0]);
   if (_onlineMode) endOnlineSession();
   setHUDVisible(false); navigateMenu('finalEnding');
 }
@@ -3947,6 +4100,11 @@ function handleEnemyDeath(enemy,eIdx,killerPlayer) {
   State.stats.lastKillTime=now;
   State.stats.maxCombo=Math.max(State.stats.maxCombo,State.stats.currentCombo);
   State.stats.enemiesKilled++;
+  // sp2: combo bonus coins
+  if(State.stats.currentCombo>=3 && (State.unlockedSkills.sp2||0)>=1) {
+    const bonus=Math.floor(State.stats.currentCombo*(State.unlockedSkills.sp2||1)*0.5);
+    if(bonus>0) addCoins(bonus);
+  }
 
   // IMPROVEMENT 14: combo display
   updateComboDisplay();
@@ -3994,6 +4152,26 @@ function updateComboDisplay() {
   }
 }
 
+function pvpVictory(winnerIdx) {
+  State.running=false;
+  State.pvpWinner=winnerIdx;
+  const color=winnerIdx===0?'#00f5ff':'#ff7700';
+  const label=winnerIdx===0?'PLAYER 1 WINS!':'PLAYER 2 WINS!';
+  showWaveAnnounce(label,color);
+  addCoins(winnerIdx===0?100:60);
+  if(winnerIdx===0) State.stats.multiplayerWins++;
+  saveGameData(); checkAchievements();
+  if(_onlineMode) endOnlineSession();
+  setTimeout(()=>{
+    setHUDVisible(false);
+    const titleEl=document.getElementById('pvpWinnerTitle');
+    const scoresEl=document.getElementById('pvpScores');
+    if(titleEl) { titleEl.textContent=label; titleEl.style.color=color; }
+    if(scoresEl) scoresEl.textContent=`P1: ${State.scores[0].toLocaleString()} pts  |  P2: ${State.scores[1].toLocaleString()} pts`;
+    navigateMenu('pvpOver');
+  }, 2800);
+}
+
 function handlePlayerDamage(player) {
   if(player.invincible) return; // IMPROVEMENT 6
   // Phoenix revive
@@ -4015,12 +4193,29 @@ function handlePlayerDamage(player) {
   setTimeout(()=>{vig.style.transition='opacity 0.5s'; vig.style.opacity='0';},150);
   // IMPROVEMENT 2: strong screen shake on hit
   State.screenShake=12;
+  if(State.pvpMode) {
+    // Draw PvP divider line and life counters on canvas
+    if(player.lives<=0) {
+      const winnerIdx=player.index===0?1:0;
+      pvpVictory(winnerIdx);
+    }
+    return;
+  }
   if(State.players.every(p=>p.lives<=0)) gameOver();
 }
 
 function handleBossDefeat() {
   State.stats.bossesDefeated++;
-  addCoins(State.boss.reward);
+  // sp3: Boss Loot +25% per level
+  const bossLootMult = 1 + 0.25*(State.unlockedSkills.sp3||0);
+  addCoins(Math.floor(State.boss.reward * bossLootMult));
+  // sp9: Mastery — +5% all stats per boss kill
+  if((State.unlockedSkills.sp9||0)>=1) {
+    State.players.forEach(p => {
+      p.damageMultiplier *= 1 + 0.05*(State.unlockedSkills.sp9||1);
+      p.speed = Math.min(p.speed+0.3, 18);
+    });
+  }
   if(State.stats.phaseDamageTaken===0){State.stats.perfectLevels++;addCoins(100);showWaveAnnounce('PERFECT!','#ffd60a');}
   triggerExplosion(State.boss.x+State.boss.width/2,State.boss.y+State.boss.height/2,'#ffd700',80);
   // IMPROVEMENT 17: multi-explosion on boss death
@@ -4069,12 +4264,15 @@ function handlePowerupCollection(power,pIdx,collector) {
       if(collector.index===0){State.shieldActive=true;State.shieldEndTime=Date.now()+8000;}
       else{collector.permanentShield=true;setTimeout(()=>{collector.permanentShield=false;},8000);}
       showWaveAnnounce('SHIELD UP','#39ff14'); break;
-    case 'double':
-      State.doubleDamage=true; State.doubleDamageEnd=Date.now()+6000;
+    case 'double': {
+      // ut10: Fortune — +15% double damage duration per level
+      const ddDuration = 6000 * (1 + 0.15*(State.unlockedSkills.ut10||0));
+      State.doubleDamage=true; State.doubleDamageEnd=Date.now()+ddDuration;
       State.stats.ddCollected++;
       const ddEl=document.getElementById('ddIndicator');
-      if(ddEl){ddEl.style.display='block';setTimeout(()=>{ddEl.style.display='none';},6000);}
+      if(ddEl){ddEl.style.display='block';setTimeout(()=>{ddEl.style.display='none';},ddDuration);}
       showWaveAnnounce('DOUBLE DAMAGE!','#ff8800'); break;
+    }
     case 'bomb':
       for(let bi=State.enemies.length-1;bi>=0;bi--){
         const be=State.enemies[bi];
@@ -4136,10 +4334,29 @@ function updateTimersPerFrame() {
 // SECTION 24 – COLLISION PASSES
 // ═══════════════════════════════════════════════════════════════════
 function processBullets() {
-  State.players.forEach(p=>{
-    p.bullets=p.bullets.filter(b=>b.y+b.height>=0);
+  State.players.forEach((p,pi)=>{
+    // Filter out-of-bounds bullets (direction-aware)
+    p.bullets=p.bullets.filter(b=>b.direction>0 ? b.y<=CANVAS.height : b.y+b.height>=0);
     for(let i=p.bullets.length-1;i>=0;i--) {
       const b=p.bullets[i]; b.update(); b.draw();
+
+      // ── PvP: check against opponent player ──
+      if(State.pvpMode) {
+        const opponent=State.players[1-pi];
+        // In online: only the attacking side detects its own bullet hits
+        const shouldCheck = !_onlineMode || pi===(_isHost?0:1);
+        if(opponent&&!opponent.invincible&&shouldCheck&&p.bullets[i]&&detectCollision(p.bullets[i],opponent)) {
+          triggerExplosion(b.x,b.y,p.bulletColor,10);
+          p.bullets.splice(i,1);
+          handlePlayerDamage(opponent);
+          State.scores[pi]+=50;
+          if(_onlineMode&&_conn&&_conn.open) _conn.send({type:'pvphit',target:1-pi,score:State.scores[pi]});
+          continue;
+        }
+        continue; // No enemy/boss in PvP
+      }
+
+      // ── Normal mode: enemies ──
       for(let e=State.enemies.length-1;e>=0;e--) {
         if(!detectCollision(b,State.enemies[e])) continue;
         triggerExplosion(b.x,b.y,'#ffff00',6);
@@ -4148,10 +4365,12 @@ function processBullets() {
         if(State.enemies[e].health<=0) handleEnemyDeath(State.enemies[e],e,p);
         break;
       }
+      // Boss bullet hit — check item boss_dmg multiplier
       if(State.boss&&p.bullets[i]&&detectCollision(p.bullets[i],State.boss)) {
         triggerExplosion(b.x,b.y,'#ffff00',6);
         p.bullets.splice(i,1);
-        State.boss.health-=b.damage;
+        const bossDmgMult = p._bossDmgMult || 1;
+        State.boss.health-=b.damage*bossDmgMult;
         if(State.boss.health<=0){handleBossDefeat();return;}
       }
     }
@@ -4198,6 +4417,7 @@ function processLasers() {
 }
 
 function processEnemies() {
+  if(State.pvpMode) return;
   for(let i=State.enemies.length-1;i>=0;i--) {
     const e=State.enemies[i]; e.update(); e.draw();
     for(const p of State.players) {
@@ -4225,7 +4445,7 @@ function processEnemies() {
 }
 
 function processBoss() {
-  if(!State.boss) return;
+  if(State.pvpMode||!State.boss) return;
   State.boss.update(); State.boss.draw();
   for(let bi=State.boss.bullets.length-1;bi>=0;bi--) {
     const bullet=State.boss.bullets[bi];
@@ -4280,6 +4500,7 @@ function processFloatingTexts() {
 // SECTION 25 – SPAWN TRIGGER
 // ═══════════════════════════════════════════════════════════════════
 function trySpawnEnemiesOrBoss() {
+  if(State.pvpMode) return;
   if(!State.uniqueSpawned&&!State.infiniteMode&&!State.survivorMode&&State.scores[0]===0) {
     State.enemies.push(createEnemy('unique')); State.uniqueSpawned=true;
   }
@@ -4342,6 +4563,20 @@ function gameLoop() {
 
   // Online multiplayer sync
   if(_onlineMode) sendNetworkUpdate();
+
+  // PvP center divider
+  if(State.pvpMode) {
+    const mid=CANVAS.height/2;
+    CTX.strokeStyle='rgba(255,255,255,0.15)'; CTX.lineWidth=1; CTX.setLineDash([10,10]);
+    CTX.beginPath(); CTX.moveTo(0,mid); CTX.lineTo(CANVAS.width,mid); CTX.stroke();
+    CTX.setLineDash([]);
+    // PvP score display
+    const p0=State.players[0], p1=State.players[1];
+    CTX.fillStyle='rgba(0,245,255,0.8)'; CTX.font='bold 14px Orbitron, monospace'; CTX.textAlign='left';
+    CTX.fillText('P1: '+(p0?p0.lives:0)+'♥  '+State.scores[0].toLocaleString(), 16, mid-8);
+    CTX.fillStyle='rgba(255,119,0,0.8)'; CTX.textAlign='right';
+    CTX.fillText('P2: '+(p1?p1.lives:0)+'♥  '+State.scores[1].toLocaleString(), CANVAS.width-16, mid+22);
+  }
 
   // Screen shake
   let sx=0, sy=0;
