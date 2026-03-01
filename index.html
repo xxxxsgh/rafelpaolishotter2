@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rafa Paoli's Shooter — Ultimate V2</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
       --cyan: #00f5ff;
@@ -720,6 +721,92 @@
       0%   { background: rgba(255,140,0,0.5); }
       100% { background: transparent; }
     }
+
+    /* ─── EQUIPMENT CARDS ─── */
+    .equip-card {
+      padding: 12px 14px; margin: 8px 0;
+      background: rgba(255,255,255,0.03);
+      border-left: 3px solid #9e9e9e;
+      cursor: pointer; transition: all 0.2s;
+      position: relative;
+    }
+    .equip-card:hover { background: rgba(255,255,255,0.08); }
+    .equip-card .rarity-badge {
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      letter-spacing: 2px; float: right;
+    }
+    .equip-card .equip-name {
+      font-family: 'Orbitron', monospace; font-size: 11px;
+      font-weight: 700; color: #fff; margin-bottom: 3px;
+    }
+    .equip-card .equip-slot {
+      font-size: 9px; color: rgba(255,255,255,0.35);
+      letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .equip-card .equip-desc { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+    /* ─── CRAFTING ─── */
+    .craft-row {
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .craft-info { flex: 1; }
+    .craft-name { font-family: 'Orbitron', monospace; font-size: 10px; color: #fff; }
+    .craft-ing  { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .craft-btn  { font-size: 9px; padding: 5px 10px; margin: 0; width: auto; min-width: 60px; }
+
+    /* ─── ONLINE SCREEN ─── */
+    #joinCodeInput {
+      width: 100%; padding: 10px; margin-top: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(0,245,255,0.3);
+      color: #fff; font-family: 'Orbitron', monospace;
+      font-size: 14px; letter-spacing: 3px;
+      text-transform: uppercase; text-align: center;
+    }
+    #myPeerCode {
+      font-family: 'Orbitron', monospace; font-size: 18px;
+      color: var(--cyan); letter-spacing: 4px;
+      padding: 10px; background: rgba(0,245,255,0.05);
+      border: 1px solid rgba(0,245,255,0.2);
+      margin-top: 6px; text-align: center; cursor: pointer;
+    }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-tab-btn { font-size: 9px; padding: 6px 10px; margin: 0; width: auto; }
+    .lb-tab-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .lb-entry {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-family: 'Orbitron', monospace;
+    }
+    .lb-rank  { font-size: 11px; width: 24px; text-align: right; }
+    .lb-name  { flex: 1; font-size: 11px; color: #fff; }
+    .lb-char  { font-size: 9px; color: rgba(255,255,255,0.3); }
+    .lb-score { font-size: 12px; color: var(--gold); }
+
+    /* ─── SYNERGY HUD ─── */
+    #synergyHud {
+      position: fixed; bottom: 100px; left: 16px;
+      display: none; z-index: 6; pointer-events: none;
+    }
+    .synergy-badge {
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      color: #ff9800; text-shadow: 0 0 8px #ff9800;
+      letter-spacing: 1px; margin-bottom: 3px;
+    }
+
+    /* ─── MATERIALS HUD ─── */
+    #matHud {
+      position: fixed; top: 70px; left: 16px;
+      display: none; z-index: 6; pointer-events: none;
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      color: rgba(181,123,255,0.7); letter-spacing: 1px;
+    }
+
+    /* ─── SKILL TREE WIDE ─── */
+    #skillTreePanel { width: min(780px, 98vw); }
+    .skill-col h3 { position: sticky; top: 0; background: var(--panel); z-index: 1; padding-bottom: 6px; }
   </style>
 </head>
 <body>
@@ -766,11 +853,12 @@
         <button onclick="showInstructions()">CONTROLS</button>
       </div>
       <!-- Secondary row -->
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:6px;">
+      <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-top:6px;">
         <button class="btn-gold" onclick="showShop()" style="font-size:9px;padding:7px;margin:0;">🛍</button>
         <button onclick="showSkillTree()" style="font-size:9px;padding:7px;margin:0;border-color:#39ff14;color:#39ff14;">🌿</button>
         <button onclick="showAchievements()" style="font-size:9px;padding:7px;margin:0;border-color:var(--purple);color:var(--purple);">🏆</button>
         <button onclick="showStats()" style="font-size:9px;padding:7px;margin:0;border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);">📊</button>
+        <button onclick="showLeaderboard('campaign')" style="font-size:9px;padding:7px;margin:0;border-color:var(--gold);color:var(--gold);">🌐</button>
       </div>
       <button onclick="showSettings()" style="font-size:8px;padding:6px;margin-top:5px;border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.3);">⚙ SETTINGS</button>
     </div>
@@ -815,7 +903,34 @@
   <h1>GAME MODE</h1>
   <button onclick="selectGameMode('single')">1 PLAYER</button>
   <button onclick="selectGameMode('multi')">2 PLAYERS</button>
+  <button onclick="showOnlineScreen()" style="border-color:#b57bff;color:#b57bff;">🌐 ONLINE CO-OP</button>
   <button onclick="navigateMenu('main')" class="btn-danger">← BACK</button>
+</div>
+
+<!-- Online Co-op Screen -->
+<div id="onlineScreen" class="overlay" style="width:min(420px,95vw);">
+  <h1 style="color:#b57bff;">ONLINE CO-OP</h1>
+  <div style="margin-bottom:12px;">
+    <div class="settings-label">YOUR ROOM CODE</div>
+    <div id="myPeerCode" onclick="copyRoomCode()">GENERATING...</div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px;text-align:center;">CLICK TO COPY — SHARE WITH FRIEND</div>
+  </div>
+  <div style="margin:14px 0;border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;">
+    <div class="settings-label">JOIN A GAME</div>
+    <input id="joinCodeInput" type="text" placeholder="ENTER ROOM CODE" maxlength="8">
+    <button onclick="joinPeerGame()" style="margin-top:8px;border-color:var(--neon-green);color:var(--neon-green);">JOIN GAME</button>
+  </div>
+  <div id="onlineStatus" style="font-size:11px;color:rgba(255,255,255,0.4);text-align:center;margin:8px 0;min-height:18px;font-family:'Orbitron',monospace;letter-spacing:1px;"></div>
+  <button onclick="navigateMenu('main')" class="btn-danger">← BACK</button>
+</div>
+
+<!-- Equipment Select Screen -->
+<div id="equipScreen" class="overlay" style="width:min(500px,95vw);max-height:90vh;overflow-y:auto;">
+  <h1>CHOOSE EQUIPMENT</h1>
+  <div style="font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:12px;">SELECT ONE ITEM FOR THIS RUN</div>
+  <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:14px;" id="equipSlotLabel"></div>
+  <div id="equipOptions"></div>
+  <button onclick="skipEquip()" class="btn-danger" style="margin-top:12px;">SKIP</button>
 </div>
 
 <!-- Difficulty -->
@@ -1016,6 +1131,27 @@
   <button class="modal-close" onclick="closeModal('achModal')">CLOSE</button>
 </div>
 
+<!-- Crafting Modal -->
+<div id="craftingModal" class="modal" style="min-width:340px;max-width:520px;width:95vw;">
+  <h2 style="color:#b57bff;">CRAFTING</h2>
+  <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:1px;">MATERIALS:</div>
+  <div id="craftMatDisplay" style="font-family:'Orbitron',monospace;font-size:9px;color:#b57bff;letter-spacing:1px;margin-bottom:14px;line-height:1.8;"></div>
+  <div id="craftingRecipes"></div>
+  <button class="modal-close" onclick="closeModal('craftingModal')" style="margin-top:12px;">CLOSE</button>
+</div>
+
+<!-- Leaderboard Modal -->
+<div id="leaderboardModal" class="modal" style="min-width:360px;max-width:520px;width:95vw;">
+  <h2 style="color:var(--gold);">GLOBAL LEADERBOARD</h2>
+  <div class="lb-tab-row">
+    <button class="lb-tab-btn" onclick="showLeaderboard('campaign')">CAMPAIGN</button>
+    <button class="lb-tab-btn" onclick="showLeaderboard('infinite')">INFINITE</button>
+    <button class="lb-tab-btn" onclick="showLeaderboard('survivor')">SURVIVOR</button>
+  </div>
+  <div id="lbList" style="max-height:320px;overflow-y:auto;"></div>
+  <button class="modal-close" onclick="closeModal('leaderboardModal')" style="margin-top:12px;">CLOSE</button>
+</div>
+
 <!-- Achievement Toast -->
 <div id="achToast">
   <h3 id="achToastTitle"></h3>
@@ -1023,8 +1159,15 @@
 </div>
 
 <!-- FAB Buttons -->
-<button id="fabShop" class="fab" onclick="showShop()">🛍 SHOP</button>
-<button id="fabAch"  class="fab" onclick="showAchievements()">🏆 ACH</button>
+<button id="fabShop"   class="fab" onclick="showShop()">🛍 SHOP</button>
+<button id="fabAch"    class="fab" onclick="showAchievements()">🏆 ACH</button>
+<button id="fabCraft"  class="fab" onclick="showCrafting()" style="display:none;">⚗️ CRAFT</button>
+
+<!-- Synergy HUD -->
+<div id="synergyHud"></div>
+
+<!-- Materials HUD -->
+<div id="matHud"></div>
 
 <!-- Double Damage Indicator -->
 <div id="ddIndicator">⚡ DOUBLE DAMAGE ⚡</div>
@@ -1064,6 +1207,15 @@
     <div class="settings-label">PARTICLES / FX</div>
     <div class="settings-control">
       <button class="toggle-btn" id="fxToggle" onclick="toggleFX()">HIGH</button>
+    </div>
+  </div>
+  <div class="settings-row">
+    <div class="settings-label">PLAYER NAME</div>
+    <div class="settings-control">
+      <input id="playerNameInput" type="text" maxlength="12" placeholder="YOUR NAME"
+             style="background:rgba(0,0,0,0.5);border:1px solid rgba(0,245,255,0.3);color:#fff;
+             font-family:'Orbitron',monospace;font-size:11px;padding:5px 8px;letter-spacing:1px;width:140px;"
+             oninput="savePlayerName(this.value)">
     </div>
   </div>
   <div style="margin-top:16px;">
@@ -1263,25 +1415,139 @@ const INFINITE_COOLDOWNS = { nuke:30000, heal:45000, shield:60000 };
 // ─ Skill Tree ─
 const SKILL_TREE = {
   firepower: [
-    { id:'fp1', name:'Extra Bullet',  desc:'+1 bala por tiro',           cost:200, maxLevel:1 },
-    { id:'fp2', name:'Damage Boost',  desc:'+25% dano por nível',        cost:400, maxLevel:3 },
-    { id:'fp3', name:'Rapid Fire',    desc:'-15% cooldown por nível',    cost:600, maxLevel:3 },
+    { id:'fp1',  name:'Extra Bullet',     desc:'+1 side bullet per shot',        cost:200,  maxLevel:1 },
+    { id:'fp2',  name:'Damage Boost',     desc:'+25% damage per level',          cost:400,  maxLevel:3 },
+    { id:'fp3',  name:'Rapid Fire',       desc:'-15% shoot cooldown per level',  cost:600,  maxLevel:3 },
+    { id:'fp4',  name:'Piercing Shot',    desc:'Bullets pass through 1 enemy',   cost:800,  maxLevel:1 },
+    { id:'fp5',  name:'Burst Fire',       desc:'Every 5th shot fires 3x',        cost:700,  maxLevel:2 },
+    { id:'fp6',  name:'Explosive Rounds', desc:'Bullets deal AoE on hit',        cost:900,  maxLevel:2 },
+    { id:'fp7',  name:'Sniper Mode',      desc:'+100% damage, -30% fire rate',   cost:1200, maxLevel:1 },
+    { id:'fp8',  name:'Dual Cannons',     desc:'Fire 2 parallel shots',          cost:1000, maxLevel:1 },
+    { id:'fp9',  name:'Overcharge',       desc:'Charged shot deals +50% dmg',    cost:1100, maxLevel:2 },
+    { id:'fp10', name:'Crits',            desc:'5% chance per level for 3× dmg', cost:500,  maxLevel:3 },
   ],
   defense: [
-    { id:'df1', name:'Extra Life',    desc:'+1 vida inicial',            cost:300, maxLevel:2 },
-    { id:'df2', name:'Phoenix',       desc:'Revive 1x por run',          cost:1000,maxLevel:1 },
-    { id:'df3', name:'Shield Boost',  desc:'+50% duração shield/nível',  cost:500, maxLevel:2 },
+    { id:'df1',  name:'Extra Life',       desc:'+1 starting life',               cost:300,  maxLevel:2 },
+    { id:'df2',  name:'Phoenix',          desc:'Revive once per run',            cost:1000, maxLevel:1 },
+    { id:'df3',  name:'Shield Boost',     desc:'+50% shield duration per level', cost:500,  maxLevel:2 },
+    { id:'df4',  name:'Thorns',           desc:'Damage attacker on shield hit',  cost:600,  maxLevel:2 },
+    { id:'df5',  name:'Regen',            desc:'Recover HP slowly over time',    cost:800,  maxLevel:1 },
+    { id:'df6',  name:'Bulwark',          desc:'+1 HP cap, start with full HP',  cost:700,  maxLevel:2 },
+    { id:'df7',  name:'Deflector',        desc:'20% chance to deflect bullets',  cost:900,  maxLevel:2 },
+    { id:'df8',  name:'Last Stand',       desc:'At 1HP: +50% dmg, 2s invuln',   cost:1500, maxLevel:1 },
+    { id:'df9',  name:'Hardened',         desc:'-0.3s invincibility frames',     cost:400,  maxLevel:3 },
+    { id:'df10', name:'Mirror Shield',    desc:'Reflected bullets deal 2× dmg', cost:1200, maxLevel:1 },
   ],
   utility: [
-    { id:'ut1', name:'Coin Magnet',   desc:'+75px atração de moedas',   cost:150, maxLevel:3 },
-    { id:'ut2', name:'XP Boost',      desc:'+20% XP ganho',              cost:250, maxLevel:3 },
-    { id:'ut3', name:'Lucky Drops',   desc:'+20% chance power-up',       cost:400, maxLevel:2 },
+    { id:'ut1',  name:'Coin Magnet',      desc:'+75px coin attraction per level',cost:150,  maxLevel:3 },
+    { id:'ut2',  name:'XP Boost',         desc:'+20% XP gained per level',       cost:250,  maxLevel:3 },
+    { id:'ut3',  name:'Lucky Drops',      desc:'+20% power-up drop chance',      cost:400,  maxLevel:2 },
+    { id:'ut4',  name:'Scavenger',        desc:'Enemies drop crafting materials', cost:350,  maxLevel:1 },
+    { id:'ut5',  name:'Scholar',          desc:'+1 equipment offered per run',   cost:300,  maxLevel:2 },
+    { id:'ut6',  name:'Haste',            desc:'+1 movement speed per level',    cost:200,  maxLevel:3 },
+    { id:'ut7',  name:'Looter',           desc:'+25% coins from bosses',         cost:700,  maxLevel:2 },
+    { id:'ut8',  name:'Radar Extend',     desc:'+30% radar detection range',     cost:250,  maxLevel:2 },
+    { id:'ut9',  name:'Quick Revive',     desc:'-25% respawn wait per level',    cost:500,  maxLevel:2 },
+    { id:'ut10', name:'Fortune',          desc:'+15% double-damage duration',    cost:450,  maxLevel:2 },
   ],
   special: [
-    { id:'sp1', name:'Quick Cooldown',desc:'-15% cooldown habilidade',   cost:350, maxLevel:2 },
-    { id:'sp2', name:'Combo Bonus',   desc:'Combos dão bônus de moedas', cost:500, maxLevel:2 },
-    { id:'sp3', name:'Boss Loot',     desc:'+25% moedas de bosses',      cost:700, maxLevel:2 },
+    { id:'sp1',  name:'Quick Cooldown',   desc:'-15% ability cooldown per level',cost:350,  maxLevel:2 },
+    { id:'sp2',  name:'Combo Bonus',      desc:'Combos give extra coins',        cost:500,  maxLevel:2 },
+    { id:'sp3',  name:'Boss Loot',        desc:'+25% coins from boss kills',     cost:700,  maxLevel:2 },
+    { id:'sp4',  name:'Synergy Core',     desc:'Enables item synergy slots',     cost:800,  maxLevel:1 },
+    { id:'sp5',  name:'Crafter',          desc:'Unlock advanced crafting tiers', cost:600,  maxLevel:2 },
+    { id:'sp6',  name:'Run Specialist',   desc:'+10% stats for full-clear runs', cost:900,  maxLevel:2 },
+    { id:'sp7',  name:'Dual Ability',     desc:'Second ability charge stored',   cost:1200, maxLevel:1 },
+    { id:'sp8',  name:'Overclock',        desc:'Ability active 25% longer',      cost:700,  maxLevel:2 },
+    { id:'sp9',  name:'Mastery',          desc:'+5% of all stats per boss kill', cost:1000, maxLevel:2 },
+    { id:'sp10', name:'Ultimate',         desc:'Unlocks super-ability at LV 10', cost:2000, maxLevel:1 },
   ],
+};
+
+// ─ Equipment Rarities ─
+const RARITY = {
+  common:    { label:'COMMON',    color:'#9e9e9e', multiplier:1.0 },
+  uncommon:  { label:'UNCOMMON',  color:'#4caf50', multiplier:1.3 },
+  rare:      { label:'RARE',      color:'#2196f3', multiplier:1.7 },
+  epic:      { label:'EPIC',      color:'#9c27b0', multiplier:2.2 },
+  legendary: { label:'LEGENDARY', color:'#ff9800', multiplier:3.0 },
+};
+
+// ─ Equipment Definitions ─
+const EQUIPMENT_DATA = [
+  { id:'plasma_gun',    slot:'weapon',    name:'Plasma Gun',     effect:'dmg',      value:0.20, desc:'+20% bullet damage' },
+  { id:'twin_laser',    slot:'weapon',    name:'Twin Laser',     effect:'spread',   value:1,    desc:'+1 extra shot angle' },
+  { id:'rapid_coil',   slot:'weapon',    name:'Rapid Coil',     effect:'fire',     value:0.25, desc:'-25% shoot cooldown' },
+  { id:'void_blade',   slot:'weapon',    name:'Void Blade',     effect:'pierce',   value:1,    desc:'Bullets pierce 1 enemy' },
+  { id:'nova_cannon',  slot:'weapon',    name:'Nova Cannon',    effect:'aoe',      value:30,   desc:'Bullets explode in 30px' },
+  { id:'nano_vest',    slot:'armor',     name:'Nano Vest',      effect:'maxhp',    value:1,    desc:'+1 max HP' },
+  { id:'pulse_shield', slot:'armor',     name:'Pulse Shield',   effect:'deflect',  value:0.15, desc:'15% bullet deflect chance' },
+  { id:'regen_core',   slot:'armor',     name:'Regen Core',     effect:'regen',    value:1,    desc:'Recover 1 HP per phase' },
+  { id:'mirror_plate', slot:'armor',     name:'Mirror Plate',   effect:'thorns',   value:0.5,  desc:'Reflect 50% bullet damage' },
+  { id:'titan_hull',   slot:'armor',     name:'Titan Hull',     effect:'reduction',value:0.15, desc:'-15% damage taken' },
+  { id:'coin_ring',    slot:'accessory', name:'Coin Ring',      effect:'coins',    value:0.25, desc:'+25% coin drops' },
+  { id:'xp_lens',      slot:'accessory', name:'XP Lens',        effect:'xp',       value:0.30, desc:'+30% XP gain' },
+  { id:'lucky_charm',  slot:'accessory', name:'Lucky Charm',    effect:'drop',     value:0.20, desc:'+20% power-up drop' },
+  { id:'speed_ring',   slot:'accessory', name:'Speed Ring',     effect:'speed',    value:2,    desc:'+2 movement speed' },
+  { id:'magnet_coil',  slot:'accessory', name:'Magnet Coil',    effect:'magnet',   value:100,  desc:'+100px coin attraction' },
+  { id:'dark_heart',   slot:'relic',     name:'Dark Heart',     effect:'lifesteal',value:0.05, desc:'5% lifesteal on kill' },
+  { id:'chaos_gem',    slot:'relic',     name:'Chaos Gem',      effect:'random',   value:1,    desc:'Random buff each phase' },
+  { id:'omega_core',   slot:'relic',     name:'Omega Core',     effect:'all',      value:0.10, desc:'+10% all stats' },
+  { id:'void_shard',   slot:'relic',     name:'Void Shard',     effect:'blink',    value:1,    desc:'Dodge blink on damage' },
+  { id:'genesis_key',  slot:'relic',     name:'Genesis Key',    effect:'boss_dmg', value:0.50, desc:'+50% damage vs bosses' },
+];
+
+// ─ Item Synergies ─
+const ITEM_SYNERGIES = [
+  {
+    id:'plasma_twin',
+    items:['plasma_gun','twin_laser'],
+    name:'PLASMA STORM',
+    desc:'All shots become 3-way + 30% damage',
+    effect:(player)=>{ player.damageMultiplier*=1.3; player._tripleShot=true; }
+  },
+  {
+    id:'regen_heart',
+    items:['regen_core','dark_heart'],
+    name:'BLOOD PACT',
+    desc:'Lifesteal heals above max HP as temp shield',
+    effect:(player)=>{ player._bloodPact=true; }
+  },
+  {
+    id:'void_mirror',
+    items:['void_blade','mirror_plate'],
+    name:'ECHO VOID',
+    desc:'Piercing bullets also deflect enemy shots',
+    effect:(player)=>{ player._echoVoid=true; }
+  },
+  {
+    id:'omega_chaos',
+    items:['omega_core','chaos_gem'],
+    name:'GENESIS SURGE',
+    desc:'Random buff refreshes every 20s, +20% all stats',
+    effect:(player)=>{ player.damageMultiplier*=1.2; player._genesisSurge=true; }
+  },
+];
+
+// ─ Crafting Recipes ─
+const CRAFTING_RECIPES = [
+  { id:'craft_plasma_gun',  result:{itemId:'plasma_gun',  rarity:'uncommon'}, ingredients:{scrap_metal:3,energy_cell:2},           name:'Plasma Gun (Uncommon)' },
+  { id:'craft_twin_laser',  result:{itemId:'twin_laser',  rarity:'rare'},     ingredients:{energy_cell:4,nano_fiber:2},             name:'Twin Laser (Rare)' },
+  { id:'craft_rapid_coil',  result:{itemId:'rapid_coil',  rarity:'uncommon'}, ingredients:{scrap_metal:4,energy_cell:1},            name:'Rapid Coil (Uncommon)' },
+  { id:'craft_regen_core',  result:{itemId:'regen_core',  rarity:'rare'},     ingredients:{nano_fiber:4,void_crystal:1},            name:'Regen Core (Rare)' },
+  { id:'craft_nano_vest',   result:{itemId:'nano_vest',   rarity:'uncommon'}, ingredients:{scrap_metal:5,nano_fiber:2},             name:'Nano Vest (Uncommon)' },
+  { id:'craft_coin_ring',   result:{itemId:'coin_ring',   rarity:'rare'},     ingredients:{energy_cell:3,chaos_shard:1},            name:'Coin Ring (Rare)' },
+  { id:'craft_speed_ring',  result:{itemId:'speed_ring',  rarity:'uncommon'}, ingredients:{nano_fiber:3,scrap_metal:2},             name:'Speed Ring (Uncommon)' },
+  { id:'craft_dark_heart',  result:{itemId:'dark_heart',  rarity:'epic'},     ingredients:{void_crystal:2,chaos_shard:2,nano_fiber:3}, name:'Dark Heart (Epic)' },
+  { id:'craft_omega_core',  result:{itemId:'omega_core',  rarity:'legendary'},ingredients:{void_crystal:3,chaos_shard:3,energy_cell:5}, name:'Omega Core (Legendary)' },
+  { id:'craft_genesis_key', result:{itemId:'genesis_key', rarity:'legendary'},ingredients:{void_crystal:4,chaos_shard:4,nano_fiber:4}, name:'Genesis Key (Legendary)' },
+];
+
+// ─ Leaderboard Config ─
+const LEADERBOARD_CONFIG = {
+  apiKey: '$2b$10$placeholder_key_replace_with_real',
+  binIds: { campaign:'', infinite:'', survivor:'' },
+  maxEntries: 20,
 };
 
 function freshSurvivorAbilities() {
@@ -1330,6 +1596,13 @@ const State = {
   doubleDamage:false, doubleDamageEnd:0,
   phoenixUsed:false,
   bossRushMode:false, bossRushIndex:0, bossRushStartTime:0,
+  // Equipment & Crafting (run-specific, reset each run)
+  runEquipment:{ weapon:null, armor:null, accessory:null, relic:null },
+  activeSynergies:[],
+  materialInventory:{},
+  collectedItems:[],
+  // Online
+  onlineBossKillCount:0,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1411,6 +1684,8 @@ function showSettings() {
   document.getElementById('soundToggle').classList.toggle('off', !soundEnabled);
   document.getElementById('fxToggle').textContent = fxHighQuality ? 'HIGH' : 'LOW';
   document.getElementById('fxToggle').classList.toggle('off', !fxHighQuality);
+  const ni = document.getElementById('playerNameInput');
+  if (ni) ni.value = getPlayerName();
 }
 
 function hideSettings() {
@@ -1499,6 +1774,88 @@ function setTouchHUDVisible(v) {
   if (!isTouchDevice()) return;
   const tc = document.getElementById('touchControls');
   if (tc) tc.classList.toggle('visible', v);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SECTION 3E – GLOBAL LEADERBOARD
+// ═══════════════════════════════════════════════════════════════════
+let _cachedLeaderboards = {};
+let _playerName = '';
+
+function getPlayerName() {
+  if (!_playerName) _playerName = localStorage.getItem('rpshooter_name') || '';
+  return _playerName;
+}
+
+function savePlayerName(name) {
+  _playerName = name;
+  try { localStorage.setItem('rpshooter_name', name); } catch(e) {}
+  // Update input field value if settings open
+  const el = document.getElementById('playerNameInput');
+  if (el && el.value !== name) el.value = name;
+}
+
+async function fetchLeaderboard(mode) {
+  const binId = LEADERBOARD_CONFIG.binIds[mode];
+  if (!binId) return [];
+  if (_cachedLeaderboards[mode] && Date.now() - _cachedLeaderboards[mode].ts < 30000) {
+    return _cachedLeaderboards[mode].data;
+  }
+  try {
+    const resp = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': LEADERBOARD_CONFIG.apiKey }
+    });
+    if (!resp.ok) return [];
+    const json = await resp.json();
+    const data = json.record?.entries || [];
+    _cachedLeaderboards[mode] = { data, ts: Date.now() };
+    return data;
+  } catch(e) { return []; }
+}
+
+async function submitScore(mode, score, playerName) {
+  const binId = LEADERBOARD_CONFIG.binIds[mode];
+  if (!binId || !score || !playerName || binId.length < 5) return;
+  try {
+    const current = await fetchLeaderboard(mode);
+    const newEntry = {
+      name: playerName.toUpperCase().substring(0, 12),
+      score,
+      char: State.selectedChar[0],
+      date: new Date().toISOString().split('T')[0],
+    };
+    const updated = [...current, newEntry]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, LEADERBOARD_CONFIG.maxEntries);
+    await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': LEADERBOARD_CONFIG.apiKey },
+      body: JSON.stringify({ entries: updated }),
+    });
+    _cachedLeaderboards[mode] = { data: updated, ts: Date.now() };
+  } catch(e) { console.warn('Score submit failed', e); }
+}
+
+async function showLeaderboard(mode) {
+  mode = mode || 'campaign';
+  const el = document.getElementById('lbList');
+  if (el) el.innerHTML = '<div style="text-align:center;opacity:0.5;padding:20px;font-family:\'Orbitron\',monospace;font-size:10px;">LOADING...</div>';
+  openModal('leaderboardModal');
+  const entries = await fetchLeaderboard(mode);
+  if (!el) return;
+  if (!entries || entries.length === 0) {
+    el.innerHTML = '<div style="text-align:center;opacity:0.5;padding:20px;font-family:\'Orbitron\',monospace;font-size:10px;">NO SCORES YET — BE THE FIRST!</div>';
+    return;
+  }
+  el.innerHTML = entries.map((e, i) => {
+    const rankColor = i===0?'#ffd60a':i===1?'#aaa':i===2?'#cd7f32':'rgba(255,255,255,0.3)';
+    return `<div class="lb-entry">
+      <span class="lb-rank" style="color:${rankColor}">#${i+1}</span>
+      <span class="lb-name">${e.name||'???'}</span>
+      <span class="lb-char">${e.char||''}</span>
+      <span class="lb-score">${(e.score||0).toLocaleString()}</span>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2523,7 +2880,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14 – MENU NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen'];
+const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen','onlineScreen','equipScreen'];
 
 function hideAllOverlays() {
   document.getElementById('titleScreen').style.display='none';
@@ -2593,7 +2950,9 @@ function startGameWithSelectedCharacter() {
   State.stats.charactersPlayed=State.stats.charactersUsed.length;
   const newChars2=['omega','phantom','titan'];
   if(State.selectedChar.some(c=>newChars2.includes(c))) State.stats.newCharPlayed=true;
-  saveGameData(); checkAchievements(); startGame();
+  saveGameData(); checkAchievements();
+  // Show equipment select if player has ut5 (Scholar) or just one weapon slot
+  showEquipScreen(startGame);
 }
 function showInfiniteMode() { State.infiniteMode=true; navigateMenu('difficultyScreen'); buildDifficultyOptions('difficultyOptions',key=>{setDifficulty(key);}); }
 function showSurvivorMode() { buildSurvivorDiffOptions(); navigateMenu('survivorModeScreen'); }
@@ -2604,8 +2963,11 @@ function pauseGame() { if(!State.running) return; State.paused=true; navigateMen
 function resumeGame() { State.paused=false; hideAllOverlays(); gameLoop(); }
 function backToMenu() {
   State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false;
+  if(_onlineMode) endOnlineSession();
   hideAllOverlays(); setHUDVisible(false);
   document.getElementById('bossBarWrap').classList.remove('visible');
+  const syH=document.getElementById('synergyHud'); if(syH) syH.style.display='none';
+  const matH=document.getElementById('matHud'); if(matH) matH.style.display='none';
   updateTitleHighScores();
   navigateMenu('main');
 }
@@ -2663,16 +3025,199 @@ function applySkillBonuses(player) {
   if(sk.fp2) player.damageMultiplier*=(1+0.25*(sk.fp2||0));
   // Rapid fire (fp3)
   if(sk.fp3) { player.shootCooldown=Math.max(50,player.shootCooldown*(1-0.15*(sk.fp3||0))); player.baseCooldown=player.shootCooldown; }
+  // Piercing shot (fp4)
+  if(sk.fp4) player._piercingShots=sk.fp4;
+  // Sniper mode (fp7)
+  if(sk.fp7) { player.damageMultiplier*=2.0; player.shootCooldown=Math.min(player.shootCooldown*1.3, 800); player.baseCooldown=player.shootCooldown; }
+  // Crits (fp10)
+  if(sk.fp10) player._critChance=(sk.fp10||0)*0.05;
   // Extra life (df1)
   if(sk.df1) player.lives+=sk.df1;
   // Shield boost (df3)
   if(sk.df3) player.shieldDurationMult=(1+0.5*(sk.df3||0));
+  // Deflector (df7)
+  if(sk.df7) player._deflectChance=(sk.df7||0)*0.20;
+  // Haste (ut6)
+  if(sk.ut6) player.speed+=sk.ut6;
   // Coin magnet (ut1)
   if(sk.ut1) State.magnetRadius=Math.max(State.magnetRadius,75*(sk.ut1||0));
   // XP boost (ut2)
   if(sk.ut2) State.xpMultiplier=1+0.2*(sk.ut2||0);
   // Quick cooldown (sp1)
   if(sk.sp1) { player.abilityCooldownMult=(1-0.15*(sk.sp1||0)); }
+  // Overclock (sp8) - ability lasts 25% longer
+  if(sk.sp8) player._overclockMult=1+0.25*(sk.sp8||0);
+}
+
+function applyEquipment(player) {
+  const eq = State.runEquipment;
+  Object.values(eq).forEach(item => {
+    if (!item) return;
+    const mult = RARITY[item.rarity]?.multiplier || 1;
+    const val = item.value * mult;
+    switch(item.effect) {
+      case 'dmg':       player.damageMultiplier *= (1 + val); break;
+      case 'fire':      player.shootCooldown = Math.max(50, player.shootCooldown * (1 - val)); player.baseCooldown = player.shootCooldown; break;
+      case 'speed':     player.speed += Math.floor(val); break;
+      case 'maxhp':     player.lives += Math.floor(val); break;
+      case 'deflect':   player._deflectChance = Math.min(0.8, (player._deflectChance||0) + val); break;
+      case 'magnet':    State.magnetRadius = Math.max(State.magnetRadius, val); break;
+      case 'xp':        State.xpMultiplier = Math.max(State.xpMultiplier, 1 + val); break;
+      case 'reduction': player._dmgReduction = Math.min(0.7, (player._dmgReduction||0) + val); break;
+      case 'all':       player.damageMultiplier *= (1 + val); player.speed += 1; break;
+      case 'boss_dmg':  player._bossDmgMult = (player._bossDmgMult||1) * (1 + val); break;
+      case 'pierce':    player._piercingShots = Math.max(player._piercingShots||0, 1); break;
+    }
+  });
+}
+
+function checkSynergies(player) {
+  State.activeSynergies = [];
+  const equippedIds = Object.values(State.runEquipment).filter(Boolean).map(i => i.id);
+  ITEM_SYNERGIES.forEach(syn => {
+    const hasSynergy = syn.items.every(id => equippedIds.includes(id));
+    const hasSp4 = (State.unlockedSkills.sp4||0) >= 1;
+    if (hasSynergy && hasSp4) {
+      State.activeSynergies.push(syn);
+      try { syn.effect(player); } catch(e) {}
+    }
+  });
+  updateSynergyHud();
+}
+
+function updateSynergyHud() {
+  const el = document.getElementById('synergyHud');
+  if (!el) return;
+  if (State.activeSynergies.length === 0 || !State.running) { el.style.display='none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = State.activeSynergies.map(s =>
+    `<div class="synergy-badge">✦ ${s.name}</div>`
+  ).join('');
+}
+
+function updateMatHud() {
+  const el = document.getElementById('matHud');
+  if (!el) return;
+  const mats = State.materialInventory;
+  const total = Object.values(mats).reduce((a,b)=>a+b,0);
+  if (total === 0 || !State.running || !(State.unlockedSkills.ut4||0)) { el.style.display='none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = Object.entries(mats)
+    .filter(([,v])=>v>0)
+    .map(([k,v])=>`${k.replace('_',' ').toUpperCase()} ×${v}`)
+    .join(' &nbsp;|&nbsp; ');
+}
+
+// ─ Equipment Selection Screen ─
+let _equipPendingSlots = [];
+let _equipCallback = null;
+
+function showEquipScreen(callback) {
+  _equipCallback = callback;
+  const slots = ['weapon','armor','accessory','relic'];
+  _equipPendingSlots = slots.filter(s => !State.runEquipment[s]);
+  _nextEquipSlot();
+}
+
+function _nextEquipSlot() {
+  if (_equipPendingSlots.length === 0) {
+    if (_equipCallback) _equipCallback();
+    return;
+  }
+  const slot = _equipPendingSlots.shift();
+  _showEquipOptionsForSlot(slot);
+}
+
+function _showEquipOptionsForSlot(slot) {
+  const pool = EQUIPMENT_DATA.filter(e => e.slot === slot);
+  const rarities = ['common','uncommon','rare'];
+  const bonusCount = Math.min(1 + Math.floor((State.unlockedSkills.ut5||0)), 2);
+  const count = 2 + bonusCount;
+  const picked = [];
+  const shuffled = pool.sort(()=>Math.random()-0.5);
+  for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+    const base = shuffled[i];
+    const rarityIdx = Math.floor(Math.random() * rarities.length);
+    const rarity = rarities[rarityIdx];
+    const mult = RARITY[rarity].multiplier;
+    picked.push({ ...base, rarity, value: base.value * mult, displayValue: Math.round(base.value * mult * 100) / 100 });
+  }
+
+  const slotEl = document.getElementById('equipSlotLabel');
+  if (slotEl) slotEl.textContent = 'SLOT: ' + slot.toUpperCase();
+
+  const wrap = document.getElementById('equipOptions');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  picked.forEach(item => {
+    const r = RARITY[item.rarity];
+    const div = document.createElement('div');
+    div.className = 'equip-card';
+    div.style.borderLeftColor = r.color;
+    div.innerHTML = `
+      <div class="equip-name" style="color:${r.color}">${item.name} <span class="rarity-badge" style="color:${r.color}">${r.label}</span></div>
+      <div class="equip-slot">${item.slot}</div>
+      <div class="equip-desc">${item.desc}</div>
+    `;
+    div.onclick = () => { State.runEquipment[slot] = item; hideAllOverlays(); _nextEquipSlot(); };
+    wrap.appendChild(div);
+  });
+  hideAllOverlays();
+  document.getElementById('equipScreen').classList.add('active');
+}
+
+function skipEquip() {
+  _equipPendingSlots = [];
+  if (_equipCallback) { _equipCallback(); }
+}
+
+// ─ Crafting Functions ─
+function showCrafting() {
+  const matEl = document.getElementById('craftMatDisplay');
+  if (matEl) {
+    const mats = State.materialInventory;
+    const total = Object.values(mats).reduce((a,b)=>a+b,0);
+    matEl.textContent = total ? Object.entries(mats).filter(([,v])=>v>0).map(([k,v])=>`${k.replace(/_/g,' ')}: ${v}`).join('  ') : 'NONE';
+  }
+  const recEl = document.getElementById('craftingRecipes');
+  if (!recEl) { openModal('craftingModal'); return; }
+  recEl.innerHTML = '';
+  CRAFTING_RECIPES.forEach(recipe => {
+    const canCraft = Object.entries(recipe.ingredients).every(([mat, qty]) => (State.materialInventory[mat]||0) >= qty);
+    const r = RARITY[recipe.result.rarity];
+    const row = document.createElement('div');
+    row.className = 'craft-row';
+    row.style.opacity = canCraft ? '1' : '0.45';
+    row.innerHTML = `
+      <div class="craft-info">
+        <div class="craft-name" style="color:${r.color}">${recipe.name}</div>
+        <div class="craft-ing">${Object.entries(recipe.ingredients).map(([m,q])=>`${m.replace(/_/g,' ')} ×${q}`).join('  ')}</div>
+      </div>
+      <button class="craft-btn" style="border-color:${r.color};color:${r.color};" ${canCraft?'':'disabled'} onclick="craftItem('${recipe.id}')">CRAFT</button>
+    `;
+    recEl.appendChild(row);
+  });
+  openModal('craftingModal');
+}
+
+function craftItem(recipeId) {
+  const recipe = CRAFTING_RECIPES.find(r => r.id === recipeId);
+  if (!recipe) return;
+  const canCraft = Object.entries(recipe.ingredients).every(([mat, qty]) => (State.materialInventory[mat]||0) >= qty);
+  if (!canCraft) return;
+  Object.entries(recipe.ingredients).forEach(([mat, qty]) => { State.materialInventory[mat] -= qty; });
+  const base = EQUIPMENT_DATA.find(e => e.id === recipe.result.itemId);
+  if (!base) return;
+  const rarity = recipe.result.rarity;
+  const mult = RARITY[rarity].multiplier;
+  const item = { ...base, rarity, value: base.value * mult };
+  const slot = item.slot;
+  State.runEquipment[slot] = item;
+  showWaveAnnounce(`CRAFTED: ${item.name.toUpperCase()}!`, RARITY[rarity].color);
+  showCrafting();
+  updateMatHud();
+  // Re-apply equipment to players
+  if (State.running) State.players.forEach(p => applyEquipment(p));
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2869,6 +3414,165 @@ function updateTitleStats() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// SECTION 14H – ONLINE MULTIPLAYER (PeerJS WebRTC)
+// ═══════════════════════════════════════════════════════════════════
+let _peer = null;
+let _conn = null;
+let _isHost = false;
+let _onlineMode = false;
+const _SYNC_RATE = 50;
+let _lastSync = 0;
+
+function showOnlineScreen() {
+  navigateMenu('onlineScreen');
+  initPeer();
+}
+
+function initPeer() {
+  if (_peer) { try { _peer.destroy(); } catch(e) {} _peer = null; }
+  const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+  _peer = new Peer(code, { host:'0.peerjs.com', port:443, path:'/', secure:true, debug:0 });
+
+  _peer.on('open', id => {
+    const el = document.getElementById('myPeerCode');
+    if (el) el.textContent = id;
+    setOnlineStatus('READY — WAITING FOR PLAYER 2...');
+    _isHost = true;
+  });
+
+  _peer.on('connection', conn => {
+    _conn = conn;
+    setupPeerConnection(conn);
+    setOnlineStatus('PLAYER 2 CONNECTED! STARTING...');
+    _onlineMode = true;
+    State.twoPlayer = true;
+    setTimeout(startOnlineGame, 1500);
+  });
+
+  _peer.on('error', err => {
+    setOnlineStatus('ERROR: ' + err.type + ' — RETRYING...');
+    setTimeout(initPeer, 3000);
+  });
+}
+
+function joinPeerGame() {
+  const inp = document.getElementById('joinCodeInput');
+  if (!inp) return;
+  const code = inp.value.trim().toUpperCase();
+  if (!code || code.length < 4) { setOnlineStatus('ENTER A VALID CODE'); return; }
+
+  if (!_peer) {
+    _peer = new Peer(undefined, { host:'0.peerjs.com', port:443, path:'/', secure:true, debug:0 });
+    _peer.on('open', id => { const el=document.getElementById('myPeerCode'); if(el) el.textContent=id; });
+  }
+
+  setOnlineStatus('CONNECTING TO ' + code + '...');
+  _conn = _peer.connect(code, { reliable:true });
+  _isHost = false;
+  _onlineMode = true;
+  State.twoPlayer = true;
+  setupPeerConnection(_conn);
+}
+
+function setupPeerConnection(conn) {
+  conn.on('open', () => {
+    if (!_isHost) setOnlineStatus('CONNECTED! HOST IS STARTING GAME...');
+  });
+  conn.on('data', data => { handleNetworkData(data); });
+  conn.on('close', () => {
+    setOnlineStatus('CONNECTION LOST');
+    _onlineMode = false;
+    if (State.running) {
+      showWaveAnnounce('PLAYER 2 DISCONNECTED', '#ff006e');
+      State.twoPlayer = false;
+    }
+  });
+  conn.on('error', err => setOnlineStatus('ERROR: ' + (err.message||'')));
+}
+
+function startOnlineGame() {
+  State.twoPlayer = true;
+  if (!State.selectedChar[1]) State.selectedChar[1] = 'marcelo';
+  startGame();
+}
+
+function buildHostSnapshot() {
+  return {
+    type:'snapshot',
+    boss: State.boss ? { hp:State.boss.health, maxHp:State.boss.maxHealth } : null,
+    score: State.scores[0],
+    wave: State.wave,
+    p1x: State.players[0] ? State.players[0].x : 0,
+  };
+}
+
+function buildClientInput() {
+  const p2 = State.players[1];
+  if (!p2) return null;
+  return { type:'input', x:p2.x, left:p2.isMovingLeft, right:p2.isMovingRight, score:State.scores[1], lives:p2.lives };
+}
+
+function sendNetworkUpdate() {
+  if (!_conn || !_conn.open || !State.running || !_onlineMode) return;
+  const now = Date.now();
+  if (now - _lastSync < _SYNC_RATE) return;
+  _lastSync = now;
+  if (_isHost) { _conn.send(buildHostSnapshot()); }
+  else { const inp = buildClientInput(); if (inp) _conn.send(inp); }
+}
+
+function handleNetworkData(data) {
+  if (!data) return;
+  if (data.type === 'snapshot' && !_isHost) {
+    if (State.players[0] && data.p1x !== undefined) State.players[0].x = data.p1x;
+    State.scores[0] = data.score || 0;
+    if (data.boss && State.boss) State.boss.health = data.boss.hp;
+    if (!data.boss && State.boss) { handleBossDefeat(); State.boss = null; }
+  }
+  if (data.type === 'input' && _isHost) {
+    if (State.players[1] && data.x !== undefined) {
+      State.players[1].x = data.x;
+      State.players[1].isMovingLeft = data.left;
+      State.players[1].isMovingRight = data.right;
+    }
+    State.scores[1] = data.score || 0;
+    if (State.players[1] && data.lives !== undefined) State.players[1].lives = data.lives;
+  }
+  if (data.type === 'shoot') {
+    const pIdx = _isHost ? 1 : 0;
+    const p = State.players[pIdx];
+    if (p) p.shoot();
+  }
+  if (data.type === 'gameStart' && !_isHost) {
+    State.selectedChar[0] = data.chars[0] || 'marcelo';
+    State.selectedChar[1] = data.chars[1] || 'marcelo';
+    State.difficulty = data.difficulty || 'normal';
+    startOnlineGame();
+  }
+}
+
+function sendOnlineShoot() {
+  if (_conn && _conn.open && _onlineMode) _conn.send({ type:'shoot' });
+}
+
+function setOnlineStatus(msg) {
+  const el = document.getElementById('onlineStatus');
+  if (el) el.textContent = msg;
+}
+
+function copyRoomCode() {
+  const code = document.getElementById('myPeerCode')?.textContent;
+  if (!code) return;
+  navigator.clipboard?.writeText(code).then(() => setOnlineStatus('CODE COPIED!'));
+}
+
+function endOnlineSession() {
+  if (_conn) { try { _conn.close(); } catch(e) {} _conn = null; }
+  if (_peer) { try { _peer.destroy(); } catch(e) {} _peer = null; }
+  _onlineMode = false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // SECTION 15 – HUD UPDATE (IMPROVEMENT 11: animated heart lives)
 // ═══════════════════════════════════════════════════════════════════
 function updateHUD() {
@@ -2881,8 +3585,14 @@ function setHUDVisible(v) {
   document.getElementById('bottomHud').classList.toggle('visible',v);
   document.getElementById('fabShop').style.display=v&&!State.twoPlayer?'block':'none';
   document.getElementById('fabAch').style.display=v&&!State.twoPlayer?'block':'none';
+  const craftFab = document.getElementById('fabCraft');
+  if (craftFab) craftFab.style.display = v&&!State.twoPlayer&&(State.unlockedSkills.ut4||0)>=1?'block':'none';
   document.getElementById('hud2').classList.toggle('visible',v&&State.twoPlayer);
   document.getElementById('coinDisplay').style.display=v&&!State.twoPlayer?'flex':'none';
+  const syH = document.getElementById('synergyHud');
+  if (syH) syH.style.display = v&&State.activeSynergies.length>0?'block':'none';
+  const matH = document.getElementById('matHud');
+  if (matH) matH.style.display = v&&(State.unlockedSkills.ut4||0)>=1?'block':'none';
   setTouchHUDVisible(v);
 }
 
@@ -3089,10 +3799,18 @@ function startGame() {
   State.stats.phaseDamageTaken=0; State.stats.currentCombo=0; State.stats.lastKillTime=0;
   State.screenShake=0;
   State.doubleDamage=false; State.phoenixUsed=false;
+  // Reset run-specific equipment state
+  State.runEquipment={ weapon:null, armor:null, accessory:null, relic:null };
+  State.activeSynergies=[];
+  State.materialInventory={};
+  State.collectedItems=[];
+  State.onlineBossKillCount=0;
   const count=State.twoPlayer?2:1;
   State.players=[];
   for(let i=0;i<count;i++) State.players.push(new Player(State.selectedChar[i],i));
   State.players.forEach(p=>applySkillBonuses(p));
+  State.players.forEach(p=>applyEquipment(p));
+  if(State.players[0]) checkSynergies(State.players[0]);
   // Track new chars
   const newChars=['omega','phantom','titan'];
   if(State.selectedChar.some(c=>newChars.includes(c))) State.stats.newCharPlayed=true;
@@ -3135,6 +3853,9 @@ function gameOver() {
   const isNew = saveHighScore(getCurrentHSMode(), State.scores[0]);
   const badge = document.getElementById('newHsBadge');
   badge.style.display = isNew ? 'block' : 'none';
+  const pName = getPlayerName();
+  if (pName) submitScore(getCurrentHSMode(), State.scores[0], pName);
+  if (_onlineMode) endOnlineSession();
   setHUDVisible(false); navigateMenu('gameOver');
 }
 
@@ -3147,6 +3868,9 @@ function finalEnding() {
   const isNew = saveHighScore(getCurrentHSMode(), State.scores[0]);
   const badgeVic = document.getElementById('newHsBadgeVic');
   badgeVic.style.display = isNew ? 'block' : 'none';
+  const pName2 = getPlayerName();
+  if (pName2) submitScore(getCurrentHSMode(), State.scores[0], pName2);
+  if (_onlineMode) endOnlineSession();
   setHUDVisible(false); navigateMenu('finalEnding');
 }
 
@@ -3236,6 +3960,15 @@ function handleEnemyDeath(enemy,eIdx,killerPlayer) {
 
   // IMPROVEMENT 15: floating score text
   State.floatingTexts.push(new FloatingText(enemy.x+enemy.width/2,enemy.y,'+'+Math.floor(finalScore),State.stats.currentCombo>5?'#ff006e':'#ffd60a'));
+
+  // Material drops (Scavenger skill ut4)
+  if((State.unlockedSkills.ut4||0)>=1 && Math.random()<0.12) {
+    const materials=['scrap_metal','energy_cell','nano_fiber','void_crystal','chaos_shard'];
+    const drop=materials[Math.floor(Math.random()*materials.length)];
+    State.materialInventory[drop]=(State.materialInventory[drop]||0)+1;
+    State.floatingTexts.push(new FloatingText(enemy.x+enemy.width/2,enemy.y,drop.replace(/_/g,' ').toUpperCase(),'#b57bff'));
+    updateMatHud();
+  }
 
   State.enemies.splice(eIdx,1);
 
@@ -3607,6 +4340,9 @@ window.addEventListener('keyup',e=>{
 function gameLoop() {
   if(!State.running||State.paused) return;
 
+  // Online multiplayer sync
+  if(_onlineMode) sendNetworkUpdate();
+
   // Screen shake
   let sx=0, sy=0;
   if(State.screenShake>0) {
@@ -3686,6 +4422,7 @@ window.addEventListener('load',()=>{
   resizeCanvas();
   loadGameData();
   loadSettings();
+  getPlayerName(); // pre-load player name from localStorage
   updateHUD();
   buildDifficultyOptions('difficultyOptions',setDifficulty);
   bgLoop();
