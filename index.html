@@ -847,6 +847,7 @@
       <!-- Main buttons grid -->
       <div class="title-menu-grid">
         <button class="btn-wide" onclick="showGameModeSelect()">▶ START GAME</button>
+        <button class="btn-wide" onclick="openGalaxyMode()" style="border-color:#7b2fff;color:#7b2fff;">🌌 GALAXY EXPLORER</button>
         <button onclick="showInfiniteMode()">∞ INFINITE</button>
         <button onclick="showSurvivorMode()">⏱ SURVIVOR</button>
         <button onclick="showBossRush()" style="border-color:#ff6600;color:#ff6600;">⚔ BOSS RUSH</button>
@@ -983,7 +984,12 @@
     <strong>SURVIVOR MODE</strong><br>
     Keys 1/2/3: Abilities &nbsp;|&nbsp; Collect XP to Level Up<br><br>
     <strong>POWER-UPS</strong><br>
-    ♥ Life &nbsp;|&nbsp; ⚡ Rapid Fire &nbsp;|&nbsp; ⛨ Shield
+    ♥ Life &nbsp;|&nbsp; ⚡ Rapid Fire &nbsp;|&nbsp; ⛨ Shield<br><br>
+    <strong>GALAXY EXPLORER</strong><br>
+    Arrow Keys / WASD: Move in all directions &nbsp;|&nbsp; Space: Shoot manually<br>
+    Auto-aim shoots nearest enemy within 400px<br>
+    Dock at space stations to heal &nbsp;|&nbsp; Enter wormholes to teleport<br>
+    Walk into boss zones to trigger boss fights
   </p>
   <button onclick="hideInstructions()">CLOSE</button>
 </div>
@@ -1353,14 +1359,14 @@ const DIFFICULTY_CFG = {
 
 // ─ Characters ─
 const CHARACTER_CFG = {
-  marcelo:  { label:'MARCELO — AI MASTER',   ability:'Ally Robots — Summons 2 helper bots', speed:8,  shootCooldown:200, dmgMult:1   },
-  robos:    { label:'ROBOS — TECH SQUAD',    ability:'Triple Formation — 3-way shot',        speed:8,  shootCooldown:200, dmgMult:1   },
-  felipe:   { label:'FELIPE — THE SWIFT',    ability:'Turbo — 50% faster + rapid shots',    speed:12, shootCooldown:150, dmgMult:1   },
-  takeshi:  { label:'TAKESHI — NINJA',       ability:'Triple Shuriken — 3 projectile fan',  speed:8,  shootCooldown:300, dmgMult:1.5 },
-  deepseek: { label:'DEEPSEEK — THE BEAM',   ability:'Laser Ray — Piercing laser beam',      speed:8,  shootCooldown:500, dmgMult:2   },
-  omega:    { label:'OMEGA — CHAINGUN',      ability:'Missile Barrage — 8 mísseis em leque', speed:7,  shootCooldown:110, dmgMult:0.8 },
-  phantom:  { label:'PHANTOM — GHOST',       ability:'Blink — Teleporte + 2s invencível',   speed:11, shootCooldown:240, dmgMult:1.2 },
-  titan:    { label:'TITAN — COLOSSUS',      ability:'Armor Mode — 3s escudo + knockback',  speed:5,  shootCooldown:380, dmgMult:2.8 },
+  marcelo:  { label:'MARCELO — AI MASTER',   ability:'Ally Robots — Summons 2 helper bots', speed:8,  shootCooldown:200, dmgMult:1,   price:0    },
+  robos:    { label:'ROBOS — TECH SQUAD',    ability:'Triple Formation — 3-way shot',        speed:8,  shootCooldown:200, dmgMult:1,   price:300  },
+  felipe:   { label:'FELIPE — THE SWIFT',    ability:'Turbo — 50% faster + rapid shots',    speed:12, shootCooldown:150, dmgMult:1,   price:400  },
+  takeshi:  { label:'TAKESHI — NINJA',       ability:'Triple Shuriken — 3 projectile fan',  speed:8,  shootCooldown:300, dmgMult:1.5, price:600  },
+  deepseek: { label:'DEEPSEEK — THE BEAM',   ability:'Laser Ray — Piercing laser beam',      speed:8,  shootCooldown:500, dmgMult:2,   price:800  },
+  omega:    { label:'OMEGA — CHAINGUN',      ability:'Missile Barrage — 8 mísseis em leque', speed:7,  shootCooldown:110, dmgMult:0.8, price:500  },
+  phantom:  { label:'PHANTOM — GHOST',       ability:'Blink — Teleporte + 2s invencível',   speed:11, shootCooldown:240, dmgMult:1.2, price:700  },
+  titan:    { label:'TITAN — COLOSSUS',      ability:'Armor Mode — 3s escudo + knockback',  speed:5,  shootCooldown:380, dmgMult:2.8, price:1000 },
 };
 const CHARACTER_IDS = Object.keys(CHARACTER_CFG);
 
@@ -1569,6 +1575,41 @@ function freshSurvivorAbilities() {
   ];
 }
 
+// ─ Phase Themes (open world + phase backgrounds)
+const PHASE_THEMES = [
+  { name:'NEBULA GATE',     bg:'#020817', grid:'rgba(0,245,255,0.04)',  accent:'rgba(123,47,255,0.06)',  star:'#ffffff', enemyColor:'#00f5ff' },
+  { name:'CRIMSON VOID',    bg:'#0d0205', grid:'rgba(255,60,60,0.05)',  accent:'rgba(255,0,60,0.07)',    star:'#ff9999', enemyColor:'#ff3333' },
+  { name:'TOXIC SWAMP',     bg:'#010d01', grid:'rgba(57,255,20,0.05)',  accent:'rgba(0,200,30,0.06)',    star:'#99ff99', enemyColor:'#39ff14' },
+  { name:'SOLAR FURNACE',   bg:'#0d0600', grid:'rgba(255,160,0,0.06)',  accent:'rgba(255,100,0,0.07)',   star:'#ffcc66', enemyColor:'#ff8800' },
+  { name:'DEEP OCEAN',      bg:'#000b12', grid:'rgba(0,180,255,0.05)',  accent:'rgba(0,100,200,0.07)',   star:'#66ccff', enemyColor:'#0088ff' },
+  { name:'INFERNO CORE',    bg:'#0d0200', grid:'rgba(255,50,0,0.06)',   accent:'rgba(200,0,0,0.07)',     star:'#ff6633', enemyColor:'#ff2200' },
+  { name:'GLACIAL ABYSS',   bg:'#010a10', grid:'rgba(120,210,255,0.06)',accent:'rgba(60,180,255,0.06)',  star:'#ccf0ff', enemyColor:'#88ddff' },
+  { name:'MACHINE DOMAIN',  bg:'#060609', grid:'rgba(180,80,255,0.05)', accent:'rgba(120,40,200,0.06)',  star:'#cc88ff', enemyColor:'#aa44ff' },
+  { name:'EVENT HORIZON',   bg:'#000003', grid:'rgba(80,0,200,0.06)',   accent:'rgba(40,0,150,0.08)',    star:'#8866ff', enemyColor:'#6600cc' },
+  { name:'GENESIS FIELD',   bg:'#08060d', grid:'rgba(255,220,0,0.05)',  accent:'rgba(200,150,0,0.06)',   star:'#ffee88', enemyColor:'#ffcc00' },
+  { name:'CHAOS REALM',     bg:'#06000d', grid:'rgba(255,0,200,0.06)',  accent:'rgba(180,0,255,0.07)',   star:'#ff66ff', enemyColor:'#ff00cc' },
+  { name:'OMEGA DIMENSION', bg:'#000000', grid:'rgba(255,255,255,0.07)',accent:'rgba(255,255,255,0.04)', star:'#ffffff', enemyColor:'#ffffff' },
+];
+
+// ─ Run Upgrade Pool (used in all modes with XP leveling)
+const RUN_UPGRADES_POOL = [
+  { id:'ru_dmg',      name:'FIREPOWER',     icon:'🔥', desc:'+25% bullet damage',     maxLevel:4, apply:(p)=>{ p.damageMultiplier*=1.25; } },
+  { id:'ru_speed',    name:'AFTERBURNER',   icon:'⚡', desc:'+1 movement speed',       maxLevel:4, apply:(p)=>{ p.speed=Math.min(p.speed+1,20); } },
+  { id:'ru_cooldown', name:'RAPID COILS',   icon:'💨', desc:'-15% shoot cooldown',     maxLevel:4, apply:(p)=>{ p.shootCooldown=Math.max(50,Math.floor(p.shootCooldown*0.85)); } },
+  { id:'ru_life',     name:'HULL REPAIR',   icon:'❤️', desc:'+1 life (max 5)',         maxLevel:3, apply:(p)=>{ p.lives=Math.min(p.lives+1,5); } },
+  { id:'ru_magnet',   name:'XP MAGNET',     icon:'🧲', desc:'+80px XP attraction',     maxLevel:3, apply:()=>{ State.magnetRadius+=80; } },
+  { id:'ru_xpmult',   name:'SCHOLAR',       icon:'📚', desc:'+30% XP gain',            maxLevel:3, apply:()=>{ State.xpMultiplier+=0.30; } },
+  { id:'ru_spread',   name:'SPREAD SHOT',   icon:'🌟', desc:'+1 angled side bullet',   maxLevel:2, apply:(p)=>{ p._extraSpread=(p._extraSpread||0)+1; } },
+  { id:'ru_pierce',   name:'PIERCING',      icon:'➡️', desc:'Bullets pierce 1 enemy',  maxLevel:1, apply:(p)=>{ p._pierce=(p._pierce||0)+1; } },
+  { id:'ru_aoe',      name:'NOVA BURST',    icon:'💥', desc:'Kills trigger small AoE', maxLevel:1, apply:(p)=>{ p._aoeBurst=true; } },
+  { id:'ru_coinboost',name:'SCAVENGER',     icon:'💰', desc:'+30% coin drops',         maxLevel:3, apply:()=>{ State._runCoinMult=(State._runCoinMult||1)*1.30; } },
+  { id:'ru_invframe', name:'GHOST BLINK',   icon:'👻', desc:'+0.4s invincibility',     maxLevel:3, apply:(p)=>{ p._invBonus=(p._invBonus||0)+400; } },
+  { id:'ru_regen',    name:'BIO REGEN',     icon:'🌿', desc:'Heal 1 HP every 20s',     maxLevel:2, apply:(p)=>{ p._regenInterval=true; } },
+  { id:'ru_deflect',  name:'MIRROR HULL',   icon:'🪞', desc:'20% chance deflect bullet',maxLevel:2,apply:(p)=>{ p._deflectChance=(p._deflectChance||0)+0.20; } },
+  { id:'ru_combobonus',name:'COMBO KING',   icon:'🔥', desc:'Combo gives extra coins', maxLevel:2, apply:()=>{ State._runComboBonus=(State._runComboBonus||0)+1; } },
+  { id:'ru_shield_dur',name:'SHIELD BOOST', icon:'🛡️', desc:'+30% shield duration',   maxLevel:2, apply:()=>{ State._shieldDurMult=(State._shieldDurMult||1)*1.30; } },
+];
+
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 2 – GAME STATE
 // ═══════════════════════════════════════════════════════════════════
@@ -1616,6 +1657,18 @@ const State = {
   pvpMode:false, pvpWinner:-1,
   // Online
   onlineBossKillCount:0,
+  // Open World Galaxy
+  openWorldMode:false,
+  camera:{ x:0, y:0 },
+  currentSector:0,
+  galaxySectors:[],
+  galaxyObjects:[],
+  worldWidth:6000,
+  worldHeight:6000,
+  visitedSectors:[],
+  openWorldBossActive:false,
+  runUpgrades:{},
+  unlockedChars:['marcelo'],
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1877,13 +1930,16 @@ async function showLeaderboard(mode) {
 let gridOffset = 0;
 function drawBackground() {
   BGCTX.clearRect(0,0,BGCANVAS.width,BGCANVAS.height);
+  // Pick theme based on current mode
+  const themeIdx = State.openWorldMode ? (State.currentSector||0) : Math.max(0,Math.min((State.gameLevel-1),PHASE_THEMES.length-1));
+  const theme = PHASE_THEMES[themeIdx] || PHASE_THEMES[0];
   // Dark base
-  BGCTX.fillStyle = '#020817';
+  BGCTX.fillStyle = theme.bg;
   BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
   // Scrolling grid
   const gs = 60;
   gridOffset = (gridOffset + 0.3) % gs;
-  BGCTX.strokeStyle = 'rgba(0,245,255,0.04)';
+  BGCTX.strokeStyle = theme.grid;
   BGCTX.lineWidth = 1;
   for (let x=0; x<BGCANVAS.width; x+=gs) {
     BGCTX.beginPath(); BGCTX.moveTo(x,0); BGCTX.lineTo(x,BGCANVAS.height); BGCTX.stroke();
@@ -1893,7 +1949,7 @@ function drawBackground() {
   }
   // Nebula effect
   const grad = BGCTX.createRadialGradient(BGCANVAS.width*0.7, BGCANVAS.height*0.3, 0, BGCANVAS.width*0.7, BGCANVAS.height*0.3, 300);
-  grad.addColorStop(0,'rgba(123,47,255,0.06)');
+  grad.addColorStop(0, theme.accent);
   grad.addColorStop(1,'transparent');
   BGCTX.fillStyle = grad;
   BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
@@ -1909,15 +1965,19 @@ function initStars() {
   }));
 }
 function drawStars() {
-  const now = Date.now();
+  const themeIdx = State.openWorldMode ? (State.currentSector||0) : Math.max(0,Math.min((State.gameLevel-1),PHASE_THEMES.length-1));
+  const theme = PHASE_THEMES[themeIdx] || PHASE_THEMES[0];
+  const starColor = theme.star || '#ffffff';
   State.stars.forEach(s => {
     s.twinkle += 0.02;
     const a = s.alpha * (0.7 + 0.3*Math.sin(s.twinkle));
     CTX.globalAlpha = a;
-    CTX.fillStyle = '#fff';
+    CTX.fillStyle = starColor;
     CTX.beginPath(); CTX.arc(s.x,s.y,s.size,0,Math.PI*2); CTX.fill();
-    s.y += s.speed;
-    if (s.y > CANVAS.height) { s.y=0; s.x=Math.random()*CANVAS.width; }
+    if (!State.openWorldMode) {
+      s.y += s.speed;
+      if (s.y > CANVAS.height) { s.y=0; s.x=Math.random()*CANVAS.width; }
+    }
   });
   CTX.globalAlpha = 1;
 }
@@ -1990,8 +2050,13 @@ class PlayerBullet {
     this.speed=11; this.color=color;
     this.angleOffset=angleOffset; this.damage=1*dmgMult;
     this.direction=direction; // -1=up (normal), +1=down (PvP P2)
+    this.vx=0; this.vy=0; this._freeAim=false;
+    this._originX=x; this._originY=y;
   }
-  update() { this.y+=this.direction*this.speed; this.x+=this.angleOffset*3; }
+  update() {
+    if(this._freeAim) { this.x+=this.vx; this.y+=this.vy; }
+    else { this.y+=this.direction*this.speed; this.x+=this.angleOffset*3; }
+  }
   draw() {
     // glowing bullets with gradient; flip gradient for downward bullets
     const y0 = this.direction>0 ? this.y : this.y+this.height;
@@ -2079,6 +2144,7 @@ class Player {
     this.width=50; this.height=50;
     this.speed=cfg.speed;
     this.isMovingLeft=false; this.isMovingRight=false;
+    this.isMovingUp=false; this.isMovingDown=false;
     this.character=characterId;
     this.shootCooldown=cfg.shootCooldown;
     this.baseCooldown=cfg.shootCooldown;
@@ -2108,8 +2174,15 @@ class Player {
   }
 
   update() {
-    if(this.isMovingLeft  && this.x>0)                      this.x-=this.speed;
-    if(this.isMovingRight && this.x+this.width<CANVAS.width) this.x+=this.speed;
+    if(State.openWorldMode) {
+      if(this.isMovingLeft  && this.x>0)                              this.x-=this.speed;
+      if(this.isMovingRight && this.x+this.width<State.worldWidth)    this.x+=this.speed;
+      if(this.isMovingUp    && this.y>0)                              this.y-=this.speed;
+      if(this.isMovingDown  && this.y+this.height<State.worldHeight)  this.y+=this.speed;
+    } else {
+      if(this.isMovingLeft  && this.x>0)                      this.x-=this.speed;
+      if(this.isMovingRight && this.x+this.width<CANVAS.width) this.x+=this.speed;
+    }
     // IMPROVEMENT 6: check invincibility
     if(this.invincible && Date.now()>this.invincibleEnd) this.invincible=false;
     // IMPROVEMENT 7: engine trail
@@ -2691,10 +2764,17 @@ class Boss {
     }
     this.pulse=Math.sin(this.animation)*5+10;
     this._move();
-    this.x=clamp(this.x,0,CANVAS.width-this.width);
-    this.y=clamp(this.y,0,CANVAS.height/2-this.height);
+    if(State.openWorldMode) {
+      // In open world, clamp boss to a wider range around its spawn area
+      const cw=CANVAS.width, ch=CANVAS.height;
+      this.x=clamp(this.x,State.camera.x,State.camera.x+cw-this.width);
+      this.y=clamp(this.y,State.camera.y,State.camera.y+ch/2-this.height);
+    } else {
+      this.x=clamp(this.x,0,CANVAS.width-this.width);
+      this.y=clamp(this.y,0,CANVAS.height/2-this.height);
+    }
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height);
+    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height+State.camera.y);
     this.bullets.forEach(b=>{b.update();b.draw();});
     // Update health bar
     document.getElementById('bossFill').style.width=(this.health/this.maxHealth*100)+'%';
@@ -2855,10 +2935,10 @@ function addCoins(amount) {
 }
 
 function saveGameData() {
-  try { localStorage.setItem('rafaPaoliV2',JSON.stringify({coins:State.coins,unlockedSkins:State.unlockedSkins,equippedSkin:State.equippedSkin,achievements:State.achievements,difficulty:State.difficulty,stats:State.stats,unlockedSkills:State.unlockedSkills})); } catch(e){}
+  try { localStorage.setItem('rafaPaoliV2',JSON.stringify({coins:State.coins,unlockedSkins:State.unlockedSkins,equippedSkin:State.equippedSkin,achievements:State.achievements,difficulty:State.difficulty,stats:State.stats,unlockedSkills:State.unlockedSkills,unlockedChars:State.unlockedChars})); } catch(e){}
 }
 function loadGameData() {
-  try { const d=JSON.parse(localStorage.getItem('rafaPaoliV2')||'null'); if(!d) return; State.coins=d.coins||0; State.unlockedSkins=d.unlockedSkins||['default']; State.equippedSkin=d.equippedSkin||'default'; State.achievements=d.achievements||[]; State.difficulty=d.difficulty||'normal'; if(d.stats) Object.assign(State.stats,d.stats); if(d.unlockedSkills) State.unlockedSkills=d.unlockedSkills; } catch(e){}
+  try { const d=JSON.parse(localStorage.getItem('rafaPaoliV2')||'null'); if(!d) return; State.coins=d.coins||0; State.unlockedSkins=d.unlockedSkins||['default']; State.equippedSkin=d.equippedSkin||'default'; State.achievements=d.achievements||[]; State.difficulty=d.difficulty||'normal'; if(d.stats) Object.assign(State.stats,d.stats); if(d.unlockedSkills) State.unlockedSkills=d.unlockedSkills; if(d.unlockedChars) State.unlockedChars=d.unlockedChars; } catch(e){}
 }
 
 function checkAchievements() {
@@ -2930,6 +3010,8 @@ function hideAllOverlays() {
 function navigateMenu(target) {
   hideAllOverlays();
   if(target==='main') {
+    // Reset open world mode flag when returning to main menu (not during active game)
+    if(!State.running) State.openWorldMode=false;
     document.getElementById('titleScreen').style.display='flex';
     document.getElementById('menuCoins').textContent=State.coins;
     updateTitleStats();
@@ -2954,11 +3036,27 @@ function buildCharacterOptions(containerId,playerIndex) {
   const wrap=document.getElementById(containerId); wrap.innerHTML='';
   CHARACTER_IDS.forEach(id=>{
     const cfg=CHARACTER_CFG[id];
-    const div=document.createElement('div'); div.className='opt-card'+(State.selectedChar[playerIndex]===id?' selected':'');
-    div.innerHTML=`<div class="opt-title">${cfg.label}</div><div class="opt-desc">${cfg.ability}</div>`;
-    div.onclick=()=>{ wrap.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected')); div.classList.add('selected'); State.selectedChar[playerIndex]=id; };
+    const unlocked=State.unlockedChars.includes(id);
+    const div=document.createElement('div'); div.className='opt-card'+(State.selectedChar[playerIndex]===id?' selected':'')+(unlocked?'':' locked');
+    if(unlocked) {
+      div.innerHTML=`<div class="opt-title">${cfg.label}</div><div class="opt-desc">${cfg.ability}</div>`;
+      div.onclick=()=>{ wrap.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('selected')); div.classList.add('selected'); State.selectedChar[playerIndex]=id; };
+    } else {
+      div.innerHTML=`<div class="opt-title" style="color:rgba(255,255,255,0.4)">${cfg.label}</div><div class="opt-desc">${cfg.ability}</div><button style="margin-top:6px;font-size:9px;padding:5px 10px;width:auto;border-color:#ffd60a;color:#ffd60a;" onclick="buyCharacter('${id}','${containerId}',${playerIndex})">BUY — ${cfg.price} COINS</button>`;
+    }
     wrap.appendChild(div);
   });
+}
+
+function buyCharacter(id, containerId, playerIndex) {
+  const cfg=CHARACTER_CFG[id];
+  if(!cfg||State.unlockedChars.includes(id)) return;
+  if(State.coins<cfg.price) { showWaveAnnounce('NOT ENOUGH COINS','#ff006e'); return; }
+  State.coins-=cfg.price;
+  State.unlockedChars.push(id);
+  updateHUD(); saveGameData();
+  buildCharacterOptions(containerId, playerIndex);
+  showWaveAnnounce(cfg.label.split('—')[0].trim()+' UNLOCKED!','#ffd60a');
 }
 
 function buildSurvivorDiffOptions() {
@@ -2993,6 +3091,7 @@ function showCharacterSelect() {
   document.getElementById('characterSelect').classList.add('active');
 }
 function startGameWithSelectedCharacter() {
+  if(State.openWorldMode) { startOpenWorldMode(); return; }
   State.selectedChar.forEach(c=>{ if(!State.stats.charactersUsed.includes(c)) State.stats.charactersUsed.push(c); });
   State.stats.charactersPlayed=State.stats.charactersUsed.length;
   const newChars2=['omega','phantom','titan'];
@@ -3009,7 +3108,7 @@ function hideInstructions() { navigateMenu('main'); }
 function pauseGame() { if(!State.running) return; State.paused=true; navigateMenu('pauseScreen'); }
 function resumeGame() { State.paused=false; hideAllOverlays(); gameLoop(); }
 function backToMenu() {
-  State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false;
+  State.running=false; State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false; State.openWorldMode=false; State.bossRushMode=false;
   if(_onlineMode) endOnlineSession();
   hideAllOverlays(); setHUDVisible(false);
   document.getElementById('bossBarWrap').classList.remove('visible');
@@ -3018,7 +3117,11 @@ function backToMenu() {
   updateTitleHighScores();
   navigateMenu('main');
 }
-function restartGame() { State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false; State.bossRushMode=false; if(_onlineMode) endOnlineSession(); startGame(); }
+function restartGame() {
+  if(State.openWorldMode) { startOpenWorldMode(); return; }
+  State.infiniteMode=false; State.survivorMode=false; State.twoPlayer=false; State.pvpMode=false; State.bossRushMode=false;
+  if(_onlineMode) endOnlineSession(); startGame();
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14B – SKILL TREE
@@ -3832,13 +3935,27 @@ function levelUp() {
 }
 function showUpgradeScreen() {
   State.paused=true;
-  const nonMaxed=State.survivorAbilities.filter(a=>a.level<a.maxLevel);
-  let options=nonMaxed.length===0?[{name:'Extra Life',desc:'Adds 1 life',type:'life'},{name:'Magnet',desc:'+50px XP attraction',type:'magnet'},{name:'XP Boost',desc:'+25% XP gain',type:'xpMult'}]:
-    [...nonMaxed].sort(()=>Math.random()-0.5).slice(0,3);
+  let options=[];
+  if(State.openWorldMode||State.survivorMode) {
+    // Use run upgrade pool for open world and survivor
+    const available=RUN_UPGRADES_POOL.filter(u=>(State.runUpgrades[u.id]||0)<u.maxLevel);
+    if(available.length===0) {
+      // Fallback: basic bonuses
+      options=[{id:'_life',name:'HULL REPAIR',icon:'❤️',desc:'Adds 1 life',type:'life'},{id:'_magnet',name:'XP MAGNET',icon:'🧲',desc:'+80px XP attraction',type:'magnet'},{id:'_xpmult',name:'SCHOLAR',icon:'📚',desc:'+30% XP gain',type:'xpMult'}];
+    } else {
+      options=[...available].sort(()=>Math.random()-0.5).slice(0,3);
+    }
+  } else {
+    const nonMaxed=State.survivorAbilities.filter(a=>a.level<a.maxLevel);
+    options=nonMaxed.length===0?[{id:'_life',name:'Extra Life',icon:'❤️',desc:'Adds 1 life',type:'life'},{id:'_magnet',name:'Magnet',icon:'🧲',desc:'+50px XP attraction',type:'magnet'},{id:'_xpmult',name:'XP Boost',icon:'📚',desc:'+25% XP gain',type:'xpMult'}]:
+      [...nonMaxed].sort(()=>Math.random()-0.5).slice(0,3);
+  }
   const wrap=document.getElementById('upgradeOptions'); wrap.innerHTML='';
   options.forEach((up,i)=>{
     const div=document.createElement('div'); div.className='up-card';
-    div.innerHTML=`<h3>${up.name}${up.level!==undefined?` → LV ${up.level+1}`:''}</h3><p>${up.desc}</p>`;
+    const curLv=(State.runUpgrades[up.id]||0);
+    const maxLv=up.maxLevel||5;
+    div.innerHTML=`<h3>${up.icon||''} ${up.name}${up.id&&!up.id.startsWith('_')&&curLv>0?` LV${curLv}→${curLv+1}`:''}</h3><p>${up.desc}</p>`;
     div.onclick=()=>selectUpgrade(options,i); wrap.appendChild(div);
   });
   document.getElementById('upgradeScreen').classList.add('open');
@@ -3846,9 +3963,16 @@ function showUpgradeScreen() {
 function selectUpgrade(options,idx) {
   const up=options[idx];
   if(up.type==='life') { if(State.players[0]) State.players[0].lives=Math.min(State.players[0].lives+1,5); }
-  else if(up.type==='magnet') { State.magnetRadius+=50; }
-  else if(up.type==='xpMult') { State.xpMultiplier+=0.25; }
-  else { const ab=State.survivorAbilities.find(a=>a.name===up.name); if(ab){ab.level++;ab.maxCooldown=Math.max(1000,ab.maxCooldown-ab.level*200);if(ab.level>State.stats.maxUpgradeLevel){State.stats.maxUpgradeLevel=ab.level;checkAchievements();}}}
+  else if(up.type==='magnet') { State.magnetRadius+=(State.openWorldMode?80:50); }
+  else if(up.type==='xpMult') { State.xpMultiplier+=(State.openWorldMode?0.30:0.25); }
+  else if(up.apply) {
+    // RUN_UPGRADES_POOL entry
+    State.runUpgrades[up.id]=(State.runUpgrades[up.id]||0)+1;
+    if(State.players[0]) up.apply(State.players[0]);
+  } else {
+    const ab=State.survivorAbilities.find(a=>a.name===up.name);
+    if(ab){ab.level++;ab.maxCooldown=Math.max(1000,ab.maxCooldown-ab.level*200);if(ab.level>State.stats.maxUpgradeLevel){State.stats.maxUpgradeLevel=ab.level;checkAchievements();}}
+  }
   document.getElementById('upgradeScreen').classList.remove('open');
   State.paused=false; updateSurvivorAbilityBar(); gameLoop();
 }
@@ -3955,6 +4079,7 @@ function startGame() {
   State.activeSynergies=[];
   State.materialInventory={};
   State.collectedItems=[];
+  State.runUpgrades={};
   State.onlineBossKillCount=0;
   const count=State.twoPlayer?2:1;
   State.players=[];
@@ -4081,7 +4206,7 @@ const ENEMY_SCORE={basic:10,ufo:15,tank:25,fast:20,unique:30,spinner:18,diver:15
 
 function handleEnemyDeath(enemy,eIdx,killerPlayer) {
   triggerExplosion(enemy.x+enemy.width/2,enemy.y+enemy.height/2);
-  if(State.survivorMode) State.xpOrbs.push(new XPOrb(enemy.x+enemy.width/2,enemy.y+enemy.height/2,10+enemy.maxHealth*5));
+  if(State.survivorMode||State.openWorldMode) State.xpOrbs.push(new XPOrb(enemy.x+enemy.width/2,enemy.y+enemy.height/2,10+enemy.maxHealth*5));
 
   if(enemy.type==='bomber') {
     State.stats.bombersKilled++;
@@ -4205,6 +4330,23 @@ function handlePlayerDamage(player) {
 }
 
 function handleBossDefeat() {
+  // Open world boss defeat handling
+  if(State.openWorldMode) {
+    State.stats.bossesDefeated++;
+    const bossLootMult = 1 + 0.25*(State.unlockedSkills.sp3||0);
+    addCoins(Math.floor(State.boss.reward * bossLootMult));
+    triggerExplosion(State.boss.x+State.boss.width/2,State.boss.y+State.boss.height/2,'#ffd700',80);
+    for(let i=0;i<5;i++) setTimeout(()=>triggerExplosion(State.boss?.x??200+rand(-100,100),State.boss?.y??100+rand(-50,50),'#ff4500',30),i*200);
+    document.getElementById('bossBarWrap').classList.remove('visible');
+    State.openWorldBossActive=false;
+    if(State._currentBossSector!==undefined && State.galaxySectors[State._currentBossSector]) {
+      State.galaxySectors[State._currentBossSector].bossDefeated=true;
+    }
+    addXP(500);
+    State.boss=null; State.bossSpawned=false;
+    showWaveAnnounce('BOSS DEFEATED!','#ffd60a');
+    return;
+  }
   State.stats.bossesDefeated++;
   // sp3: Boss Loot +25% per level
   const bossLootMult = 1 + 0.25*(State.unlockedSkills.sp3||0);
@@ -4335,8 +4477,14 @@ function updateTimersPerFrame() {
 // ═══════════════════════════════════════════════════════════════════
 function processBullets() {
   State.players.forEach((p,pi)=>{
-    // Filter out-of-bounds bullets (direction-aware)
-    p.bullets=p.bullets.filter(b=>b.direction>0 ? b.y<=CANVAS.height : b.y+b.height>=0);
+    // Filter out-of-bounds bullets (direction-aware or freeAim)
+    p.bullets=p.bullets.filter(b=>{
+      if(b._freeAim) {
+        const dist=Math.hypot(b.x-b._originX, b.y-b._originY);
+        return dist<600 && b.x>-100 && b.x<State.worldWidth+100 && b.y>-100 && b.y<State.worldHeight+100;
+      }
+      return b.direction>0 ? b.y<=CANVAS.height : b.y+b.height>=0;
+    });
     for(let i=p.bullets.length-1;i>=0;i--) {
       const b=p.bullets[i]; b.update(); b.draw();
 
@@ -4472,13 +4620,14 @@ function processPowerUps() {
 }
 
 function processXPOrbs() {
-  if(!State.survivorMode) return;
+  if(!State.survivorMode&&!State.openWorldMode) return;
   for(let i=State.xpOrbs.length-1;i>=0;i--) {
     const orb=State.xpOrbs[i]; orb.update(); orb.draw();
     const p=State.players[0];
     const hb={x:orb.x-orb.radius,y:orb.y-orb.radius,width:orb.radius*2,height:orb.radius*2};
     if(detectCollision(hb,p)){playSound('xpSound');addXP(orb.value);State.xpOrbs.splice(i,1);}
-    else if(orb.y>CANVAS.height) State.xpOrbs.splice(i,1);
+    else if(!State.openWorldMode&&orb.y>CANVAS.height) State.xpOrbs.splice(i,1);
+    else if(State.openWorldMode&&Math.hypot(orb.x-(p.x+p.width/2),orb.y-(p.y+p.height/2))>2000) State.xpOrbs.splice(i,1);
   }
 }
 
@@ -4500,7 +4649,7 @@ function processFloatingTexts() {
 // SECTION 25 – SPAWN TRIGGER
 // ═══════════════════════════════════════════════════════════════════
 function trySpawnEnemiesOrBoss() {
-  if(State.pvpMode) return;
+  if(State.pvpMode||State.openWorldMode) return;
   if(!State.uniqueSpawned&&!State.infiniteMode&&!State.survivorMode&&State.scores[0]===0) {
     State.enemies.push(createEnemy('unique')); State.uniqueSpawned=true;
   }
@@ -4535,8 +4684,15 @@ window.addEventListener('keydown',e=>{
   const p1=State.players[0], p2=State.players[1];
   if(e.key==='ArrowLeft'){if(p1)p1.isMovingLeft=true;}
   if(e.key==='ArrowRight'){if(p1)p1.isMovingRight=true;}
-  if(e.key===' '||e.key==='ArrowUp'){if(p1)p1.shoot();}
-  if(key==='a'&&!State.twoPlayer){if(p1){State.survivorMode?useSurvivorAbility(0):p1.activateAbility();}}
+  if(State.openWorldMode) {
+    if(e.key==='ArrowUp'||key==='w'){if(p1)p1.isMovingUp=true;}
+    if(e.key==='ArrowDown'||key==='s'){if(p1)p1.isMovingDown=true;}
+    if(e.key===' '){if(p1)p1.shoot();}
+  } else {
+    if(e.key===' '||e.key==='ArrowUp'){if(p1)p1.shoot();}
+  }
+  if(key==='a'&&!State.twoPlayer&&!State.openWorldMode){if(p1){State.survivorMode?useSurvivorAbility(0):p1.activateAbility();}}
+  if(key==='a'&&State.openWorldMode){if(p1){p1.activateAbility();}}
   if(State.twoPlayer&&p2){
     if(key==='a')p2.isMovingLeft=true;
     if(key==='d')p2.isMovingRight=true;
@@ -4552,8 +4708,367 @@ window.addEventListener('keyup',e=>{
   const p1=State.players[0], p2=State.players[1];
   if(e.key==='ArrowLeft'){if(p1)p1.isMovingLeft=false;}
   if(e.key==='ArrowRight'){if(p1)p1.isMovingRight=false;}
+  if(State.openWorldMode) {
+    if(e.key==='ArrowUp'||key==='w'){if(p1)p1.isMovingUp=false;}
+    if(e.key==='ArrowDown'||key==='s'){if(p1)p1.isMovingDown=false;}
+  }
   if(State.twoPlayer&&p2){if(key==='a')p2.isMovingLeft=false;if(key==='d')p2.isMovingRight=false;}
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// SECTION 28B – OPEN WORLD GALAXY FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+
+function generateGalaxy() {
+  const W=State.worldWidth, H=State.worldHeight;
+  State.galaxySectors=[]; State.galaxyObjects=[];
+  const cols=4, rows=3;
+  const sw=W/cols, sh=H/rows;
+  for(let r=0;r<rows;r++) {
+    for(let c=0;c<cols;c++) {
+      const idx=r*cols+c;
+      State.galaxySectors.push({
+        x:c*sw, y:r*sh, w:sw, h:sh,
+        themeIdx:idx,
+        name:PHASE_THEMES[idx].name,
+        bossDefeated:false,
+        bossZone:{ x:c*sw+sw*0.5-80, y:r*sh+sh*0.5-80, w:160, h:160 },
+      });
+      // Add planets
+      for(let p=0;p<3;p++) {
+        State.galaxyObjects.push({
+          type:'planet',
+          x:c*sw+Math.random()*sw*0.8+sw*0.1,
+          y:r*sh+Math.random()*sh*0.8+sh*0.1,
+          radius:30+Math.random()*40,
+          color:PHASE_THEMES[idx].star,
+          sectorIdx:idx,
+        });
+      }
+      // Add space station
+      State.galaxyObjects.push({
+        type:'station',
+        x:c*sw+sw*0.2+Math.random()*sw*0.3,
+        y:r*sh+sh*0.2+Math.random()*sh*0.3,
+        radius:20,
+        sectorIdx:idx,
+        used:false,
+      });
+      // Add wormhole every 3rd sector
+      if(idx%3===0) {
+        State.galaxyObjects.push({
+          type:'wormhole',
+          x:c*sw+sw*0.7,
+          y:r*sh+sh*0.7,
+          radius:25,
+          sectorIdx:idx,
+          targetSector:(idx+5)%12,
+        });
+      }
+    }
+  }
+  // Spawn patrol enemies in world
+  State.enemies=[];
+  State.galaxySectors.forEach((sector,si)=>{
+    const count=3+si;
+    const pool=['basic','ufo','tank','fast','spinner'];
+    if(si>=4) pool.push('bomber');
+    if(si>=8) pool.push('diver');
+    for(let i=0;i<count;i++) {
+      const type=pool[Math.floor(Math.random()*pool.length)];
+      const enemy=createEnemy(type);
+      enemy.worldX=sector.x+Math.random()*sector.w;
+      enemy.worldY=sector.y+Math.random()*sector.h;
+      enemy.homeX=enemy.worldX;
+      enemy.homeY=enemy.worldY;
+      enemy.sectorIdx=si;
+      enemy._openWorld=true;
+      enemy.x=enemy.worldX;
+      enemy.y=enemy.worldY;
+      State.enemies.push(enemy);
+    }
+  });
+}
+
+function updateCamera() {
+  if(!State.openWorldMode||!State.players[0]) return;
+  const p=State.players[0];
+  const targetX=p.x+p.width/2-CANVAS.width/2;
+  const targetY=p.y+p.height/2-CANVAS.height/2;
+  State.camera.x+=(targetX-State.camera.x)*0.1;
+  State.camera.y+=(targetY-State.camera.y)*0.1;
+  State.camera.x=Math.max(0,Math.min(State.worldWidth-CANVAS.width,State.camera.x));
+  State.camera.y=Math.max(0,Math.min(State.worldHeight-CANVAS.height,State.camera.y));
+}
+
+function getCurrentSector() {
+  if(!State.openWorldMode||!State.players[0]) return 0;
+  const p=State.players[0];
+  for(let i=0;i<State.galaxySectors.length;i++) {
+    const s=State.galaxySectors[i];
+    if(p.x>=s.x&&p.x<s.x+s.w&&p.y>=s.y&&p.y<s.y+s.h) return i;
+  }
+  return 0;
+}
+
+function drawSectorBoundaries() {
+  if(!State.openWorldMode) return;
+  State.galaxySectors.forEach(s=>{
+    CTX.strokeStyle='rgba(255,255,255,0.05)';
+    CTX.lineWidth=2;
+    CTX.strokeRect(s.x-State.camera.x, s.y-State.camera.y, s.w, s.h);
+    const sx=s.x+s.w/2-State.camera.x;
+    const sy=s.y+30-State.camera.y;
+    if(sx>-100&&sx<CANVAS.width+100&&sy>0&&sy<CANVAS.height) {
+      CTX.fillStyle='rgba(255,255,255,0.08)'; CTX.font='12px Orbitron, monospace';
+      CTX.textAlign='center'; CTX.fillText(s.name,sx,sy);
+    }
+    // Boss zone marker
+    if(!s.bossDefeated) {
+      const bz=s.bossZone;
+      CTX.strokeStyle='rgba(255,100,0,0.3)'; CTX.lineWidth=2;
+      CTX.setLineDash([5,5]);
+      CTX.strokeRect(bz.x-State.camera.x,bz.y-State.camera.y,bz.w,bz.h);
+      CTX.setLineDash([]);
+      CTX.fillStyle='rgba(255,100,0,0.5)'; CTX.font='10px Orbitron, monospace';
+      CTX.textAlign='center';
+      CTX.fillText('BOSS',bz.x+bz.w/2-State.camera.x,bz.y+bz.h/2-State.camera.y);
+    }
+  });
+  CTX.textAlign='left';
+}
+
+function drawGalaxyObjects() {
+  if(!State.openWorldMode) return;
+  State.galaxyObjects.forEach(obj=>{
+    const sx=obj.x-State.camera.x;
+    const sy=obj.y-State.camera.y;
+    if(sx<-200||sx>CANVAS.width+200||sy<-200||sy>CANVAS.height+200) return;
+    if(obj.type==='planet') {
+      CTX.beginPath();
+      const grad=CTX.createRadialGradient(sx-obj.radius*0.3,sy-obj.radius*0.3,0,sx,sy,obj.radius);
+      grad.addColorStop(0,'#ffffff'); grad.addColorStop(0.3,obj.color); grad.addColorStop(1,'rgba(0,0,0,0.8)');
+      CTX.fillStyle=grad; CTX.arc(sx,sy,obj.radius,0,Math.PI*2); CTX.fill();
+    } else if(obj.type==='station') {
+      CTX.save(); CTX.translate(sx,sy); CTX.rotate(Date.now()/3000);
+      CTX.strokeStyle=obj.used?'#444':'#00f5ff'; CTX.lineWidth=2;
+      CTX.shadowColor='#00f5ff'; CTX.shadowBlur=10;
+      CTX.strokeRect(-obj.radius,-obj.radius,obj.radius*2,obj.radius*2);
+      CTX.beginPath(); CTX.arc(0,0,obj.radius*0.5,0,Math.PI*2); CTX.stroke();
+      CTX.restore();
+      // Proximity heal
+      if(!obj.used&&State.players[0]) {
+        const p=State.players[0];
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<60) {
+          obj.used=true;
+          p.lives=Math.min(p.lives+1,5);
+          showWaveAnnounce('+1 LIFE (STATION)','#ff69b4');
+          addCoins(20);
+        }
+      }
+    } else if(obj.type==='wormhole') {
+      CTX.save(); CTX.translate(sx,sy);
+      for(let i=3;i>=1;i--) {
+        CTX.beginPath(); CTX.arc(0,0,obj.radius*i*0.6,0,Math.PI*2);
+        CTX.strokeStyle=`rgba(123,47,255,${0.3/i})`; CTX.lineWidth=3; CTX.stroke();
+      }
+      CTX.fillStyle='rgba(80,0,200,0.4)'; CTX.beginPath(); CTX.arc(0,0,obj.radius,0,Math.PI*2); CTX.fill();
+      CTX.restore();
+      // Proximity teleport
+      if(State.players[0]) {
+        const p=State.players[0];
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<50) {
+          const target=State.galaxySectors[obj.targetSector];
+          if(target) { p.x=target.x+target.w/2; p.y=target.y+target.h/2; showWaveAnnounce('WORMHOLE!','#7b2fff'); }
+        }
+      }
+    }
+  });
+}
+
+function checkBossZones() {
+  if(!State.openWorldMode||State.openWorldBossActive||State.boss) return;
+  const p=State.players[0]; if(!p) return;
+  State.galaxySectors.forEach((sector,si)=>{
+    if(sector.bossDefeated) return;
+    const bz=sector.bossZone;
+    if(p.x>bz.x&&p.x<bz.x+bz.w&&p.y>bz.y&&p.y<bz.y+bz.h) {
+      State.openWorldBossActive=true;
+      State.bossSpawned=true;
+      const bossLevel=Math.min(si+1,BOSSES_DATA.length);
+      State.boss=new Boss(bossLevel);
+      // Place boss at world coordinates near player
+      State.boss.x=p.x+200;
+      State.boss.y=p.y-100;
+      State._currentBossSector=si;
+      playSound('levelUpSound');
+      showWaveAnnounce('BOSS ZONE','#ff6600');
+    }
+  });
+}
+
+function processOpenWorldEnemies() {
+  if(State.pvpMode) return;
+  for(let i=State.enemies.length-1;i>=0;i--) {
+    const e=State.enemies[i];
+    if(e._openWorld&&State.players[0]) {
+      const p=State.players[0];
+      const dx=(p.x+p.width/2)-(e.x+e.width/2);
+      const dy=(p.y+p.height/2)-(e.y+e.height/2);
+      const dist=Math.hypot(dx,dy);
+      if(dist<300&&dist>1) {
+        const spd=e.speed||2;
+        e.x+=(dx/dist)*spd;
+        e.y+=(dy/dist)*spd;
+      } else {
+        const t=Date.now()/2000+(e.homeX||0)*0.001;
+        e.x+=Math.cos(t)*0.5;
+        e.y+=Math.sin(t)*0.5;
+      }
+      // Draw enemy at world position (camera already applied via CTX.translate)
+      e.draw();
+      // Collision with player
+      for(const p2 of State.players) {
+        if(p2.lives<=0||p2.invincible) continue;
+        if(!detectCollision(e,p2)) continue;
+        if(p2.hasShield()) {
+          triggerExplosion(e.x+e.width/2,e.y+e.height/2,p2.shieldColor,25);
+          State.enemies.splice(i,1); State.scores[p2.index]+=5; break;
+        } else handlePlayerDamage(p2);
+      }
+    } else {
+      // Non open world enemy, use standard processing
+      e.update(); e.draw();
+      for(const p of State.players) {
+        if(p.lives<=0||p.invincible) continue;
+        if(!detectCollision(e,p)) continue;
+        if(p.hasShield()) {
+          triggerExplosion(e.x+e.width/2,e.y+e.height/2,p.shieldColor,25);
+          State.enemies.splice(i,1); State.scores[p.index]+=5; break;
+        } else handlePlayerDamage(p);
+      }
+    }
+  }
+  // Enemy bullets
+  State.enemies.forEach(e=>{
+    for(let bi=e.bullets.length-1;bi>=0;bi--) {
+      for(const p of State.players) {
+        if(p.lives<=0||p.invincible) continue;
+        if(!detectCollision(e.bullets[bi],p)) continue;
+        e.bullets.splice(bi,1);
+        if(p.hasShield()) triggerExplosion(p.x+p.width/2,p.y,'#00f5ff',10);
+        else handlePlayerDamage(p);
+        break;
+      }
+    }
+  });
+}
+
+function autoShootOpenWorld(player) {
+  if(!State.openWorldMode) return;
+  const now=Date.now();
+  if(now-player.lastShootTime<player.shootCooldown) return;
+  let nearest=null, nearDist=400;
+  State.enemies.forEach(e=>{
+    const dx=(e.x+e.width/2)-(player.x+player.width/2);
+    const dy=(e.y+e.height/2)-(player.y+player.height/2);
+    const d=Math.hypot(dx,dy);
+    if(d<nearDist){nearDist=d;nearest=e;}
+  });
+  if(!nearest) return;
+  player.lastShootTime=now;
+  const dx=(nearest.x+nearest.width/2)-(player.x+player.width/2);
+  const dy=(nearest.y+nearest.height/2)-(player.y+player.height/2);
+  const angle=Math.atan2(dy,dx);
+  const b=new PlayerBullet(player.x+player.width/2,player.y+player.height/2,player.bulletColor,0,player.damageMultiplier,1);
+  b.vx=Math.cos(angle)*8;
+  b.vy=Math.sin(angle)*8;
+  b._freeAim=true;
+  b._originX=player.x+player.width/2;
+  b._originY=player.y+player.height/2;
+  player.bullets.push(b);
+  playSound('shootSound');
+}
+
+function drawGalaxyMiniMap() {
+  if(!State.openWorldMode) return;
+  const mw=120, mh=90;
+  const mx=CANVAS.width-mw-16, my=60;
+  const scaleX=mw/State.worldWidth, scaleY=mh/State.worldHeight;
+  CTX.save();
+  CTX.fillStyle='rgba(0,0,0,0.6)'; CTX.fillRect(mx,my,mw,mh);
+  CTX.strokeStyle='rgba(0,245,255,0.3)'; CTX.lineWidth=1; CTX.strokeRect(mx,my,mw,mh);
+  State.galaxySectors.forEach((s,i)=>{
+    CTX.fillStyle=s.bossDefeated?'rgba(0,255,0,0.15)':'rgba(255,255,255,0.05)';
+    CTX.fillRect(mx+s.x*scaleX,my+s.y*scaleY,s.w*scaleX,s.h*scaleY);
+    if(!s.bossDefeated) {
+      CTX.fillStyle='rgba(255,100,0,0.8)';
+      CTX.beginPath(); CTX.arc(mx+(s.x+s.w/2)*scaleX,my+(s.y+s.h/2)*scaleY,3,0,Math.PI*2); CTX.fill();
+    }
+  });
+  CTX.strokeStyle='rgba(255,255,255,0.06)'; CTX.lineWidth=0.5;
+  for(let c=1;c<4;c++){CTX.beginPath();CTX.moveTo(mx+c*mw/4,my);CTX.lineTo(mx+c*mw/4,my+mh);CTX.stroke();}
+  for(let r=1;r<3;r++){CTX.beginPath();CTX.moveTo(mx,my+r*mh/3);CTX.lineTo(mx+mw,my+r*mh/3);CTX.stroke();}
+  if(State.players[0]) {
+    const p=State.players[0];
+    CTX.fillStyle='#39ff14';
+    CTX.beginPath(); CTX.arc(mx+p.x*scaleX,my+p.y*scaleY,4,0,Math.PI*2); CTX.fill();
+  }
+  CTX.strokeStyle='rgba(0,245,255,0.3)'; CTX.lineWidth=0.5;
+  CTX.strokeRect(mx+State.camera.x*scaleX,my+State.camera.y*scaleY,CANVAS.width*scaleX,CANVAS.height*scaleY);
+  CTX.fillStyle='rgba(255,255,255,0.4)'; CTX.font='7px Orbitron, monospace'; CTX.textAlign='left';
+  CTX.fillText('GALAXY MAP',mx+3,my+9);
+  CTX.restore();
+}
+
+function startOpenWorldMode() {
+  hideAllOverlays();
+  CANVAS.style.display='block';
+  State.running=true; State.paused=false;
+  State.openWorldMode=true;
+  State.infiniteMode=false; State.survivorMode=false; State.bossRushMode=false;
+  State.enemies=[]; State.boss=null; State.powerUps=[]; State.explosions=[]; State.xpOrbs=[];
+  State.floatingTexts=[]; State.scores=[0,0];
+  State.gameLevel=1; State.wave=1; State.bossSpawned=false; State.uniqueSpawned=false;
+  State.lastEnemySpawn=Date.now(); State.gameStartTime=Date.now();
+  State.powerUpActive=false; State.shieldActive=false;
+  State.stats.phaseDamageTaken=0; State.stats.currentCombo=0; State.stats.lastKillTime=0;
+  State.screenShake=0;
+  State.doubleDamage=false; State.phoenixUsed=false;
+  State.runEquipment={weapon:null,armor:null,accessory:null,relic:null};
+  State.activeSynergies=[];
+  State.materialInventory={}; State.collectedItems=[]; State.onlineBossKillCount=0;
+  State.openWorldBossActive=false;
+  State.camera={x:0,y:0};
+  State.currentSector=0; State.visitedSectors=[];
+  State.xp=0; State.xpToNextLevel=100; State.level=1;
+  State.magnetRadius=0; State.xpMultiplier=1;
+  State.runUpgrades={};
+  State.players=[new Player(State.selectedChar[0],0)];
+  State.players[0].x=State.worldWidth/2;
+  State.players[0].y=State.worldHeight/2;
+  State.players.forEach(p=>applySkillBonuses(p));
+  generateGalaxy();
+  document.getElementById('xpBarWrap').style.display='block';
+  document.getElementById('xpLevelLabel').textContent='LVL 1';
+  document.getElementById('survivorAbilitiesHud').style.display='none';
+  document.getElementById('infiniteAbilitiesHud').style.display='none';
+  setHUDVisible(true); updateHUD(); initStars();
+  showWaveAnnounce('GALAXY EXPLORER','#7b2fff');
+  gameLoop();
+}
+
+function openGalaxyMode() {
+  State.openWorldMode=true; // flag so startGameWithSelectedCharacter knows
+  hideAllOverlays();
+  navigateMenu('characterSelect');
+  document.getElementById('characterOptionsP1').innerHTML='';
+  buildCharacterOptions('characterOptionsP1',0);
+  const p2=document.getElementById('characterOptionsP2');
+  if(p2) p2.style.display='none';
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 28 – MAIN GAME LOOP (IMPROVEMENT 2: screen shake)
@@ -4594,32 +5109,68 @@ function gameLoop() {
   updateGamepadControls();
   updateTimersPerFrame();
 
-  State.players.forEach(p=>{p.update();p.draw();});
-
-  processLasers();
-  processBullets();
-  processAllyRobots();
-  processEnemies();
-  processBoss();
-  processPowerUps();
-  processExplosions();
-  processXPOrbs();
-  processFloatingTexts(); // IMPROVEMENT 15
-
-  trySpawnEnemiesOrBoss();
-
-  // IMPROVEMENT 19: infinite wave label with style
-  if(State.infiniteMode) {
-    CTX.fillStyle='rgba(0,245,255,0.25)'; CTX.textAlign='center';
-    CTX.font='bold 18px Orbitron, monospace';
-    CTX.fillText(`◆ WAVE ${State.wave} ◆`, CANVAS.width/2, 36);
+  if(State.openWorldMode) {
+    // Update camera and sector
+    updateCamera();
+    const newSector=getCurrentSector();
+    if(newSector!==State.currentSector) {
+      State.currentSector=newSector;
+      if(!State.visitedSectors.includes(newSector)) {
+        State.visitedSectors.push(newSector);
+        showWaveAnnounce(PHASE_THEMES[newSector].name,'#7b2fff');
+      }
+    }
+    // Auto-shoot at nearest enemy
+    State.players.forEach(p=>autoShootOpenWorld(p));
+    // Apply camera transform for world drawing
+    CTX.save();
+    CTX.translate(-State.camera.x, -State.camera.y);
+    drawSectorBoundaries();
+    drawGalaxyObjects();
+    State.players.forEach(p=>{p.update();p.draw();});
+    processLasers();
+    processBullets();
+    processAllyRobots();
+    processOpenWorldEnemies();
+    processBoss();
+    processExplosions();
+    processXPOrbs();
+    processFloatingTexts();
+    CTX.restore();
+    // HUD elements (not translated)
+    checkBossZones();
+    drawGalaxyMiniMap();
+    // Sector name in HUD top center
+    CTX.fillStyle='rgba(180,120,255,0.6)'; CTX.textAlign='center';
+    CTX.font='11px Orbitron, monospace';
+    CTX.fillText(PHASE_THEMES[State.currentSector||0].name, CANVAS.width/2, 56);
+    CTX.textAlign='left';
+    if(State.infiniteMode||State.bossRushMode) drawMiniRadar();
+  } else {
+    State.players.forEach(p=>{p.update();p.draw();});
+    processLasers();
+    processBullets();
+    processAllyRobots();
+    processEnemies();
+    processBoss();
+    processPowerUps();
+    processExplosions();
+    processXPOrbs();
+    processFloatingTexts(); // IMPROVEMENT 15
+    trySpawnEnemiesOrBoss();
+    // IMPROVEMENT 19: infinite wave label with style
+    if(State.infiniteMode) {
+      CTX.fillStyle='rgba(0,245,255,0.25)'; CTX.textAlign='center';
+      CTX.font='bold 18px Orbitron, monospace';
+      CTX.fillText(`◆ WAVE ${State.wave} ◆`, CANVAS.width/2, 36);
+      CTX.textAlign='left';
+    }
+    // Mini radar for Infinite/Boss Rush
+    if(State.infiniteMode||State.bossRushMode) drawMiniRadar();
+    else { const rc=document.getElementById('miniRadar'); if(rc) rc.classList.remove('visible'); }
   }
 
   updateScoreDisplay();
-
-  // Mini radar for Infinite/Boss Rush
-  if(State.infiniteMode||State.bossRushMode) drawMiniRadar();
-  else { const rc=document.getElementById('miniRadar'); if(rc) rc.classList.remove('visible'); }
 
   if(State.screenShake>0) CTX.restore();
 
