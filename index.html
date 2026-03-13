@@ -807,6 +807,195 @@
     /* ─── SKILL TREE WIDE ─── */
     #skillTreePanel { width: min(780px, 98vw); }
     .skill-col h3 { position: sticky; top: 0; background: var(--panel); z-index: 1; padding-bottom: 6px; }
+
+    /* ═══ OPEN WORLD EXPANSION CSS ═══ */
+    /* Quest Log Overlay */
+    #questLogOverlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: var(--panel); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,170,0,0.4);
+      padding: 28px; width: min(560px,92vw); max-height: 80vh;
+      overflow-y: auto; display: none; z-index: 18;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    }
+    #questLogOverlay.open { display: block; animation: panelIn 0.25s ease; }
+    #questLogOverlay h2 { font-family:'Orbitron',monospace; font-size:15px; color:#ffaa00; letter-spacing:3px; margin-bottom:16px; }
+    .quest-card {
+      padding: 12px 14px; margin: 8px 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,170,0,0.2);
+      border-left: 3px solid rgba(255,170,0,0.6);
+    }
+    .quest-card h3 { font-family:'Orbitron',monospace; font-size:11px; color:#ffaa00; letter-spacing:1px; }
+    .quest-card p { font-size:12px; color:rgba(255,255,255,0.5); margin-top:4px; }
+    .quest-prog-track { height:3px; background:rgba(255,255,255,0.1); margin-top:8px; border-radius:2px; overflow:hidden; }
+    .quest-prog-fill { height:100%; background:#ffaa00; box-shadow:0 0 8px #ffaa00; transition:width 0.3s; }
+    .quest-reward { font-family:'Orbitron',monospace; font-size:9px; color:#ffd60a; margin-top:6px; }
+    .quest-completed { opacity:0.5; border-left-color:rgba(57,255,20,0.6); }
+    .quest-completed h3 { color:#39ff14; }
+
+    /* Crafting Menu Overlay */
+    #craftingOverlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: var(--panel); backdrop-filter: blur(16px);
+      border: 1px solid rgba(123,47,255,0.4);
+      padding: 28px; width: min(500px,92vw); max-height: 80vh;
+      overflow-y: auto; display: none; z-index: 18;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    }
+    #craftingOverlay.open { display: block; animation: panelIn 0.25s ease; }
+    #craftingOverlay h2 { font-family:'Orbitron',monospace; font-size:15px; color:#b57bff; letter-spacing:3px; margin-bottom:16px; }
+    .craft-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; margin: 8px 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(123,47,255,0.2);
+      border-left: 3px solid rgba(123,47,255,0.6);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .craft-card:hover { background:rgba(123,47,255,0.08); border-left-color:#b57bff; }
+    .craft-card.unavailable { opacity:0.4; cursor:not-allowed; }
+    .craft-icon { font-size:28px; }
+    .craft-info { flex:1; }
+    .craft-info h3 { font-family:'Orbitron',monospace; font-size:11px; color:#b57bff; }
+    .craft-info p { font-size:12px; color:rgba(255,255,255,0.5); margin-top:3px; }
+    .craft-cost { font-family:'Orbitron',monospace; font-size:10px; color:#ffd60a; text-align:right; }
+    #craftMatsDisplay { font-family:'Orbitron',monospace; font-size:10px; color:rgba(0,245,255,0.7); margin-bottom:12px; letter-spacing:1px; }
+
+    /* Fleet Manager Overlay */
+    #fleetOverlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: var(--panel); backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,255,136,0.4);
+      padding: 28px; width: min(560px,92vw); max-height: 80vh;
+      overflow-y: auto; display: none; z-index: 18;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    }
+    #fleetOverlay.open { display: block; animation: panelIn 0.25s ease; }
+    #fleetOverlay h2 { font-family:'Orbitron',monospace; font-size:15px; color:#00ff88; letter-spacing:3px; margin-bottom:16px; }
+    .fleet-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; margin: 8px 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,255,136,0.2);
+    }
+    .fleet-ship-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .fleet-info { flex:1; }
+    .fleet-info h3 { font-family:'Orbitron',monospace; font-size:11px; color:#00ff88; }
+    .fleet-info p { font-size:12px; color:rgba(255,255,255,0.5); margin-top:3px; }
+    .fleet-recruit-btn {
+      padding: 6px 14px; font-family:'Orbitron',monospace; font-size:10px; letter-spacing:1px;
+      background: transparent; border: 1px solid #00ff88; color: #00ff88;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .fleet-recruit-btn:hover { background:rgba(0,255,136,0.1); }
+    .fleet-recruit-btn:disabled { border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.3); cursor:not-allowed; }
+
+    /* Galaxy Map Overlay */
+    #galaxyMapOverlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: rgba(2,8,23,0.97); backdrop-filter: blur(20px);
+      border: 1px solid rgba(0,245,255,0.3);
+      padding: 20px; width: min(700px,96vw); max-height: 90vh;
+      overflow-y: auto; display: none; z-index: 18;
+    }
+    #galaxyMapOverlay.open { display: block; animation: panelIn 0.25s ease; }
+    #galaxyMapOverlay h2 { font-family:'Orbitron',monospace; font-size:15px; color:var(--cyan); letter-spacing:3px; margin-bottom:16px; text-align:center; }
+    #galaxyMapCanvas { display:block; margin:0 auto; border:1px solid rgba(0,245,255,0.2); }
+
+    /* Open World HUD Panel (left side) */
+    #owHudPanel {
+      position: fixed; left: 12px; top: 70px;
+      width: 180px; display: none; z-index: 6;
+      pointer-events: none;
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      color: rgba(0,245,255,0.7); letter-spacing: 1px;
+    }
+    #owHudPanel.visible { display: block; }
+    .ow-hud-section {
+      background: rgba(2,8,23,0.75);
+      border: 1px solid rgba(0,245,255,0.15);
+      border-left: 2px solid rgba(0,245,255,0.4);
+      padding: 6px 8px; margin-bottom: 4px;
+    }
+    .ow-hud-label { color: rgba(255,255,255,0.35); font-size: 8px; margin-bottom: 2px; }
+    .ow-hud-value { color: #fff; font-size: 10px; font-weight: 700; }
+    .ow-hud-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .ow-hud-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+    /* Weather HUD */
+    #weatherHud {
+      position: fixed; top: 36px; left: 50%; transform: translateX(-50%);
+      display: none; z-index: 6; pointer-events: none;
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      color: rgba(255,200,0,0.8); letter-spacing: 2px;
+      background: rgba(2,8,23,0.7); padding: 4px 12px;
+      border: 1px solid rgba(255,200,0,0.3);
+    }
+    #weatherHud.visible { display: block; }
+
+    /* Faction HUD */
+    #factionHud {
+      position: fixed; right: 148px; top: 60px;
+      width: 120px; display: none; z-index: 6;
+      pointer-events: none; font-family: 'Orbitron', monospace;
+    }
+    #factionHud.visible { display: block; }
+
+    /* Sector Objective HUD */
+    #sectorObjHud {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: none; z-index: 6; pointer-events: none;
+      font-family: 'Orbitron', monospace; font-size: 9px;
+      background: rgba(2,8,23,0.8); border: 1px solid rgba(0,245,255,0.2);
+      padding: 6px 14px; min-width: 200px; text-align: center;
+    }
+    #sectorObjHud.visible { display: block; }
+
+    /* Active Event Banner */
+    #eventBanner {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900;
+      color: #ff4444; text-shadow: 0 0 30px rgba(255,68,68,0.8);
+      pointer-events: none; z-index: 9; opacity: 0; text-align: center;
+    }
+
+    /* Codex HUD small */
+    #codexHud {
+      position: fixed; right: 12px; bottom: 100px;
+      display: none; z-index: 6; pointer-events: none;
+      font-family: 'Orbitron', monospace; font-size: 8px;
+      color: rgba(123,47,255,0.7); letter-spacing: 1px;
+    }
+    #codexHud.visible { display: block; }
+
+    /* Trade Menu Overlay */
+    #tradeOverlay {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: var(--panel); backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,255,136,0.4);
+      padding: 28px; width: min(480px,92vw);
+      display: none; z-index: 18;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    }
+    #tradeOverlay.open { display: block; animation: panelIn 0.25s ease; }
+    #tradeOverlay h2 { font-family:'Orbitron',monospace; font-size:14px; color:#00ff88; letter-spacing:3px; margin-bottom:14px; }
+    .trade-item {
+      padding: 12px 14px; margin: 8px 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-left: 3px solid rgba(0,255,136,0.5);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .trade-item:hover { background: rgba(0,255,136,0.06); }
+    .trade-item h3 { font-family:'Orbitron',monospace; font-size:11px; color:#00ff88; }
+    .trade-item p { font-size:12px; color:rgba(255,255,255,0.5); margin-top:3px; }
+    .trade-item .trade-cost { font-family:'Orbitron',monospace; font-size:10px; color:#ffd60a; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -1611,6 +1800,131 @@ const RUN_UPGRADES_POOL = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════
+// OPEN WORLD EXPANSION CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
+
+const FACTIONS = {
+  pirates: { name:'SPACE PIRATES', color:'#ff4444', enemies:['basic','fast','bomber'], baseRep:0 },
+  empire:  { name:'GALACTIC EMPIRE', color:'#4488ff', enemies:['tank','ufo','spinner'], baseRep:0 },
+  rebels:  { name:'REBEL FLEET', color:'#ffaa00', enemies:['diver','fast','basic'], baseRep:0 },
+  traders: { name:'MERCHANT GUILD', color:'#00ff88', enemies:[], baseRep:50 },
+};
+
+const QUEST_TEMPLATES = [
+  { id:'escort',          name:'Escort Mission',    desc:'Survive 60s in this sector',       type:'time',    target:60,  reward:{coins:200,xp:500} },
+  { id:'hunt',            name:'Bounty Hunt',        desc:'Kill 15 enemies in sector',        type:'kill',    target:15,  reward:{coins:150,xp:300} },
+  { id:'destroy_fortress',name:'Fortress Assault',  desc:'Destroy a Space Fortress',         type:'fortress',target:1,   reward:{coins:300,xp:600} },
+  { id:'collect_crystals',name:'Crystal Rush',      desc:'Collect 200 XP from crystals',     type:'crystal', target:200, reward:{coins:100,xp:200} },
+  { id:'explore',         name:'Galaxy Explorer',   desc:'Visit 5 different sectors',        type:'explore', target:5,   reward:{coins:250,xp:400} },
+  { id:'survivor',        name:'No Damage Run',     desc:'Survive 90s without damage',       type:'nodmg',   target:90,  reward:{coins:500,xp:1000} },
+  { id:'rescue',          name:'Rescue Mission',    desc:'Reach 3 distress beacons',         type:'beacon',  target:3,   reward:{coins:200,xp:350} },
+  { id:'merchant',        name:'Trade Route',       desc:'Use 2 trading posts',              type:'trade',   target:2,   reward:{coins:180,xp:250} },
+  { id:'boss_slayer',     name:'Boss Slayer',       desc:'Defeat 3 sector bosses',           type:'boss',    target:3,   reward:{coins:600,xp:1200} },
+  { id:'explorer',        name:'Deep Space',        desc:'Reach the Omega Dimension sector', type:'omega',   target:1,   reward:{coins:400,xp:800} },
+];
+
+const WEATHER_TYPES = ['clear','solar_storm','asteroid_rain','nebula_surge','quantum_flux','ion_storm','void_rift'];
+
+const WEATHER_DISPLAY = {
+  clear:         { name:'CLEAR SPACE',     color:'rgba(0,245,255,0.6)' },
+  solar_storm:   { name:'SOLAR STORM',     color:'rgba(255,140,0,0.8)' },
+  asteroid_rain: { name:'ASTEROID RAIN',   color:'rgba(200,150,100,0.8)' },
+  nebula_surge:  { name:'NEBULA SURGE',    color:'rgba(180,0,255,0.8)' },
+  quantum_flux:  { name:'QUANTUM FLUX',    color:'rgba(0,255,200,0.8)' },
+  ion_storm:     { name:'ION STORM',       color:'rgba(100,200,255,0.8)' },
+  void_rift:     { name:'VOID RIFT',       color:'rgba(80,0,0,0.9)' },
+};
+
+const ALLY_SHIP_TYPES = [
+  { type:'scout',     cost:200, color:'#00ff88', speed:4,   damage:1, health:3,  fireRate:500,  range:350, label:'SCOUT',   icon:'S' },
+  { type:'fighter',   cost:350, color:'#ffaa00', speed:3,   damage:2, health:5,  fireRate:800,  range:300, label:'FIGHTER', icon:'F' },
+  { type:'bomber',    cost:500, color:'#ff6644', speed:2,   damage:4, health:8,  fireRate:1500, range:250, label:'BOMBER',  icon:'B' },
+  { type:'healer',    cost:400, color:'#ff69b4', speed:3,   damage:0, health:6,  fireRate:0,    range:200, label:'HEALER',  icon:'H', healsPlayer:true },
+  { type:'tank_ship', cost:600, color:'#4488ff', speed:1.5, damage:3, health:20, fireRate:1200, range:280, label:'TANK',    icon:'T' },
+];
+
+const CRAFT_RECIPES = [
+  { id:'plasma_cannon', name:'PLASMA CANNON', icon:'🔥', cost:{crystals:3,coins:300}, effect:'tripleDamage5s',  desc:'3x damage for 5s' },
+  { id:'warp_drive',    name:'WARP DRIVE',    icon:'⚡', cost:{crystals:5,coins:500}, effect:'speedBoost10s',   desc:'3x speed for 10s' },
+  { id:'repair_kit',    name:'REPAIR KIT',    icon:'🛠', cost:{crystals:2,coins:150}, effect:'heal2lives',      desc:'Heal 2 lives' },
+  { id:'emp_blast',     name:'EMP BLAST',     icon:'💥', cost:{crystals:4,coins:400}, effect:'stunAllEnemies',  desc:'Stun all enemies 3s' },
+  { id:'mega_shield',   name:'MEGA SHIELD',   icon:'🛡', cost:{crystals:3,coins:350}, effect:'invincible8s',    desc:'Invincible for 8s' },
+];
+
+const CODEX_ENTRIES = [
+  { id:'c0',  title:'The Spiral Arm',        text:'Ancient star-forming region at the galaxy rim.' },
+  { id:'c1',  title:'Space Pirates',         text:'Scavenger fleets who terrorize trade routes.' },
+  { id:'c2',  title:'The Galactic Empire',   text:'Authoritarian regime controlling inner systems.' },
+  { id:'c3',  title:'Rebel Fleet',           text:'Freedom fighters opposing imperial expansion.' },
+  { id:'c4',  title:'Merchant Guild',        text:'Peaceful traders who keep the economy flowing.' },
+  { id:'c5',  title:'Wormhole Technology',   text:'Allows instantaneous travel between star sectors.' },
+  { id:'c6',  title:'Black Hole Physics',    text:'Singularities that bend space-time infinitely.' },
+  { id:'c7',  title:'Ancient Ruins',         text:'Remnants of a precursor civilization.' },
+  { id:'c8',  title:'Crystal Formations',    text:'Energy-rich minerals found near nebulae.' },
+  { id:'c9',  title:'Space Fortresses',      text:'Armored strongholds of warring factions.' },
+  { id:'c10', title:'Distress Beacons',      text:'Emergency signals from stranded crew members.' },
+  { id:'c11', title:'Trading Posts',         text:'Neutral market stations accepted by all factions.' },
+  { id:'c12', title:'Nebula Clouds',         text:'Dense gas clouds that affect shields and engines.' },
+  { id:'c13', title:'Ion Storms',            text:'Electromagnetic anomalies rich in particles.' },
+  { id:'c14', title:'Void Rifts',            text:'Tears in spacetime leading nowhere and everywhere.' },
+  { id:'c15', title:'The Omega Sector',      text:'Final frontier at the edge of the known galaxy.' },
+  { id:'c16', title:'Solar Flares',          text:'Intense bursts of radiation from unstable stars.' },
+  { id:'c17', title:'Quantum Flux Zones',    text:'Areas where probability itself becomes unstable.' },
+  { id:'c18', title:'Ally Ship Classes',     text:'Various vessel types available for recruitment.' },
+  { id:'c19', title:'The Galactic Core',     text:'Supermassive black hole at the center of it all.' },
+];
+
+const GALAXY_EVENTS = [
+  { id:'pirate_raid',    name:'PIRATE RAID',     desc:'5 pirate ships ambush!',          spawnCount:5, gives:null },
+  { id:'empire_patrol',  name:'EMPIRE PATROL',   desc:'Imperial patrol detected!',       spawnCount:3, gives:null },
+  { id:'meteor_shower',  name:'METEOR SHOWER',   desc:'Meteors inbound!',                spawnCount:0, duration:15, gives:null },
+  { id:'supply_drop',    name:'SUPPLY DROP',     desc:'Merchant convoy passing!',        spawnCount:0, gives:'powerup' },
+  { id:'void_creature',  name:'VOID ENTITY',     desc:'Something ancient stirs...',      spawnCount:1, gives:null, special:true },
+  { id:'data_cache',     name:'DATA CACHE',      desc:'Encrypted files recovered!',      spawnCount:0, gives:'xp', amount:500 },
+  { id:'crew_rescue',    name:'CREW RESCUED',    desc:'Survivors found!',                spawnCount:0, gives:'ally' },
+  { id:'warp_storm',     name:'WARP STORM',      desc:'Gravitational anomaly!',          spawnCount:0, gives:null, effect:'teleport' },
+];
+
+const OW_SECTOR_THEMES = [
+  { name:'NEBULA PRIME',    color:'#aa44ff', bg:'#1a0030' },
+  { name:'ASTEROID BELT',   color:'#aa7744', bg:'#221100' },
+  { name:'CRYSTAL EXPANSE', color:'#44aaff', bg:'#001122' },
+  { name:'VOID REACHES',    color:'#ff4444', bg:'#200000' },
+  { name:'ION FIELDS',      color:'#44ffaa', bg:'#001a10' },
+  { name:'SOLAR FRONTIER',  color:'#ffaa44', bg:'#1a1000' },
+  { name:'DEEP CORE',       color:'#ff44ff', bg:'#1a001a' },
+  { name:'WARP ZONE ALPHA', color:'#44ffff', bg:'#001a1a' },
+  { name:'EMPIRE SPACE',    color:'#4488ff', bg:'#00051a' },
+  { name:'REBEL TERRITORY', color:'#ffdd44', bg:'#1a1200' },
+  { name:'PIRATE HAVEN',    color:'#ff6644', bg:'#1a0a00' },
+  { name:'TRADE NEXUS',     color:'#44ff88', bg:'#001a0a' },
+  { name:'STARFALL BASIN',  color:'#ff88aa', bg:'#1a0010' },
+  { name:'QUANTUM RIFT',    color:'#88aaff', bg:'#000a1a' },
+  { name:'GHOST SECTOR',    color:'#aaaaaa', bg:'#0a0a0a' },
+  { name:'PLASMA SHORES',   color:'#ff8844', bg:'#1a0800' },
+  { name:'DARK MATTER RIFT',color:'#8844ff', bg:'#0a0018' },
+  { name:'PULSAR FIELDS',   color:'#ffff44', bg:'#1a1a00' },
+  { name:'SINGULARITY',     color:'#ffffff', bg:'#050505' },
+  { name:'BINARY STARS',    color:'#ffcc44', bg:'#1a0f00' },
+  { name:'SUPERNOVA REMNANT',color:'#ff4488',bg:'#1a0010' },
+  { name:'MAGNETAR ZONE',   color:'#44ccff', bg:'#001018' },
+  { name:'COMET TRAIL',     color:'#aaffee', bg:'#001a15' },
+  { name:'STELLAR NURSERY', color:'#ffaaee', bg:'#1a0015' },
+  { name:'QUASAR REACH',    color:'#ccaaff', bg:'#0a0018' },
+  { name:'NOVA CORE',       color:'#ff6600', bg:'#1a0900' },
+  { name:'TENEBRIS VOID',   color:'#440044', bg:'#0a000a' },
+  { name:'HELIX CORRIDOR',  color:'#00ffcc', bg:'#001a15' },
+  { name:'FRACTURE ZONE',   color:'#ccff44', bg:'#101a00' },
+  { name:'DRIFTER SPACE',   color:'#ff9955', bg:'#1a0c00' },
+  { name:'SENTINEL RING',   color:'#5599ff', bg:'#00051a' },
+  { name:'RESONANCE FIELD', color:'#ff55aa', bg:'#1a000f' },
+  { name:'ECLIPSE SECTOR',  color:'#9955ff', bg:'#0a0018' },
+  { name:'PHOTON STREAM',   color:'#ffff88', bg:'#1a1a05' },
+  { name:'ANTIMATTER SEA',  color:'#ff0088', bg:'#1a0010' },
+  { name:'OMEGA DIMENSION', color:'#00ffff', bg:'#001a1a' },
+];
+
+// ═══════════════════════════════════════════════════════════════════
 // SECTION 2 – GAME STATE
 // ═══════════════════════════════════════════════════════════════════
 const State = {
@@ -1669,6 +1983,27 @@ const State = {
   openWorldBossActive:false,
   runUpgrades:{},
   unlockedChars:['marcelo'],
+  // ═══ OPEN WORLD EXPANSION STATE ═══
+  factionRep:{ pirates:0, empire:0, rebels:0, traders:50 },
+  activeQuests:[],
+  completedQuests:[],
+  questProgress:{},
+  questLog:false,
+  spaceWeather:{ type:'clear', timer:0, duration:0, lastCheck:0 },
+  allyFleet:[],
+  codex:{ discoveries:[], totalExplored:0 },
+  activeEvents:[],
+  craftingMaterials:{ crystals:0 },
+  galaxyStars:[],
+  _nodalDamageTimer:0,
+  _craftEffects:{},
+  _tradeMenuOpen:false,
+  _activeTradeObj:null,
+  _sectorObjectiveProgress:{},
+  _formationEnemyTimer:0,
+  _weatherParticles:[],
+  _allyBullets:[],
+  _eventCheckTimer:0,
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2701,6 +3036,129 @@ class XPOrb {
     CTX.fillStyle=this.color; CTX.shadowColor=this.color; CTX.shadowBlur=12;
     CTX.globalAlpha=0.8; CTX.beginPath(); CTX.arc(this.x,this.y,r,0,Math.PI*2); CTX.fill();
     CTX.globalAlpha=1; CTX.shadowBlur=0;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// OPEN WORLD EXPANSION: AllyShip Class
+// ═══════════════════════════════════════════════════════════════════
+class AllyShip {
+  constructor(cfg) {
+    this.type       = cfg.type;
+    this.color      = cfg.color;
+    this.speed      = cfg.speed;
+    this.damage     = cfg.damage;
+    this.health     = cfg.health;
+    this.maxHealth  = cfg.health;
+    this.fireRate   = cfg.fireRate;
+    this.range      = cfg.range;
+    this.label      = cfg.label;
+    this.healsPlayer= cfg.healsPlayer || false;
+    this.icon       = cfg.icon || 'A';
+    this.x          = 0;
+    this.y          = 0;
+    this.width      = 24;
+    this.height     = 24;
+    this.lastShot   = 0;
+    this.angle      = 0;
+    this.offsetAngle= Math.random()*Math.PI*2;
+    this.offsetDist = 60 + Math.random()*40;
+    this.bullets    = [];
+    this.stunned    = 0;
+    this.dead       = false;
+  }
+
+  update() {
+    if(this.dead) return;
+    const p = State.players[0];
+    if(!p) return;
+
+    // Follow player in formation
+    const t = Date.now()*0.001;
+    this.offsetAngle += 0.005;
+    const targetX = p.x + p.width/2 + Math.cos(this.offsetAngle)*this.offsetDist - this.width/2;
+    const targetY = p.y + p.height/2 + Math.sin(this.offsetAngle)*this.offsetDist - this.height/2;
+    this.x += (targetX - this.x)*0.08;
+    this.y += (targetY - this.y)*0.08;
+
+    // Heal player if healer type
+    if(this.healsPlayer && p.lives < p.maxLives) {
+      if(Date.now() - this.lastShot > 5000) {
+        this.lastShot = Date.now();
+        if(p.lives < 5) { p.lives = Math.min(p.lives+1, 5); showWaveAnnounce('+1 LIFE (HEALER)','#ff69b4'); }
+      }
+      return;
+    }
+
+    // Auto-shoot nearest enemy
+    if(this.damage <= 0 || this.fireRate <= 0) return;
+    if(Date.now() - this.lastShot < this.fireRate) return;
+    if(this.stunned > Date.now()) return;
+
+    let nearest = null, nearDist = this.range;
+    State.enemies.forEach(e=>{
+      const dx=(e.x+e.width/2)-(this.x+this.width/2);
+      const dy=(e.y+e.height/2)-(this.y+this.height/2);
+      const d=Math.hypot(dx,dy);
+      if(d<nearDist){nearDist=d;nearest=e;}
+    });
+    if(State.boss) {
+      const dx=(State.boss.x+State.boss.width/2)-(this.x+this.width/2);
+      const dy=(State.boss.y+State.boss.height/2)-(this.y+this.height/2);
+      const d=Math.hypot(dx,dy);
+      if(d<this.range){nearest=State.boss;nearDist=d;}
+    }
+    if(!nearest) return;
+    this.lastShot = Date.now();
+    const dx=(nearest.x+nearest.width/2)-(this.x+this.width/2);
+    const dy=(nearest.y+nearest.height/2)-(this.y+this.height/2);
+    const ang = Math.atan2(dy,dx);
+    State._allyBullets.push({
+      x: this.x+this.width/2, y: this.y+this.height/2,
+      vx: Math.cos(ang)*7, vy: Math.sin(ang)*7,
+      damage: this.damage, color: this.color,
+      width: 6, height: 6, life: 80,
+    });
+  }
+
+  draw() {
+    if(this.dead) return;
+    const sx = this.x;
+    const sy = this.y;
+    CTX.save();
+    CTX.translate(sx + this.width/2, sy + this.height/2);
+    // Ship body
+    CTX.fillStyle = this.color;
+    CTX.shadowColor = this.color;
+    CTX.shadowBlur = 12;
+    CTX.beginPath();
+    CTX.moveTo(0, -12);
+    CTX.lineTo(-8, 8);
+    CTX.lineTo(0, 4);
+    CTX.lineTo(8, 8);
+    CTX.closePath();
+    CTX.fill();
+    CTX.shadowBlur = 0;
+    // Health bar
+    const bw = 24, bh = 3;
+    CTX.fillStyle = 'rgba(0,0,0,0.5)';
+    CTX.fillRect(-bw/2, 14, bw, bh);
+    CTX.fillStyle = this.health/this.maxHealth>0.5?'#39ff14':'#ff4444';
+    CTX.fillRect(-bw/2, 14, bw*(this.health/this.maxHealth), bh);
+    // Label
+    CTX.fillStyle = 'rgba(255,255,255,0.5)';
+    CTX.font = '7px Orbitron, monospace';
+    CTX.textAlign = 'center';
+    CTX.fillText(this.label, 0, 26);
+    CTX.restore();
+  }
+
+  takeDamage(dmg) {
+    this.health -= dmg;
+    if(this.health <= 0) {
+      this.dead = true;
+      triggerExplosion(this.x+this.width/2, this.y+this.height/2, this.color, 20);
+    }
   }
 }
 
@@ -4225,6 +4683,8 @@ function handleEnemyDeath(enemy,eIdx,killerPlayer) {
   State.stats.lastKillTime=now;
   State.stats.maxCombo=Math.max(State.stats.maxCombo,State.stats.currentCombo);
   State.stats.enemiesKilled++;
+  // ─── EXPANSION: open world kill hook ───
+  if(State.openWorldMode) onOpenWorldEnemyKilled(enemy);
   // sp2: combo bonus coins
   if(State.stats.currentCombo>=3 && (State.unlockedSkills.sp2||0)>=1) {
     const bonus=Math.floor(State.stats.currentCombo*(State.unlockedSkills.sp2||1)*0.5);
@@ -4309,6 +4769,8 @@ function handlePlayerDamage(player) {
   }
   State.stats.phaseDamageTaken++;
   player.lives--;
+  // ─── EXPANSION: open world damage hook ───
+  if(State.openWorldMode) onOpenWorldPlayerDamaged();
   triggerExplosion(player.x+player.width/2,player.y+player.height/2,'#ffffff',20);
   // IMPROVEMENT 6: invincibility frames after hit
   player.invincible=true; player.invincibleEnd=Date.now()+1500;
@@ -4343,6 +4805,8 @@ function handleBossDefeat() {
       State.galaxySectors[State._currentBossSector].bossDefeated=true;
     }
     addXP(500);
+    // ─── EXPANSION: expanded boss defeat hook ───
+    if(State.openWorldMode) { expandedBossDeathHook(); }
     State.boss=null; State.bossSpawned=false;
     showWaveAnnounce('BOSS DEFEATED!','#ffd60a');
     return;
@@ -4701,6 +5165,8 @@ window.addEventListener('keydown',e=>{
   }
   if(State.infiniteMode){if(key==='1')useAbility('nuke');if(key==='2')useAbility('heal');if(key==='3')useAbility('shield');}
   if(State.survivorMode){if(key==='1')useSurvivorAbility(0);if(key==='2')useSurvivorAbility(1);if(key==='3')useSurvivorAbility(2);}
+  // OPEN WORLD EXPANSION: keyboard shortcuts for Q/C/F/M
+  if(State.openWorldMode) { if(handleOpenWorldKey(key)) return; }
   // IMPROVEMENT 18: arrow up also shoots
 });
 window.addEventListener('keyup',e=>{
@@ -4720,75 +5186,233 @@ window.addEventListener('keyup',e=>{
 // ═══════════════════════════════════════════════════════════════════
 
 function generateGalaxy() {
-  const W=State.worldWidth, H=State.worldHeight;
-  State.galaxySectors=[]; State.galaxyObjects=[];
-  const cols=4, rows=3;
-  const sw=W/cols, sh=H/rows;
+  // Expand world to 18000x18000 with 36 sectors (6x6 grid)
+  State.worldWidth = 18000;
+  State.worldHeight = 18000;
+  const W = State.worldWidth, H = State.worldHeight;
+  State.galaxySectors = []; State.galaxyObjects = [];
+  State._fortressBullets = []; State._allyBullets = []; State._sectorObjectiveProgress = {};
+  State.activeEvents = []; State.allyFleet = [];
+  State.spaceWeather = { type:'clear', timer:0, duration:0, lastCheck:Date.now() };
+  const cols = 6, rows = 6;
+  const sw = W/cols, sh = H/rows;
+  const factionKeys = ['pirates','empire','rebels'];
+  const objectiveTypes = ['kill','kill','collect','explore'];
+  const planetColors = ['#ff6644','#4488ff','#44ff88','#ffaa00','#ff44ff','#44ffcc','#ffcc44','#cc44ff'];
+
   for(let r=0;r<rows;r++) {
     for(let c=0;c<cols;c++) {
-      const idx=r*cols+c;
+      const idx = r*cols+c;
+      const theme = OW_SECTOR_THEMES[idx % OW_SECTOR_THEMES.length];
+      const faction = factionKeys[idx % 3];
+      const objType = objectiveTypes[idx % objectiveTypes.length];
+      const objTarget = objType==='kill'?8+idx:objType==='collect'?150:3;
       State.galaxySectors.push({
-        x:c*sw, y:r*sh, w:sw, h:sh,
-        themeIdx:idx,
-        name:PHASE_THEMES[idx].name,
-        bossDefeated:false,
-        bossZone:{ x:c*sw+sw*0.5-80, y:r*sh+sh*0.5-80, w:160, h:160 },
+        x: c*sw, y: r*sh, w: sw, h: sh,
+        themeIdx: idx,
+        name: theme.name,
+        theme: theme,
+        faction: idx===0||idx===35 ? 'traders' : faction,
+        bossDefeated: false,
+        objectiveComplete: false,
+        bossZone: { x:c*sw+sw*0.5-100, y:r*sh+sh*0.5-100, w:200, h:200 },
+        sectorObjective: {
+          type: objType,
+          target: objTarget,
+          progress: 0,
+          completed: false,
+          reward: { coins: 50+idx*5, xp: 100+idx*20 },
+        },
       });
-      // Add planets
-      for(let p=0;p<3;p++) {
+
+      // ─── Planets (2-3 per sector) ───
+      const numPlanets = 2 + Math.floor(Math.random()*2);
+      for(let p=0;p<numPlanets;p++) {
+        const pRadius = 25+Math.random()*55;
+        const pColor = planetColors[Math.floor(Math.random()*planetColors.length)];
+        const numMoons = Math.floor(Math.random()*4);
+        const moons = [];
+        for(let m=0;m<numMoons;m++) {
+          moons.push({ angle:Math.random()*Math.PI*2, distance:pRadius*1.8+m*30, radius:3+Math.random()*8, color:planetColors[Math.floor(Math.random()*planetColors.length)], speed:0.005+Math.random()*0.015 });
+        }
         State.galaxyObjects.push({
           type:'planet',
-          x:c*sw+Math.random()*sw*0.8+sw*0.1,
-          y:r*sh+Math.random()*sh*0.8+sh*0.1,
-          radius:30+Math.random()*40,
-          color:PHASE_THEMES[idx].star,
+          x: c*sw + sw*0.1 + Math.random()*sw*0.8,
+          y: r*sh + sh*0.1 + Math.random()*sh*0.8,
+          radius: pRadius,
+          color: pColor,
+          atmosphere: pColor,
+          sectorIdx: idx,
+          hasRing: Math.random()>0.6,
+          moons: moons,
+          rotation: Math.random()*Math.PI*2,
+          rotSpeed: 0.001+Math.random()*0.004,
+        });
+      }
+
+      // ─── Space Station ───
+      State.galaxyObjects.push({
+        type:'station', x:c*sw+sw*0.2+Math.random()*sw*0.3,
+        y:r*sh+sh*0.2+Math.random()*sh*0.3, radius:20, sectorIdx:idx, used:false,
+      });
+
+      // ─── Wormhole every 4th sector ───
+      if(idx%4===0) {
+        State.galaxyObjects.push({
+          type:'wormhole', x:c*sw+sw*0.7, y:r*sh+sh*0.7, radius:25, sectorIdx:idx,
+          targetSector:(idx+7)%36,
+        });
+      }
+
+      // ─── Asteroid Field ───
+      if(idx%3===1 || Math.random()<0.4) {
+        const numAsteroids = 4+Math.floor(Math.random()*5);
+        const asteroids = [];
+        for(let a=0;a<numAsteroids;a++) {
+          const ar = 10+Math.random()*20;
+          asteroids.push({
+            relX:(Math.random()-0.5)*200, relY:(Math.random()-0.5)*200,
+            radius:ar, angle:Math.random()*Math.PI*2, rotSpeed:(Math.random()-0.5)*0.04,
+            color:['#aa7744','#887755','#995533','#bb8855'][Math.floor(Math.random()*4)],
+            health:2+Math.floor(ar/5), maxHealth:2+Math.floor(ar/5),
+          });
+        }
+        State.galaxyObjects.push({
+          type:'asteroidField',
+          x:c*sw+sw*0.3+Math.random()*sw*0.4,
+          y:r*sh+sh*0.3+Math.random()*sh*0.4,
+          radius:120, sectorIdx:idx, asteroids,
+        });
+      }
+
+      // ─── Black Hole (every 6th sector, offset) ───
+      if(idx%6===5) {
+        State.galaxyObjects.push({
+          type:'blackhole', x:c*sw+sw*0.5, y:r*sh+sh*0.5, radius:60, sectorIdx:idx,
+        });
+      }
+
+      // ─── Space Fortress (every 5th sector) ───
+      if(idx%5===3 && idx>0) {
+        const hpVal = 200+idx*40;
+        State.galaxyObjects.push({
+          type:'fortress', x:c*sw+sw*0.6+Math.random()*sw*0.2, y:r*sh+sh*0.3+Math.random()*sh*0.2,
+          radius:80, health:hpVal, maxHealth:hpVal, sectorIdx:idx, destroyed:false,
+        });
+      }
+
+      // ─── Nebula Cloud ───
+      if(idx%4===2 || Math.random()<0.3) {
+        const nebulaColors=['#aa44ff','#4488ff','#44ffaa','#ff4488','#ffaa44'];
+        State.galaxyObjects.push({
+          type:'nebula', x:c*sw+sw*0.4+Math.random()*sw*0.2, y:r*sh+sh*0.4+Math.random()*sh*0.2,
+          radius:150+Math.random()*150, color:nebulaColors[idx%nebulaColors.length],
           sectorIdx:idx,
         });
       }
-      // Add space station
-      State.galaxyObjects.push({
-        type:'station',
-        x:c*sw+sw*0.2+Math.random()*sw*0.3,
-        y:r*sh+sh*0.2+Math.random()*sh*0.3,
-        radius:20,
-        sectorIdx:idx,
-        used:false,
-      });
-      // Add wormhole every 3rd sector
-      if(idx%3===0) {
+
+      // ─── Trading Post (every 4th sector from 2) ───
+      if((idx+2)%5===0 || idx===0) {
         State.galaxyObjects.push({
-          type:'wormhole',
-          x:c*sw+sw*0.7,
-          y:r*sh+sh*0.7,
-          radius:25,
-          sectorIdx:idx,
-          targetSector:(idx+5)%12,
+          type:'trader', x:c*sw+sw*0.35+Math.random()*sw*0.2, y:r*sh+sh*0.6+Math.random()*sh*0.2,
+          radius:20, sectorIdx:idx, tradeOpen:false,
+        });
+      }
+
+      // ─── Ancient Ruin ───
+      if(idx%7===4) {
+        State.galaxyObjects.push({
+          type:'ruin', x:c*sw+sw*0.2+Math.random()*sw*0.5, y:r*sh+sh*0.7+Math.random()*sh*0.2,
+          radius:30, sectorIdx:idx, used:false,
+        });
+      }
+
+      // ─── Crystal Field ───
+      if(idx%4===0 && idx>0) {
+        const numCrystals = 5+Math.floor(Math.random()*6);
+        const crystals = [];
+        for(let k=0;k<numCrystals;k++) {
+          crystals.push({
+            relX:(Math.random()-0.5)*180, relY:(Math.random()-0.5)*180,
+            width:6+Math.random()*10, height:20+Math.random()*30,
+            color:['#44aaff','#44ffcc','#aa44ff','#44ff88'][Math.floor(Math.random()*4)],
+            health:3, maxHealth:3,
+          });
+        }
+        State.galaxyObjects.push({
+          type:'crystal', x:c*sw+sw*0.5+Math.random()*sw*0.3, y:r*sh+sh*0.5+Math.random()*sh*0.3,
+          radius:100, sectorIdx:idx, crystals,
+        });
+      }
+
+      // ─── Distress Beacon ───
+      if(idx%8===3) {
+        State.galaxyObjects.push({
+          type:'beacon', x:c*sw+sw*0.7+Math.random()*sw*0.15, y:r*sh+sh*0.2+Math.random()*sh*0.2,
+          radius:25, sectorIdx:idx, triggered:false,
+        });
+      }
+
+      // ─── Debris Field ───
+      if(Math.random()<0.5) {
+        State.galaxyObjects.push({
+          type:'debris', x:c*sw+sw*0.25+Math.random()*sw*0.5, y:r*sh+sh*0.25+Math.random()*sh*0.5,
+          radius:40, sectorIdx:idx, used:false, lootCoins:20+Math.floor(Math.random()*31),
         });
       }
     }
   }
-  // Spawn patrol enemies in world
-  State.enemies=[];
-  State.galaxySectors.forEach((sector,si)=>{
-    const count=3+si;
-    const pool=['basic','ufo','tank','fast','spinner'];
-    if(si>=4) pool.push('bomber');
-    if(si>=8) pool.push('diver');
+
+  // ─── Nebula Gates at sector 0 and 35 ───
+  const s0=State.galaxySectors[0], s35=State.galaxySectors[35];
+  if(s0) State.galaxyObjects.push({ type:'gate', x:s0.x+s0.w*0.1, y:s0.y+s0.h*0.5, radius:60, sectorIdx:0, isStart:true, targetSector:35 });
+  if(s35) State.galaxyObjects.push({ type:'gate', x:s35.x+s35.w*0.9, y:s35.y+s35.h*0.5, radius:60, sectorIdx:35, isStart:false, targetSector:0 });
+
+  // ─── Spawn patrol enemies ───
+  State.enemies = [];
+  State.galaxySectors.forEach((sector, si)=>{
+    const count = 3 + Math.floor(si/4);
+    const pool = ['basic','ufo','tank','fast','spinner'];
+    if(si>=6) pool.push('bomber');
+    if(si>=12) pool.push('diver');
+    if(si>=20) pool.push('ufo');
     for(let i=0;i<count;i++) {
       const type=pool[Math.floor(Math.random()*pool.length)];
       const enemy=createEnemy(type);
       enemy.worldX=sector.x+Math.random()*sector.w;
       enemy.worldY=sector.y+Math.random()*sector.h;
-      enemy.homeX=enemy.worldX;
-      enemy.homeY=enemy.worldY;
-      enemy.sectorIdx=si;
-      enemy._openWorld=true;
-      enemy.x=enemy.worldX;
-      enemy.y=enemy.worldY;
+      enemy.homeX=enemy.worldX; enemy.homeY=enemy.worldY;
+      enemy.sectorIdx=si; enemy._openWorld=true;
+      enemy.x=enemy.worldX; enemy.y=enemy.worldY;
+      enemy._origSpeed=enemy.speed||2;
+      // Assign special roles
+      if(i===0&&si%5===1) enemy._mining=true;
+      if(i===1&&si%4===2) {
+        enemy._patrol=true;
+        enemy._waypoints=[
+          {x:sector.x+sector.w*0.2,y:sector.y+sector.h*0.2},
+          {x:sector.x+sector.w*0.8,y:sector.y+sector.h*0.2},
+          {x:sector.x+sector.w*0.8,y:sector.y+sector.h*0.8},
+          {x:sector.x+sector.w*0.2,y:sector.y+sector.h*0.8},
+        ];
+        enemy._waypointIdx=0;
+      }
       State.enemies.push(enemy);
     }
+    // Spawn V-formation every 6th sector
+    if(si%6===3) {
+      const cx=sector.x+sector.w*0.5;
+      const cy=sector.y+sector.h*0.3;
+      spawnFormationEnemies(cx,cy,si);
+    }
   });
+
+  // Generate galaxy stars for parallax
+  generateGalaxyStars();
+  // Initialize quest system
+  generateQuests();
 }
+
 
 function updateCamera() {
   if(!State.openWorldMode||!State.players[0]) return;
@@ -4820,8 +5444,9 @@ function drawSectorBoundaries() {
     const sx=s.x+s.w/2-State.camera.x;
     const sy=s.y+30-State.camera.y;
     if(sx>-100&&sx<CANVAS.width+100&&sy>0&&sy<CANVAS.height) {
-      CTX.fillStyle='rgba(255,255,255,0.08)'; CTX.font='12px Orbitron, monospace';
-      CTX.textAlign='center'; CTX.fillText(s.name,sx,sy);
+      const secLabel=s.theme?s.theme.name:s.name;
+      CTX.fillStyle=s.faction&&FACTIONS[s.faction]?FACTIONS[s.faction].color+'44':'rgba(255,255,255,0.08)';
+      CTX.font='11px Orbitron, monospace'; CTX.textAlign='center'; CTX.fillText(secLabel,sx,sy);
     }
     // Boss zone marker
     if(!s.bossDefeated) {
@@ -4843,12 +5468,12 @@ function drawGalaxyObjects() {
   State.galaxyObjects.forEach(obj=>{
     const sx=obj.x-State.camera.x;
     const sy=obj.y-State.camera.y;
-    if(sx<-200||sx>CANVAS.width+200||sy<-200||sy>CANVAS.height+200) return;
+    if(sx<-350||sx>CANVAS.width+350||sy<-350||sy>CANVAS.height+350) return;
+    // Skip types handled by drawNewGalaxyObjects (planet, asteroidField, etc.)
+    // Only handle station and wormhole here (legacy objects)
     if(obj.type==='planet') {
-      CTX.beginPath();
-      const grad=CTX.createRadialGradient(sx-obj.radius*0.3,sy-obj.radius*0.3,0,sx,sy,obj.radius);
-      grad.addColorStop(0,'#ffffff'); grad.addColorStop(0.3,obj.color); grad.addColorStop(1,'rgba(0,0,0,0.8)');
-      CTX.fillStyle=grad; CTX.arc(sx,sy,obj.radius,0,Math.PI*2); CTX.fill();
+      // Handled by drawNewGalaxyObjects (skip)
+      return;
     } else if(obj.type==='station') {
       CTX.save(); CTX.translate(sx,sy); CTX.rotate(Date.now()/3000);
       CTX.strokeStyle=obj.used?'#444':'#00f5ff'; CTX.lineWidth=2;
@@ -5008,9 +5633,10 @@ function drawGalaxyMiniMap() {
       CTX.beginPath(); CTX.arc(mx+(s.x+s.w/2)*scaleX,my+(s.y+s.h/2)*scaleY,3,0,Math.PI*2); CTX.fill();
     }
   });
+  // Draw grid lines (6x6)
   CTX.strokeStyle='rgba(255,255,255,0.06)'; CTX.lineWidth=0.5;
-  for(let c=1;c<4;c++){CTX.beginPath();CTX.moveTo(mx+c*mw/4,my);CTX.lineTo(mx+c*mw/4,my+mh);CTX.stroke();}
-  for(let r=1;r<3;r++){CTX.beginPath();CTX.moveTo(mx,my+r*mh/3);CTX.lineTo(mx+mw,my+r*mh/3);CTX.stroke();}
+  for(let c=1;c<6;c++){CTX.beginPath();CTX.moveTo(mx+c*mw/6,my);CTX.lineTo(mx+c*mw/6,my+mh);CTX.stroke();}
+  for(let r=1;r<6;r++){CTX.beginPath();CTX.moveTo(mx,my+r*mh/6);CTX.lineTo(mx+mw,my+r*mh/6);CTX.stroke();}
   if(State.players[0]) {
     const p=State.players[0];
     CTX.fillStyle='#39ff14';
@@ -5019,7 +5645,7 @@ function drawGalaxyMiniMap() {
   CTX.strokeStyle='rgba(0,245,255,0.3)'; CTX.lineWidth=0.5;
   CTX.strokeRect(mx+State.camera.x*scaleX,my+State.camera.y*scaleY,CANVAS.width*scaleX,CANVAS.height*scaleY);
   CTX.fillStyle='rgba(255,255,255,0.4)'; CTX.font='7px Orbitron, monospace'; CTX.textAlign='left';
-  CTX.fillText('GALAXY MAP',mx+3,my+9);
+  CTX.fillText('GALAXY MAP [M]',mx+3,my+9);
   CTX.restore();
 }
 
@@ -5046,17 +5672,38 @@ function startOpenWorldMode() {
   State.xp=0; State.xpToNextLevel=100; State.level=1;
   State.magnetRadius=0; State.xpMultiplier=1;
   State.runUpgrades={};
+  // ─── EXPANSION: init new state ───
+  State.factionRep={ pirates:0, empire:0, rebels:0, traders:50 };
+  State.activeQuests=[]; State.completedQuests=[]; State.questProgress={}; State.questLog=false;
+  State.spaceWeather={ type:'clear', timer:0, duration:0, lastCheck:Date.now() };
+  State.allyFleet=[];
+  State.codex={ discoveries:[], totalExplored:0 };
+  State.activeEvents=[];
+  State.craftingMaterials={ crystals:0 };
+  State.galaxyStars=[];
+  State._nodalDamageTimer=0; State._craftEffects={};
+  State._tradeMenuOpen=false; State._activeTradeObj=null;
+  State._sectorObjectiveProgress={}; State._formationEnemyTimer=0;
+  State._weatherParticles=[]; State._allyBullets=[];
+  State._eventCheckTimer=Date.now(); State._fortressBullets=[];
+  State._asteroidRainTimer=0; State._quantumTimer=0;
+  // ─────────────────────────────────
   State.players=[new Player(State.selectedChar[0],0)];
-  State.players[0].x=State.worldWidth/2;
-  State.players[0].y=State.worldHeight/2;
-  State.players.forEach(p=>applySkillBonuses(p));
+  // Player starts at world center - but wait for generateGalaxy to set worldWidth
   generateGalaxy();
+  // Place player at sector 0 center
+  const s0=State.galaxySectors[0];
+  if(s0){ State.players[0].x=s0.x+s0.w/2-15; State.players[0].y=s0.y+s0.h/2-15; }
+  State.players.forEach(p=>applySkillBonuses(p));
   document.getElementById('xpBarWrap').style.display='block';
   document.getElementById('xpLevelLabel').textContent='LVL 1';
   document.getElementById('survivorAbilitiesHud').style.display='none';
   document.getElementById('infiniteAbilitiesHud').style.display='none';
+  const owHud=document.getElementById('owHudPanel'); if(owHud) owHud.classList.add('visible');
   setHUDVisible(true); updateHUD(); initStars();
+  updateCodexHUD();
   showWaveAnnounce('GALAXY EXPLORER','#7b2fff');
+  initOpenWorldExpansion();
   gameLoop();
 }
 
@@ -5069,6 +5716,1367 @@ function openGalaxyMode() {
   const p2=document.getElementById('characterOptionsP2');
   if(p2) p2.style.display='none';
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// ═══ OPEN WORLD EXPANSION – SYSTEMS & FUNCTIONS ═══
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── FACTION SYSTEM ───────────────────────────────────────────────
+
+function getFactionForSector(sectorIdx) {
+  const keys = ['pirates','empire','rebels'];
+  return keys[sectorIdx % 3];
+}
+
+function updateFactionRep(sectorIdx, amount) {
+  const faction = getFactionForSector(sectorIdx);
+  State.factionRep[faction] = (State.factionRep[faction] || 0) + amount;
+  State.factionRep[faction] = Math.max(-100, Math.min(100, State.factionRep[faction]));
+}
+
+function drawFactionHUD() {
+  if(!State.openWorldMode) return;
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector || !sector.faction) return;
+  const faction = FACTIONS[sector.faction];
+  if(!faction) return;
+  const rep = State.factionRep[sector.faction] || 0;
+  const el = document.getElementById('factionHud');
+  if(!el) return;
+  el.classList.add('visible');
+  const repPct = Math.max(0, Math.min(100, (rep+100)/2));
+  el.innerHTML = `<div style="background:rgba(2,8,23,0.75);border:1px solid ${faction.color}30;padding:6px 8px;">
+    <div style="font-family:Orbitron,monospace;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:1px;">FACTION</div>
+    <div style="font-family:Orbitron,monospace;font-size:9px;color:${faction.color};font-weight:700;">${faction.name}</div>
+    <div style="height:2px;background:rgba(255,255,255,0.1);border-radius:1px;margin-top:4px;overflow:hidden;">
+      <div style="height:100%;width:${repPct}%;background:${faction.color};transition:width 0.3s;"></div>
+    </div>
+    <div style="font-family:Orbitron,monospace;font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;">REP: ${rep>0?'+':''}${rep}</div>
+  </div>`;
+}
+
+// ─── QUEST SYSTEM ─────────────────────────────────────────────────
+
+function generateQuests() {
+  State.activeQuests = [];
+  State.questProgress = {};
+  const shuffled = [...QUEST_TEMPLATES].sort(()=>Math.random()-0.5);
+  const picked = shuffled.slice(0, 3);
+  picked.forEach(qt => {
+    const q = Object.assign({}, qt, { progress: 0, startTime: Date.now() });
+    State.activeQuests.push(q);
+    State.questProgress[qt.id] = 0;
+  });
+}
+
+function updateQuestProgress(type, amount) {
+  if(!State.openWorldMode) return;
+  amount = amount || 1;
+  State.activeQuests.forEach(q => {
+    if(q.type === type) {
+      q.progress = (q.progress||0) + amount;
+    }
+    // Special time-based quests
+    if(type==='kill' && q.type==='kill') { /* handled above */ }
+  });
+  checkQuestCompletion();
+}
+
+function checkQuestCompletion() {
+  if(!State.openWorldMode) return;
+  for(let i = State.activeQuests.length-1; i >= 0; i--) {
+    const q = State.activeQuests[i];
+    let done = false;
+    if(q.type==='time' || q.type==='nodmg') {
+      const elapsed = (Date.now() - q.startTime)/1000;
+      q.progress = Math.floor(elapsed);
+      if(elapsed >= q.target) done = true;
+    } else if(q.progress >= q.target) {
+      done = true;
+    }
+    if(done) {
+      State.completedQuests.push(q);
+      State.activeQuests.splice(i, 1);
+      if(q.reward) {
+        if(q.reward.coins) addCoins(q.reward.coins);
+        if(q.reward.xp && State.players[0]) gainXP(q.reward.xp);
+      }
+      showWaveAnnounce('QUEST COMPLETE: '+q.name, '#ffaa00');
+    }
+  }
+}
+
+function gainXP(amount) {
+  if(!State.players[0]) return;
+  amount = Math.floor(amount * (getWeatherXPMult ? getWeatherXPMult() : 1));
+  addXP(amount);
+}
+
+function toggleQuestLog() {
+  const el = document.getElementById('questLogOverlay');
+  if(!el) return;
+  if(el.classList.contains('open')) {
+    el.classList.remove('open');
+    State.questLog = false;
+    if(State.paused) resumeGame();
+  } else {
+    renderQuestLog();
+    el.classList.add('open');
+    State.questLog = true;
+    if(State.running && !State.paused) pauseGame();
+  }
+}
+
+function renderQuestLog() {
+  const el = document.getElementById('questLogContent');
+  if(!el) return;
+  let html = '';
+  if(State.activeQuests.length === 0) { el.innerHTML = '<p style="color:rgba(255,255,255,0.4);font-size:12px;">No active quests.</p>'; return; }
+  State.activeQuests.forEach(q => {
+    const pct = Math.min(100, Math.round((q.progress||0)/q.target*100));
+    html += `<div class="quest-card">
+      <h3>${q.name}</h3>
+      <p>${q.desc}</p>
+      <div class="quest-prog-track"><div class="quest-prog-fill" style="width:${pct}%"></div></div>
+      <div style="font-family:Orbitron,monospace;font-size:9px;color:rgba(255,255,255,0.4);margin-top:4px;">${q.progress||0}/${q.target}</div>
+      <div class="quest-reward">REWARD: ${q.reward.coins} coins + ${q.reward.xp} XP</div>
+    </div>`;
+  });
+  if(State.completedQuests.length > 0) {
+    html += '<div style="font-family:Orbitron,monospace;font-size:10px;color:#39ff14;margin-top:12px;letter-spacing:2px;">COMPLETED:</div>';
+    State.completedQuests.slice(-3).forEach(q => {
+      html += `<div class="quest-card quest-completed"><h3>${q.name}</h3><p>COMPLETED</p></div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+
+function drawQuestHUD() {
+  if(!State.openWorldMode || State.activeQuests.length === 0) return;
+  // Drawn via DOM, not canvas
+}
+
+// ─── SPACE WEATHER SYSTEM ─────────────────────────────────────────
+
+function updateSpaceWeather() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  if(State.spaceWeather.type !== 'clear') {
+    if(now > State.spaceWeather.timer + State.spaceWeather.duration*1000) {
+      State.spaceWeather.type = 'clear';
+      State.spaceWeather.duration = 0;
+      updateWeatherHUD();
+    }
+  }
+  if(now - State.spaceWeather.lastCheck > 30000) {
+    State.spaceWeather.lastCheck = now;
+    if(State.spaceWeather.type === 'clear' && Math.random() < 0.20) {
+      const types = WEATHER_TYPES.filter(t => t !== 'clear');
+      const chosen = types[Math.floor(Math.random()*types.length)];
+      const duration = 10 + Math.floor(Math.random()*11);
+      State.spaceWeather = { type:chosen, timer:now, duration, lastCheck:now };
+      updateWeatherHUD();
+      showWaveAnnounce('WEATHER: '+(WEATHER_DISPLAY[chosen]||{name:chosen}).name, '#ffcc00');
+    }
+  }
+  // Asteroid rain effect: spawn asteroids from edges
+  if(State.spaceWeather.type === 'asteroid_rain') {
+    if(now - (State._asteroidRainTimer||0) > 2000) {
+      State._asteroidRainTimer = now;
+      for(let i=0;i<3;i++) spawnRainAsteroid();
+    }
+  }
+  // Quantum flux: teleport enemies randomly
+  if(State.spaceWeather.type === 'quantum_flux') {
+    if(now - (State._quantumTimer||0) > 5000) {
+      State._quantumTimer = now;
+      State.enemies.forEach(e => {
+        if(Math.random()<0.3 && e._openWorld) {
+          const sector = State.galaxySectors[State.currentSector];
+          if(sector) { e.x = sector.x + Math.random()*sector.w; e.y = sector.y + Math.random()*sector.h; }
+        }
+      });
+    }
+  }
+}
+
+function spawnRainAsteroid() {
+  const p = State.players[0]; if(!p) return;
+  const side = Math.floor(Math.random()*4);
+  let ax, ay;
+  if(side===0){ ax=p.x-300+Math.random()*600; ay=p.y-400; }
+  else if(side===1){ ax=p.x-300+Math.random()*600; ay=p.y+400; }
+  else if(side===2){ ax=p.x-400; ay=p.y-300+Math.random()*600; }
+  else { ax=p.x+400; ay=p.y-300+Math.random()*600; }
+  State.galaxyObjects.push({
+    type:'rainAsteroid',
+    x: ax, y: ay,
+    vx: (Math.random()-0.5)*3,
+    vy: (Math.random()+0.5)*4,
+    radius: 8+Math.random()*12,
+    color: '#aa7744',
+    health: 2, maxHealth: 2,
+    life: 200,
+  });
+}
+
+function updateWeatherHUD() {
+  const el = document.getElementById('weatherHud');
+  if(!el) return;
+  if(State.spaceWeather.type === 'clear') {
+    el.classList.remove('visible');
+    return;
+  }
+  const wd = WEATHER_DISPLAY[State.spaceWeather.type] || { name: State.spaceWeather.type.toUpperCase(), color:'#fff' };
+  const remaining = Math.max(0, Math.ceil(State.spaceWeather.duration - (Date.now()-State.spaceWeather.timer)/1000));
+  el.classList.add('visible');
+  el.style.color = wd.color;
+  el.innerHTML = wd.name + ' — ' + remaining + 's';
+}
+
+function getWeatherSpeedMult() {
+  if(!State.openWorldMode) return 1;
+  if(State.spaceWeather.type === 'solar_storm') return 0.9;
+  if(State.spaceWeather.type === 'nebula_surge') return 1;
+  return 1;
+}
+
+function getWeatherEnemySpeedMult() {
+  if(!State.openWorldMode) return 1;
+  if(State.spaceWeather.type === 'solar_storm') return 1.3;
+  return 1;
+}
+
+function getWeatherDamageMult() {
+  if(!State.openWorldMode) return 1;
+  return 1;
+}
+
+function drawWeatherEffects() {
+  if(!State.openWorldMode) return;
+  const type = State.spaceWeather.type;
+  if(type === 'clear') return;
+  CTX.save();
+  if(type === 'solar_storm') {
+    const grad = CTX.createRadialGradient(CANVAS.width/2, CANVAS.height/2, CANVAS.width*0.3, CANVAS.width/2, CANVAS.height/2, CANVAS.width);
+    grad.addColorStop(0,'transparent');
+    grad.addColorStop(1,'rgba(255,100,0,0.12)');
+    CTX.fillStyle = grad;
+    CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+  } else if(type === 'nebula_surge') {
+    CTX.globalAlpha = 0.08;
+    CTX.fillStyle = '#8800ff';
+    CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+    // Draw purple particles on edges
+    const t = Date.now()*0.001;
+    for(let i=0;i<8;i++) {
+      const px = Math.sin(t*1.3+i*0.8)*CANVAS.width/2 + CANVAS.width/2;
+      const py = Math.cos(t*1.1+i)*CANVAS.height/2 + CANVAS.height/2;
+      CTX.globalAlpha = 0.2;
+      CTX.fillStyle = '#cc44ff';
+      CTX.beginPath(); CTX.arc(px, py, 4+Math.sin(t*2+i)*3, 0, Math.PI*2); CTX.fill();
+    }
+    CTX.globalAlpha = 1;
+  } else if(type === 'ion_storm') {
+    // Electric arcs on screen edges
+    CTX.strokeStyle = 'rgba(100,200,255,0.4)';
+    CTX.lineWidth = 1;
+    const t = Date.now()*0.005;
+    for(let i=0;i<5;i++) {
+      CTX.beginPath();
+      CTX.moveTo(0, Math.sin(t+i)*CANVAS.height/2+CANVAS.height/2);
+      CTX.lineTo(20+Math.random()*30, Math.sin(t+i*1.3)*CANVAS.height/2+CANVAS.height/2);
+      CTX.stroke();
+    }
+  } else if(type === 'void_rift') {
+    CTX.globalAlpha = 0.06;
+    CTX.fillStyle = '#000000';
+    CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+    // Distortion lines
+    CTX.globalAlpha = 0.3;
+    CTX.strokeStyle = 'rgba(80,0,80,0.5)';
+    CTX.lineWidth = 1;
+    const t = Date.now()*0.002;
+    for(let i=0;i<6;i++) {
+      CTX.beginPath();
+      CTX.moveTo(CANVAS.width/2, CANVAS.height/2);
+      CTX.lineTo(
+        CANVAS.width/2 + Math.cos(t+i)*200+Math.sin(t*2)*50,
+        CANVAS.height/2 + Math.sin(t+i)*200+Math.cos(t*2)*50
+      );
+      CTX.stroke();
+    }
+    CTX.globalAlpha = 1;
+  } else if(type === 'quantum_flux') {
+    const t = Date.now()*0.003;
+    CTX.strokeStyle = 'rgba(0,255,200,0.2)';
+    CTX.lineWidth = 1;
+    for(let i=0;i<10;i++) {
+      CTX.beginPath();
+      CTX.moveTo(Math.random()*CANVAS.width, 0);
+      CTX.lineTo(Math.random()*CANVAS.width, CANVAS.height);
+      CTX.stroke();
+    }
+  }
+  CTX.restore();
+}
+
+// ─── ALLY FLEET SYSTEM ────────────────────────────────────────────
+
+function recruitAllyAt(shipTypeName) {
+  const cfg = ALLY_SHIP_TYPES.find(t=>t.type===shipTypeName);
+  if(!cfg) return;
+  if(State.coins < cfg.cost) { showWaveAnnounce('NOT ENOUGH COINS','#ff4444'); return; }
+  if(State.allyFleet.length >= 5) { showWaveAnnounce('FLEET FULL (MAX 5)','#ff4444'); return; }
+  addCoins(-cfg.cost);
+  const ship = new AllyShip(cfg);
+  const p = State.players[0];
+  if(p) { ship.x = p.x + Math.random()*100-50; ship.y = p.y + Math.random()*100-50; }
+  State.allyFleet.push(ship);
+  showWaveAnnounce(cfg.label+' RECRUITED','#00ff88');
+  updateFleetOverlay();
+}
+
+function processAllyFleet() {
+  if(!State.openWorldMode) return;
+  State.allyFleet = State.allyFleet.filter(s=>!s.dead);
+  State.allyFleet.forEach(s=>{ s.update(); s.draw(); });
+  // Process ally bullets
+  for(let i=State._allyBullets.length-1;i>=0;i--) {
+    const b = State._allyBullets[i];
+    b.x += b.vx; b.y += b.vy; b.life--;
+    if(b.life<=0){ State._allyBullets.splice(i,1); continue; }
+    // Draw bullet
+    CTX.fillStyle = b.color;
+    CTX.shadowColor = b.color; CTX.shadowBlur = 6;
+    CTX.beginPath(); CTX.arc(b.x,b.y,3,0,Math.PI*2); CTX.fill();
+    CTX.shadowBlur = 0;
+    // Check hit enemies
+    let hit = false;
+    for(let ei=State.enemies.length-1;ei>=0;ei--) {
+      const e = State.enemies[ei];
+      if(b.x>e.x&&b.x<e.x+e.width&&b.y>e.y&&b.y<e.y+e.height) {
+        e.health -= b.damage;
+        if(e.health<=0){
+          State.scores[0] += 10;
+          State.stats.enemiesKilled++;
+          triggerExplosion(e.x+e.width/2,e.y+e.height/2,'#ff6644',15);
+          addCoins(1+(State._runCoinMult||1)-1|0);
+          State.xpOrbs.push(new XPOrb(e.x+e.width/2,e.y+e.height/2,10+e.maxHealth*3));
+          State.enemies.splice(ei,1);
+        }
+        hit=true; break;
+      }
+    }
+    if(hit||State.boss&&b.x>State.boss.x&&b.x<State.boss.x+State.boss.width&&b.y>State.boss.y&&b.y<State.boss.y+State.boss.height) {
+      if(State.boss&&!hit){State.boss.health-=b.damage;}
+      State._allyBullets.splice(i,1);
+    }
+  }
+}
+
+function updateFleetOverlay() {
+  const el = document.getElementById('fleetContent');
+  if(!el) return;
+  let html = `<div style="font-family:Orbitron,monospace;font-size:10px;color:rgba(0,255,136,0.7);margin-bottom:12px;">ACTIVE FLEET: ${State.allyFleet.length}/5</div>`;
+  State.allyFleet.forEach((ship,i)=>{
+    const hpPct = Math.round(ship.health/ship.maxHealth*100);
+    html += `<div class="fleet-card">
+      <div class="fleet-ship-icon" style="background:${ship.color}22;border:1px solid ${ship.color};">${ship.icon||ship.label[0]}</div>
+      <div class="fleet-info">
+        <h3>${ship.label}</h3>
+        <p>HP: ${ship.health}/${ship.maxHealth} | DMG: ${ship.damage}</p>
+        <div style="height:3px;background:rgba(255,255,255,0.1);margin-top:4px;overflow:hidden;border-radius:2px;">
+          <div style="height:100%;width:${hpPct}%;background:${hpPct>50?'#39ff14':'#ff4444'};"></div>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += '<div style="margin-top:16px;font-family:Orbitron,monospace;font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:8px;">RECRUIT (visit Trading Post)</div>';
+  ALLY_SHIP_TYPES.forEach(cfg=>{
+    const canAfford = State.coins >= cfg.cost;
+    const fleetFull = State.allyFleet.length >= 5;
+    html += `<div class="fleet-card" style="opacity:${canAfford&&!fleetFull?1:0.4};">
+      <div class="fleet-ship-icon" style="background:${cfg.color}22;border:1px solid ${cfg.color};">${cfg.icon}</div>
+      <div class="fleet-info">
+        <h3>${cfg.label}</h3>
+        <p>Speed:${cfg.speed} | Dmg:${cfg.damage} | HP:${cfg.health}</p>
+      </div>
+      <button class="fleet-recruit-btn" onclick="recruitAllyAt('${cfg.type}')" ${!canAfford||fleetFull?'disabled':''}>
+        RECRUIT<br>${cfg.cost} coins
+      </button>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function toggleFleetManager() {
+  const el = document.getElementById('fleetOverlay');
+  if(!el) return;
+  if(el.classList.contains('open')) {
+    el.classList.remove('open');
+    if(State.paused) resumeGame();
+  } else {
+    updateFleetOverlay();
+    el.classList.add('open');
+    if(State.running && !State.paused) pauseGame();
+  }
+}
+
+// ─── EXPLORATION CODEX ────────────────────────────────────────────
+
+function discoverCodex(entryId) {
+  if(State.codex.discoveries.includes(entryId)) return;
+  State.codex.discoveries.push(entryId);
+  State.codex.totalExplored = State.codex.discoveries.length;
+  const entry = CODEX_ENTRIES.find(e=>e.id===entryId);
+  if(entry) showWaveAnnounce('CODEX: '+entry.title,'#b57bff');
+  updateCodexHUD();
+}
+
+function updateCodexHUD() {
+  const el = document.getElementById('codexHud');
+  if(!el) return;
+  if(!State.openWorldMode) { el.classList.remove('visible'); return; }
+  el.classList.add('visible');
+  el.innerHTML = `CODEX: ${State.codex.discoveries.length}/${CODEX_ENTRIES.length}`;
+}
+
+// ─── DYNAMIC EVENTS ───────────────────────────────────────────────
+
+function triggerGalaxyEvent(eventId) {
+  const ev = GALAXY_EVENTS.find(e=>e.id===eventId);
+  if(!ev) return;
+  if(State.activeEvents.find(e=>e.id===eventId)) return;
+  const activeEv = Object.assign({}, ev, { startTime: Date.now(), active:true });
+  State.activeEvents.push(activeEv);
+  showEventBanner(ev.name, ev.desc);
+  const p = State.players[0];
+  if(!p) return;
+  if(ev.spawnCount > 0) {
+    const sector = State.galaxySectors[State.currentSector] || State.galaxySectors[0];
+    for(let i=0;i<ev.spawnCount;i++) {
+      const types=['basic','fast','ufo','bomber'];
+      const type = types[Math.floor(Math.random()*types.length)];
+      const e = createEnemy(type);
+      e.x = p.x + (Math.random()-0.5)*300;
+      e.y = p.y + (Math.random()-0.5)*300;
+      e.worldX = e.x; e.worldY = e.y;
+      e.homeX = e.x; e.homeY = e.y;
+      e._openWorld = true;
+      e.sectorIdx = State.currentSector;
+      State.enemies.push(e);
+    }
+  }
+  if(ev.gives === 'xp') { gainXP(ev.amount||200); }
+  if(ev.gives === 'powerup') {
+    State.galaxyObjects.push({
+      type:'debris', x:p.x+100, y:p.y+50, radius:20, sectorIdx:State.currentSector, used:false, lootCoins:50
+    });
+  }
+  if(ev.gives === 'ally') {
+    const cfg = ALLY_SHIP_TYPES[Math.floor(Math.random()*2)];
+    if(State.allyFleet.length < 5) {
+      const ship = new AllyShip(cfg);
+      ship.x = p.x+60; ship.y = p.y;
+      State.allyFleet.push(ship);
+      showWaveAnnounce(cfg.label+' JOINS YOUR FLEET','#00ff88');
+    }
+  }
+  if(ev.effect === 'teleport' && p) {
+    const sector = State.galaxySectors[Math.floor(Math.random()*State.galaxySectors.length)];
+    if(sector){ p.x=sector.x+sector.w/2; p.y=sector.y+sector.h/2; }
+  }
+}
+
+function updateGalaxyEvents() {
+  if(!State.openWorldMode) return;
+  for(let i=State.activeEvents.length-1;i>=0;i--) {
+    const ev = State.activeEvents[i];
+    if(ev.duration && Date.now() - ev.startTime > ev.duration*1000) {
+      State.activeEvents.splice(i,1);
+    }
+  }
+}
+
+function checkRandomEvents() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  if(now - State._eventCheckTimer < 8000) return;
+  State._eventCheckTimer = now;
+  if(Math.random() < 0.15) {
+    const randomEvents = ['pirate_raid','supply_drop','warp_storm','data_cache'];
+    triggerGalaxyEvent(randomEvents[Math.floor(Math.random()*randomEvents.length)]);
+  }
+}
+
+function showEventBanner(name, desc) {
+  const el = document.getElementById('eventBanner');
+  if(!el) return;
+  el.innerHTML = name + '<br><span style="font-size:13px;color:rgba(255,255,255,0.6);">' + desc + '</span>';
+  el.style.opacity = '1';
+  setTimeout(()=>{ el.style.transition='opacity 1s'; el.style.opacity='0'; }, 3000);
+  setTimeout(()=>{ el.style.transition=''; }, 4000);
+}
+
+// ─── PLANET DETAILS & ORBITING ───────────────────────────────────
+
+function updatePlanets() {
+  if(!State.openWorldMode) return;
+  State.galaxyObjects.forEach(obj=>{
+    if(obj.type !== 'planet') return;
+    obj.rotation = (obj.rotation||0) + (obj.rotSpeed||0.003);
+    if(obj.moons) {
+      obj.moons.forEach(m=>{ m.angle += m.speed||0.01; });
+    }
+  });
+}
+
+function drawPlanetDetails(obj, sx, sy) {
+  // Atmosphere
+  if(obj.atmosphere) {
+    const atGrad = CTX.createRadialGradient(sx,sy,obj.radius*0.85,sx,sy,obj.radius*1.3);
+    atGrad.addColorStop(0, obj.atmosphere+'44');
+    atGrad.addColorStop(1, 'transparent');
+    CTX.fillStyle = atGrad;
+    CTX.beginPath(); CTX.arc(sx,sy,obj.radius*1.3,0,Math.PI*2); CTX.fill();
+  }
+  // Planet body
+  CTX.save(); CTX.translate(sx,sy); CTX.rotate(obj.rotation||0);
+  const grad = CTX.createRadialGradient(-obj.radius*0.3,-obj.radius*0.3,0,0,0,obj.radius);
+  grad.addColorStop(0,'#ffffff'); grad.addColorStop(0.3,obj.color); grad.addColorStop(1,'rgba(0,0,0,0.85)');
+  CTX.fillStyle = grad; CTX.shadowColor = obj.color; CTX.shadowBlur = 15;
+  CTX.beginPath(); CTX.arc(0,0,obj.radius,0,Math.PI*2); CTX.fill();
+  CTX.shadowBlur = 0;
+  // Surface bands
+  CTX.save();
+  CTX.globalAlpha = 0.12;
+  CTX.fillStyle = '#ffffff';
+  for(let b=0;b<3;b++) {
+    const by = -obj.radius*0.4 + b*obj.radius*0.35;
+    CTX.fillRect(-obj.radius, by, obj.radius*2, obj.radius*0.12);
+  }
+  CTX.restore();
+  CTX.restore();
+  // Ring
+  if(obj.hasRing) {
+    CTX.save(); CTX.translate(sx,sy);
+    CTX.strokeStyle = obj.color+'88'; CTX.lineWidth = 6;
+    CTX.shadowColor = obj.color; CTX.shadowBlur = 8;
+    CTX.beginPath();
+    CTX.ellipse(0, 0, obj.radius*1.8, obj.radius*0.4, Math.PI*0.1, 0, Math.PI*2);
+    CTX.stroke();
+    CTX.restore();
+  }
+  // Moons
+  if(obj.moons) {
+    obj.moons.forEach(m=>{
+      const mx = sx + Math.cos(m.angle)*m.distance;
+      const my = sy + Math.sin(m.angle)*m.distance*0.4;
+      CTX.fillStyle = m.color||'#aaaaaa';
+      CTX.shadowColor = m.color||'#aaaaaa'; CTX.shadowBlur = 5;
+      CTX.beginPath(); CTX.arc(mx,my,m.radius,0,Math.PI*2); CTX.fill();
+      CTX.shadowBlur = 0;
+    });
+  }
+}
+
+// ─── STAR FIELD PARALLAX ──────────────────────────────────────────
+
+function generateGalaxyStars() {
+  State.galaxyStars = [];
+  const W = State.worldWidth, H = State.worldHeight;
+  // Layer 1: tiny dim stars
+  for(let i=0;i<800;i++) {
+    State.galaxyStars.push({
+      x: Math.random()*W, y: Math.random()*H,
+      radius: 0.5+Math.random()*0.5,
+      color: `rgba(255,255,255,${0.2+Math.random()*0.3})`,
+      layer: 1,
+    });
+  }
+  // Layer 2: medium stars
+  for(let i=0;i<700;i++) {
+    State.galaxyStars.push({
+      x: Math.random()*W, y: Math.random()*H,
+      radius: 1+Math.random()*1,
+      color: `rgba(255,255,255,${0.4+Math.random()*0.3})`,
+      layer: 2,
+    });
+  }
+  // Layer 3: bright/colored stars
+  for(let i=0;i<500;i++) {
+    const colors = ['rgba(200,200,255,0.9)','rgba(255,220,180,0.9)','rgba(180,255,220,0.9)','rgba(255,180,180,0.9)'];
+    State.galaxyStars.push({
+      x: Math.random()*W, y: Math.random()*H,
+      radius: 1.5+Math.random()*1.5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      layer: 3,
+      pulse: Math.random()*Math.PI*2,
+    });
+  }
+}
+
+function drawGalaxyStarField() {
+  if(!State.openWorldMode || !State.galaxyStars.length) return;
+  const t = Date.now()*0.001;
+  State.galaxyStars.forEach(s=>{
+    const sx = s.x - State.camera.x;
+    const sy = s.y - State.camera.y;
+    if(sx<-5||sx>CANVAS.width+5||sy<-5||sy>CANVAS.height+5) return;
+    let r = s.radius;
+    if(s.pulse !== undefined) r *= 0.85 + 0.15*Math.sin(t*2+s.pulse);
+    CTX.fillStyle = s.color;
+    CTX.beginPath(); CTX.arc(sx,sy,r,0,Math.PI*2); CTX.fill();
+  });
+}
+
+// ─── CRAFTING SYSTEM ──────────────────────────────────────────────
+
+function toggleCraftingMenu() {
+  const el = document.getElementById('craftingOverlay');
+  if(!el) return;
+  if(el.classList.contains('open')) {
+    el.classList.remove('open');
+    if(State.paused) resumeGame();
+  } else {
+    renderCraftingMenu();
+    el.classList.add('open');
+    if(State.running && !State.paused) pauseGame();
+  }
+}
+
+function renderCraftingMenu() {
+  const matsEl = document.getElementById('craftMatsDisplay');
+  if(matsEl) matsEl.textContent = 'CRYSTALS: '+(State.craftingMaterials.crystals||0)+' | COINS: '+State.coins;
+  const el = document.getElementById('craftingContent');
+  if(!el) return;
+  let html = '';
+  CRAFT_RECIPES.forEach(r=>{
+    const canCraft = (State.craftingMaterials.crystals||0)>=r.cost.crystals && State.coins>=r.cost.coins;
+    const active = State._craftEffects[r.effect] && State._craftEffects[r.effect] > Date.now();
+    html += `<div class="craft-card ${canCraft&&!active?'':'unavailable'}" onclick="craftItem('${r.id}')">
+      <div class="craft-icon">${r.icon}</div>
+      <div class="craft-info">
+        <h3>${r.name} ${active?'(ACTIVE)':''}</h3>
+        <p>${r.desc}</p>
+      </div>
+      <div class="craft-cost">${r.cost.crystals} crystals<br>${r.cost.coins} coins</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function craftItem(recipeId) {
+  const recipe = CRAFT_RECIPES.find(r=>r.id===recipeId);
+  if(!recipe) return;
+  if((State.craftingMaterials.crystals||0) < recipe.cost.crystals) { showWaveAnnounce('NEED MORE CRYSTALS','#ff4444'); return; }
+  if(State.coins < recipe.cost.coins) { showWaveAnnounce('NEED MORE COINS','#ff4444'); return; }
+  State.craftingMaterials.crystals -= recipe.cost.crystals;
+  addCoins(-recipe.cost.coins);
+  applyCraftEffect(recipe.effect);
+  showWaveAnnounce(recipe.name+' CRAFTED!','#b57bff');
+  renderCraftingMenu();
+}
+
+function applyCraftEffect(effect) {
+  const p = State.players[0]; if(!p) return;
+  const now = Date.now();
+  if(effect === 'tripleDamage5s') {
+    State._craftEffects.tripleDamage5s = now + 5000;
+    p.damageMultiplier *= 3;
+    setTimeout(()=>{ if(p) p.damageMultiplier /= 3; }, 5000);
+  } else if(effect === 'speedBoost10s') {
+    State._craftEffects.speedBoost10s = now + 10000;
+    p.speed = (p.speed||5)*3;
+    setTimeout(()=>{ if(p) p.speed = Math.max(3, p.speed/3); }, 10000);
+  } else if(effect === 'heal2lives') {
+    p.lives = Math.min((p.lives||1)+2, 5);
+    updateHUD();
+  } else if(effect === 'stunAllEnemies') {
+    State._craftEffects.stunAllEnemies = now + 3000;
+    State.enemies.forEach(e=>{ e._stunned = now+3000; e.speed = 0.01; });
+    setTimeout(()=>{ State.enemies.forEach(e=>{ if(e._openWorld) e.speed = e._origSpeed||2; }); }, 3000);
+  } else if(effect === 'invincible8s') {
+    State._craftEffects.invincible8s = now + 8000;
+    p.invincible = true;
+    setTimeout(()=>{ if(p) p.invincible = false; }, 8000);
+  }
+}
+
+// ─── SECTOR OBJECTIVES ────────────────────────────────────────────
+
+function getSectorObjective(sectorIdx) {
+  const sector = State.galaxySectors[sectorIdx];
+  if(!sector || !sector.sectorObjective) return null;
+  return sector.sectorObjective;
+}
+
+function checkSectorObjective() {
+  if(!State.openWorldMode) return;
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector || !sector.sectorObjective) return;
+  const obj = sector.sectorObjective;
+  if(obj.completed) return;
+  let progress = State._sectorObjectiveProgress[State.currentSector] || 0;
+  obj.progress = progress;
+  if(progress >= obj.target) {
+    obj.completed = true;
+    if(obj.reward) {
+      addCoins(obj.reward.coins||0);
+      gainXP(obj.reward.xp||0);
+    }
+    showWaveAnnounce('SECTOR OBJECTIVE COMPLETE!','#39ff14');
+    sector.objectiveComplete = true;
+  }
+  updateSectorObjectiveHUD();
+}
+
+function updateSectorObjectiveHUD() {
+  const el = document.getElementById('sectorObjHud');
+  if(!el) return;
+  if(!State.openWorldMode) { el.classList.remove('visible'); return; }
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector || !sector.sectorObjective) { el.classList.remove('visible'); return; }
+  const obj = sector.sectorObjective;
+  if(obj.completed) {
+    el.classList.add('visible');
+    el.innerHTML = `<span style="color:#39ff14;font-family:Orbitron,monospace;font-size:9px;">OBJECTIVE COMPLETE!</span>`;
+    return;
+  }
+  el.classList.add('visible');
+  const pct = Math.min(100, Math.round((obj.progress||0)/obj.target*100));
+  const typeLabel = {kill:'ELIMINATE',collect:'COLLECT',defend:'DEFEND',explore:'EXPLORE'}[obj.type]||obj.type.toUpperCase();
+  el.innerHTML = `<div style="font-family:Orbitron,monospace;font-size:9px;color:rgba(0,245,255,0.8);letter-spacing:1px;">SECTOR OBJ: ${typeLabel} ${obj.progress||0}/${obj.target}</div>
+  <div style="height:2px;background:rgba(255,255,255,0.1);margin-top:4px;overflow:hidden;border-radius:1px;">
+    <div style="height:100%;width:${pct}%;background:#00f5ff;transition:width 0.3s;"></div>
+  </div>`;
+}
+
+// ─── OPEN WORLD HUD PANEL ─────────────────────────────────────────
+
+function updateOpenWorldHUDPanel() {
+  if(!State.openWorldMode) return;
+  const panel = document.getElementById('owHudPanel');
+  if(!panel) return;
+  panel.classList.add('visible');
+  const sector = State.galaxySectors[State.currentSector] || {};
+  const sectorName = sector.theme ? OW_SECTOR_THEMES[sector.themeIdx%OW_SECTOR_THEMES.length].name : (sector.name||'—');
+  const snEl = document.getElementById('owSectorName');
+  if(snEl) snEl.textContent = sectorName;
+  const fn = document.getElementById('owFactionName');
+  const fb = document.getElementById('owFactionBar');
+  if(sector.faction && FACTIONS[sector.faction]) {
+    const fac = FACTIONS[sector.faction];
+    const rep = State.factionRep[sector.faction]||0;
+    if(fn) { fn.textContent = fac.name; fn.style.color = fac.color; }
+    if(fb) { fb.style.width = Math.max(0,Math.min(100,(rep+100)/2))+'%'; fb.style.background = fac.color; }
+  }
+  const wn = document.getElementById('owWeatherName');
+  if(wn) {
+    const wd = WEATHER_DISPLAY[State.spaceWeather.type]||{name:'CLEAR'};
+    wn.textContent = wd.name;
+  }
+  const fc = document.getElementById('owFleetCrystals');
+  if(fc) fc.textContent = `${State.allyFleet.length} allies | ${State.craftingMaterials.crystals||0} crystals`;
+  const ex = document.getElementById('owExplored');
+  const eb = document.getElementById('owExploredBar');
+  const total = State.galaxySectors.length || 36;
+  const visited = State.visitedSectors.length;
+  if(ex) ex.textContent = `${visited} / ${total}`;
+  if(eb) eb.style.width = Math.round(visited/total*100)+'%';
+}
+
+// drawOpenWorldHUD is an alias for updateOpenWorldHUDPanel (full HUD panel update)
+function drawOpenWorldHUD() { updateOpenWorldHUDPanel(); }
+
+// ─── GALAXY MAP OVERLAY ───────────────────────────────────────────
+
+function toggleGalaxyMap() {
+  const el = document.getElementById('galaxyMapOverlay');
+  if(!el) return;
+  if(el.classList.contains('open')) {
+    el.classList.remove('open');
+    if(State.paused) resumeGame();
+  } else {
+    el.classList.add('open');
+    renderGalaxyMapCanvas();
+    if(State.running && !State.paused) pauseGame();
+  }
+}
+
+function renderGalaxyMapCanvas() {
+  const canvas = document.getElementById('galaxyMapCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cw = canvas.width, ch = canvas.height;
+  ctx.clearRect(0,0,cw,ch);
+  ctx.fillStyle = '#010810';
+  ctx.fillRect(0,0,cw,ch);
+  const cols = 6, rows = 6;
+  const cw2 = cw/cols, ch2 = ch/rows;
+  State.galaxySectors.forEach((s,i)=>{
+    const col = i%cols, row = Math.floor(i/cols);
+    const px = col*cw2, py = row*ch2;
+    const theme = OW_SECTOR_THEMES[i%OW_SECTOR_THEMES.length];
+    const visited = State.visitedSectors.includes(i);
+    ctx.fillStyle = visited ? theme.bg+'cc' : 'rgba(0,0,0,0.8)';
+    ctx.fillRect(px+1,py+1,cw2-2,ch2-2);
+    if(s.objectiveComplete) {
+      ctx.strokeStyle = '#39ff14';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(px+2,py+2,cw2-4,ch2-4);
+    }
+    const faction = s.faction ? FACTIONS[s.faction] : null;
+    if(faction) {
+      ctx.fillStyle = faction.color+'44';
+      ctx.fillRect(px+1,py+1,cw2-2,6);
+    }
+    ctx.fillStyle = visited ? theme.color : 'rgba(255,255,255,0.15)';
+    ctx.font = `${Math.min(8, cw2/9)}px Orbitron, monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillText(visited ? theme.name : '???', px+cw2/2, py+ch2/2+4);
+    if(!s.bossDefeated && visited) {
+      ctx.fillStyle = 'rgba(255,100,0,0.8)';
+      ctx.beginPath(); ctx.arc(px+cw2-8, py+8, 4, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 0.5; ctx.strokeRect(px,py,cw2,ch2);
+  });
+  // Player position
+  if(State.players[0]) {
+    const p = State.players[0];
+    const px2 = (p.x/State.worldWidth)*cw;
+    const py2 = (p.y/State.worldHeight)*ch;
+    ctx.fillStyle = '#39ff14';
+    ctx.shadowColor = '#39ff14'; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(px2,py2,5,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.textAlign = 'left';
+}
+
+// ─── NEW GALAXY OBJECTS DRAWING ───────────────────────────────────
+
+function drawNewGalaxyObjects() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  State.galaxyObjects.forEach(obj=>{
+    const sx = obj.x - State.camera.x;
+    const sy = obj.y - State.camera.y;
+    if(sx<-350||sx>CANVAS.width+350||sy<-350||sy>CANVAS.height+350) return;
+    const p = State.players[0];
+
+    if(obj.type === 'planet') {
+      drawPlanetDetails(obj, sx, sy);
+      return;
+    }
+
+    if(obj.type === 'asteroidField') {
+      if(!obj.asteroids) return;
+      obj.asteroids.forEach(a=>{
+        if(a.health<=0) return;
+        a.angle += a.rotSpeed;
+        CTX.save(); CTX.translate(sx+a.relX, sy+a.relY); CTX.rotate(a.angle);
+        CTX.fillStyle = a.color; CTX.strokeStyle = '#886644'; CTX.lineWidth = 1;
+        CTX.beginPath();
+        for(let v=0;v<6;v++) {
+          const va = v/6*Math.PI*2, vr=a.radius*(0.7+0.3*Math.sin(v*3));
+          v===0?CTX.moveTo(Math.cos(va)*vr,Math.sin(va)*vr):CTX.lineTo(Math.cos(va)*vr,Math.sin(va)*vr);
+        }
+        CTX.closePath(); CTX.fill(); CTX.stroke();
+        CTX.restore();
+      });
+      return;
+    }
+
+    if(obj.type === 'blackhole') {
+      CTX.save(); CTX.translate(sx,sy);
+      const t = now*0.001;
+      for(let ring=5;ring>=1;ring--) {
+        const grad = CTX.createRadialGradient(0,0,0,0,0,obj.radius*ring*0.5);
+        grad.addColorStop(0,'rgba(0,0,0,1)');
+        grad.addColorStop(0.4,'rgba(40,0,80,0.7)');
+        grad.addColorStop(1,'transparent');
+        CTX.fillStyle = grad;
+        CTX.globalAlpha = 0.3/ring;
+        CTX.beginPath(); CTX.arc(0,0,obj.radius*ring*0.5,0,Math.PI*2); CTX.fill();
+      }
+      CTX.globalAlpha = 1;
+      // Accretion spiral
+      CTX.strokeStyle = 'rgba(180,0,255,0.6)'; CTX.lineWidth = 2;
+      CTX.beginPath();
+      for(let a=0;a<Math.PI*6;a+=0.1) {
+        const r=(a/(Math.PI*6))*obj.radius*1.5;
+        const ca=a+t;
+        const x=Math.cos(ca)*r, y=Math.sin(ca)*r*0.4;
+        a===0?CTX.moveTo(x,y):CTX.lineTo(x,y);
+      }
+      CTX.stroke();
+      // Core
+      CTX.fillStyle='#000'; CTX.beginPath(); CTX.arc(0,0,obj.radius*0.5,0,Math.PI*2); CTX.fill();
+      CTX.strokeStyle='rgba(150,0,255,0.9)'; CTX.lineWidth=2;
+      CTX.beginPath(); CTX.arc(0,0,obj.radius*0.55,0,Math.PI*2); CTX.stroke();
+      CTX.restore();
+      // Gravity pull
+      if(p) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        const dist=Math.hypot(dx,dy);
+        if(dist<obj.radius*3&&dist>1) {
+          const force=800/(dist*dist);
+          p.x-=(dx/dist)*force; p.y-=(dy/dist)*force;
+        }
+        if(dist<50&&!p.invincible) { handlePlayerDamage(p); p.invincible=true; setTimeout(()=>{if(p)p.invincible=false;},1500); }
+      }
+      // Pull enemies
+      State.enemies.forEach(e=>{
+        const dx=(e.x+e.width/2)-obj.x, dy=(e.y+e.height/2)-obj.y;
+        const dist=Math.hypot(dx,dy);
+        if(dist<obj.radius*3&&dist>1){const f=600/(dist*dist);e.x-=(dx/dist)*f;e.y-=(dy/dist)*f;}
+      });
+      return;
+    }
+
+    if(obj.type === 'fortress') {
+      if(obj.health<=0) return;
+      CTX.save(); CTX.translate(sx,sy);
+      const hexPoints=6;
+      CTX.strokeStyle='#ff4444'; CTX.lineWidth=3;
+      CTX.shadowColor='#ff4444'; CTX.shadowBlur=20;
+      CTX.fillStyle='rgba(80,0,0,0.7)';
+      CTX.beginPath();
+      for(let i=0;i<hexPoints;i++){
+        const a=i/hexPoints*Math.PI*2-Math.PI/6;
+        i===0?CTX.moveTo(Math.cos(a)*obj.radius,Math.sin(a)*obj.radius):CTX.lineTo(Math.cos(a)*obj.radius,Math.sin(a)*obj.radius);
+      }
+      CTX.closePath(); CTX.fill(); CTX.stroke();
+      CTX.shadowBlur=0;
+      // Health bar
+      const bw=obj.radius*2;
+      CTX.fillStyle='rgba(0,0,0,0.5)'; CTX.fillRect(-bw/2,-obj.radius-14,bw,6);
+      CTX.fillStyle='#ff4444'; CTX.fillRect(-bw/2,-obj.radius-14,bw*(obj.health/obj.maxHealth),6);
+      CTX.fillStyle='rgba(255,68,68,0.8)'; CTX.font='9px Orbitron,monospace'; CTX.textAlign='center';
+      CTX.fillText('FORTRESS',0,obj.radius+16);
+      CTX.restore();
+      // Shoot at player
+      if(p && !obj.destroyed) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        const dist=Math.hypot(dx,dy);
+        if(dist < 600) {
+          if(!obj.lastShot) obj.lastShot=0;
+          if(now-obj.lastShot > 2000) {
+            obj.lastShot=now;
+            const ang=Math.atan2(dy,dx);
+            const dummy={x:obj.x,y:obj.y,width:10,height:10,bullets:[],speed:0};
+            const bull={x:obj.x,y:obj.y,vx:Math.cos(ang)*5,vy:Math.sin(ang)*5,width:8,height:8,color:'#ff4444'};
+            // Simple: push to a fortress bullet array on State
+            if(!State._fortressBullets) State._fortressBullets=[];
+            State._fortressBullets.push(Object.assign(bull,{life:120}));
+          }
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'nebula') {
+      CTX.save();
+      for(let layer=0;layer<3;layer++) {
+        const alpha=0.04+layer*0.03;
+        CTX.globalAlpha=alpha;
+        const grad=CTX.createRadialGradient(sx,sy,0,sx,sy,obj.radius*(1-layer*0.2));
+        grad.addColorStop(0,obj.color+'ff'); grad.addColorStop(1,'transparent');
+        CTX.fillStyle=grad;
+        CTX.beginPath(); CTX.arc(sx+layer*15,sy-layer*10,obj.radius*(1-layer*0.15),0,Math.PI*2); CTX.fill();
+      }
+      CTX.globalAlpha=1; CTX.restore();
+      // Effect on player inside
+      if(p) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<obj.radius) {
+          p._nebulaSlowed=true; p._nebulaDmgReduce=true;
+        } else {
+          p._nebulaSlowed=false; p._nebulaDmgReduce=false;
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'trader') {
+      CTX.save(); CTX.translate(sx,sy); CTX.rotate(now*0.001);
+      CTX.fillStyle='#00ff88'; CTX.shadowColor='#00ff88'; CTX.shadowBlur=15;
+      CTX.beginPath();
+      CTX.moveTo(0,-20); CTX.lineTo(14,0); CTX.lineTo(0,20); CTX.lineTo(-14,0);
+      CTX.closePath(); CTX.fill(); CTX.shadowBlur=0;
+      CTX.restore();
+      CTX.fillStyle='rgba(0,255,136,0.6)'; CTX.font='8px Orbitron,monospace'; CTX.textAlign='center';
+      CTX.fillText('TRADING POST',sx,sy+30);
+      CTX.textAlign='left';
+      // Proximity trigger
+      if(p && !obj.tradeOpen) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<80 && !State._tradeMenuOpen) {
+          State._tradeMenuOpen=true; State._activeTradeObj=obj;
+          obj.tradeOpen=true;
+          openTradeMenu(obj);
+        }
+      } else if(p && obj.tradeOpen) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)>120) { obj.tradeOpen=false; }
+      }
+      return;
+    }
+
+    if(obj.type === 'ruin') {
+      CTX.save(); CTX.translate(sx,sy);
+      CTX.fillStyle=obj.used?'rgba(100,100,100,0.4)':'rgba(150,130,100,0.7)';
+      CTX.shadowColor=obj.used?'#444':'#aa9966'; CTX.shadowBlur=8;
+      CTX.beginPath();
+      CTX.moveTo(0,-35); CTX.lineTo(28,15); CTX.lineTo(18,20); CTX.lineTo(-18,20); CTX.lineTo(-28,15);
+      CTX.closePath(); CTX.fill();
+      CTX.strokeStyle=obj.used?'#555':'#ccaa77'; CTX.lineWidth=1.5; CTX.stroke();
+      CTX.shadowBlur=0;
+      CTX.fillStyle=obj.used?'rgba(200,200,200,0.3)':'rgba(255,220,100,0.7)';
+      CTX.font='8px Orbitron,monospace'; CTX.textAlign='center';
+      CTX.fillText(obj.used?'EXPLORED':'ANCIENT RUIN',0,36); CTX.restore(); CTX.textAlign='left';
+      if(p && !obj.used) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<60) {
+          obj.used=true;
+          State.xpMultiplier = (State.xpMultiplier||1)*1.10;
+          showWaveAnnounce('+10% XP (ANCIENT RUIN)','#ccaa77');
+          discoverCodex('c7');
+          updateQuestProgress('explore');
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'crystal') {
+      if(!obj.crystals) return;
+      obj.crystals.forEach(c=>{
+        if(c.health<=0) return;
+        CTX.save(); CTX.translate(sx+c.relX, sy+c.relY);
+        CTX.fillStyle=c.color||'#44aaff'; CTX.strokeStyle='#aaddff'; CTX.lineWidth=1;
+        CTX.shadowColor=c.color||'#44aaff'; CTX.shadowBlur=10;
+        CTX.beginPath();
+        CTX.moveTo(0,-c.height); CTX.lineTo(c.width/2,0); CTX.lineTo(0,c.height*0.3); CTX.lineTo(-c.width/2,0);
+        CTX.closePath(); CTX.fill(); CTX.stroke(); CTX.shadowBlur=0; CTX.restore();
+      });
+      return;
+    }
+
+    if(obj.type === 'beacon') {
+      const pulse = (Math.sin(now*0.004)*0.5+0.5);
+      CTX.save(); CTX.translate(sx,sy);
+      CTX.strokeStyle=`rgba(255,220,0,${0.4+pulse*0.6})`; CTX.lineWidth=2;
+      CTX.beginPath(); CTX.arc(0,0,15+pulse*10,0,Math.PI*2); CTX.stroke();
+      CTX.fillStyle='rgba(255,220,0,0.8)'; CTX.shadowColor='#ffdd00'; CTX.shadowBlur=15;
+      CTX.fillRect(-5,-25,10,30); CTX.fillRect(-12,-3,24,6);
+      CTX.shadowBlur=0; CTX.restore();
+      CTX.fillStyle='rgba(255,220,0,0.6)'; CTX.font='8px Orbitron,monospace'; CTX.textAlign='center';
+      CTX.fillText('BEACON',sx,sy+32); CTX.textAlign='left';
+      if(p && !obj.triggered) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<80) {
+          obj.triggered=true;
+          updateQuestProgress('beacon');
+          showWaveAnnounce('DISTRESS BEACON REACHED!','#ffdd00');
+          triggerGalaxyEvent('crew_rescue');
+          // Spawn enemies
+          for(let i=0;i<6;i++){
+            const e=createEnemy('basic');
+            e.x=obj.x+(Math.random()-0.5)*200; e.y=obj.y+(Math.random()-0.5)*200;
+            e.worldX=e.x; e.worldY=e.y; e._openWorld=true; e.sectorIdx=State.currentSector;
+            State.enemies.push(e);
+          }
+          discoverCodex('c10');
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'debris') {
+      CTX.save(); CTX.translate(sx,sy);
+      CTX.fillStyle='rgba(120,120,120,0.6)'; CTX.strokeStyle='#888'; CTX.lineWidth=1;
+      for(let i=0;i<5;i++) {
+        const rx=(i*37+11)%60-30, ry=(i*53+17)%50-25;
+        CTX.fillRect(rx,ry,8+i*3,5+i*2); CTX.strokeRect(rx,ry,8+i*3,5+i*2);
+      }
+      CTX.restore();
+      if(p && !obj.used) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<50) {
+          obj.used=true;
+          const coins=20+Math.floor(Math.random()*31);
+          addCoins(coins);
+          showWaveAnnounce('+'+coins+' COINS (DEBRIS)','#aaaaaa');
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'gate') {
+      CTX.save(); CTX.translate(sx,sy);
+      const t2=now*0.002;
+      for(let ring=3;ring>=1;ring--) {
+        CTX.strokeStyle=`rgba(0,245,255,${0.3*ring})`; CTX.lineWidth=ring*2;
+        CTX.shadowColor='#00f5ff'; CTX.shadowBlur=20/ring;
+        CTX.beginPath(); CTX.arc(0,0,50+ring*15,0,Math.PI*2); CTX.stroke();
+      }
+      CTX.fillStyle='rgba(0,150,255,0.15)'; CTX.beginPath(); CTX.arc(0,0,50,0,Math.PI*2); CTX.fill();
+      CTX.shadowBlur=0; CTX.restore();
+      CTX.fillStyle='rgba(0,245,255,0.7)'; CTX.font='9px Orbitron,monospace'; CTX.textAlign='center';
+      CTX.fillText(obj.isStart?'ENTRY GATE':'OMEGA GATE',sx,sy+85); CTX.textAlign='left';
+      if(p && obj.targetSector !== undefined) {
+        const dx=(p.x+p.width/2)-obj.x, dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<55) {
+          const target=State.galaxySectors[obj.targetSector];
+          if(target){ p.x=target.x+target.w/2; p.y=target.y+target.h/2; showWaveAnnounce('GATE ACTIVATED!','#00f5ff'); }
+        }
+      }
+      return;
+    }
+
+    if(obj.type === 'rainAsteroid') {
+      obj.x += obj.vx; obj.y += obj.vy;
+      obj.life--;
+      if(obj.life<=0) { obj.health=0; return; }
+      CTX.save(); CTX.translate(obj.x-State.camera.x, obj.y-State.camera.y);
+      CTX.fillStyle=obj.color; CTX.strokeStyle='#aa5500'; CTX.lineWidth=1;
+      CTX.beginPath();
+      for(let v=0;v<5;v++){const va=v/5*Math.PI*2,vr=obj.radius*(0.7+0.3*Math.sin(v*2));
+        v===0?CTX.moveTo(Math.cos(va)*vr,Math.sin(va)*vr):CTX.lineTo(Math.cos(va)*vr,Math.sin(va)*vr);}
+      CTX.closePath(); CTX.fill(); CTX.stroke(); CTX.restore();
+      if(p){const dx=(p.x+p.width/2)-obj.x,dy=(p.y+p.height/2)-obj.y;
+        if(Math.hypot(dx,dy)<obj.radius+20&&!p.invincible){handlePlayerDamage(p);obj.health=0;}}
+      return;
+    }
+  });
+  // Clean dead objects
+  State.galaxyObjects = State.galaxyObjects.filter(o=>{
+    if(o.type==='rainAsteroid'&&o.health<=0) return false;
+    return true;
+  });
+}
+
+// ─── FORTRESS BULLETS ─────────────────────────────────────────────
+
+function processFortressBullets() {
+  if(!State.openWorldMode) return;
+  if(!State._fortressBullets) State._fortressBullets=[];
+  const p = State.players[0];
+  for(let i=State._fortressBullets.length-1;i>=0;i--) {
+    const b=State._fortressBullets[i];
+    b.x+=b.vx; b.y+=b.vy; b.life--;
+    if(b.life<=0){State._fortressBullets.splice(i,1);continue;}
+    CTX.fillStyle='#ff4444'; CTX.shadowColor='#ff4444'; CTX.shadowBlur=8;
+    CTX.beginPath(); CTX.arc(b.x-State.camera.x,b.y-State.camera.y,4,0,Math.PI*2); CTX.fill();
+    CTX.shadowBlur=0;
+    if(p&&!p.invincible){const dx=(p.x+p.width/2)-b.x,dy=(p.y+p.height/2)-b.y;
+      if(Math.hypot(dx,dy)<20){handlePlayerDamage(p);State._fortressBullets.splice(i,1);}}
+  }
+}
+
+// ─── ASTEROID BULLET COLLISIONS ───────────────────────────────────
+
+function checkAsteroidBulletCollisions() {
+  if(!State.openWorldMode) return;
+  const p = State.players[0]; if(!p) return;
+  for(let oi=State.galaxyObjects.length-1;oi>=0;oi--) {
+    const obj=State.galaxyObjects[oi];
+    if(obj.type!=='asteroidField'&&obj.type!=='crystal') continue;
+    const arr=obj.type==='asteroidField'?obj.asteroids:obj.crystals;
+    if(!arr) continue;
+    for(let ai=arr.length-1;ai>=0;ai--) {
+      const a=arr[ai];
+      if(a.health<=0) continue;
+      const ax=obj.x+a.relX, ay=obj.y+a.relY;
+      for(let bi=p.bullets.length-1;bi>=0;bi--) {
+        const b=p.bullets[bi];
+        const dx=b.x-ax, dy=b.y-ay;
+        if(Math.hypot(dx,dy)<a.radius+5) {
+          a.health-=(b.damage||1);
+          p.bullets.splice(bi,1);
+          if(a.health<=0) {
+            triggerExplosion(ax,ay,obj.type==='crystal'?'#44aaff':'#aa7744',10);
+            if(obj.type==='crystal') {
+              const xpAmt=10+Math.floor(Math.random()*21);
+              State.xpOrbs.push(new XPOrb(ax,ay,xpAmt));
+              State.craftingMaterials.crystals=(State.craftingMaterials.crystals||0)+1;
+              updateQuestProgress('crystal',xpAmt);
+              discoverCodex('c8');
+            } else {
+              addCoins(3+Math.floor(Math.random()*8));
+              State.xpOrbs.push(new XPOrb(ax,ay,15));
+            }
+          }
+          break;
+        }
+      }
+    }
+  }
+  // Fortress bullet collisions
+  State.galaxyObjects.forEach((obj,oi)=>{
+    if(obj.type!=='fortress'||obj.health<=0) return;
+    for(let bi=p.bullets.length-1;bi>=0;bi--) {
+      const b=p.bullets[bi];
+      const dx=b.x-obj.x, dy=b.y-obj.y;
+      if(Math.hypot(dx,dy)<obj.radius) {
+        obj.health -= (b.damage||1)*(p.damageMultiplier||1);
+        p.bullets.splice(bi,1);
+        if(obj.health<=0) {
+          obj.destroyed=true;
+          triggerExplosion(obj.x,obj.y,'#ff4444',50);
+          addCoins(200);
+          gainXP(300);
+          showWaveAnnounce('FORTRESS DESTROYED!','#ff4444');
+          updateQuestProgress('fortress');
+          updateSectorObjectiveProgress(State.currentSector,'kill',1);
+        }
+        break;
+      }
+    }
+  });
+}
+
+function updateSectorObjectiveProgress(sectorIdx, type, amount) {
+  if(!State._sectorObjectiveProgress) State._sectorObjectiveProgress={};
+  const sector = State.galaxySectors[sectorIdx];
+  if(!sector || !sector.sectorObjective) return;
+  if(sector.sectorObjective.type === type) {
+    State._sectorObjectiveProgress[sectorIdx] = (State._sectorObjectiveProgress[sectorIdx]||0)+amount;
+    checkSectorObjective();
+  }
+}
+
+// ─── FORMATION ENEMIES ────────────────────────────────────────────
+
+function spawnFormationEnemies(x, y, sectorIdx) {
+  const types=['basic','fast','ufo'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  const angle = Math.random()*Math.PI*2;
+  for(let i=0;i<5;i++) {
+    const vOffset = (i-2)*40;
+    const ex = x + Math.cos(angle+Math.PI/2)*vOffset;
+    const ey = y + i*50*Math.cos(angle);
+    const e=createEnemy(type);
+    e.x=ex; e.y=ey; e.worldX=ex; e.worldY=ey; e.homeX=ex; e.homeY=ey;
+    e._openWorld=true; e.sectorIdx=sectorIdx; e._formation=true;
+    State.enemies.push(e);
+  }
+}
+
+function updateOpenWorldEnemyBehaviors() {
+  if(!State.openWorldMode) return;
+  const p = State.players[0]; if(!p) return;
+  const now = Date.now();
+  const wMult = getWeatherEnemySpeedMult();
+  State.enemies.forEach(e=>{
+    if(!e._openWorld) return;
+    if(!e._origSpeed) e._origSpeed = e.speed||2;
+    e.speed = e._origSpeed * wMult;
+    // Mining enemies patrol near asteroids
+    if(e._mining) {
+      const t2=now*0.0005+e.homeX*0.001;
+      e.x=e.homeX+Math.cos(t2)*80; e.y=e.homeY+Math.sin(t2)*80;
+      return;
+    }
+    // Faction patrol: follow waypoints
+    if(e._patrol && e._waypoints && e._waypoints.length>0) {
+      const wp = e._waypoints[e._waypointIdx||0];
+      const dx=wp.x-e.x, dy=wp.y-e.y;
+      const dist=Math.hypot(dx,dy);
+      if(dist<20) { e._waypointIdx=((e._waypointIdx||0)+1)%e._waypoints.length; }
+      else { e.x+=(dx/dist)*e.speed; e.y+=(dy/dist)*e.speed; }
+      return;
+    }
+    // Standard: wander unless player nearby
+    const dx2=(p.x+p.width/2)-(e.x+e.width/2);
+    const dy2=(p.y+p.height/2)-(e.y+e.height/2);
+    const dist2=Math.hypot(dx2,dy2);
+    if(dist2<350&&dist2>1) {
+      e.x+=(dx2/dist2)*e.speed;
+      e.y+=(dy2/dist2)*e.speed;
+    } else {
+      const t3=now*0.002+(e.homeX||0)*0.001;
+      e.x+=Math.cos(t3)*0.8; e.y+=Math.sin(t3)*0.8;
+    }
+    // Clamp to world
+    e.x=Math.max(0,Math.min(State.worldWidth-e.width,e.x));
+    e.y=Math.max(0,Math.min(State.worldHeight-e.height,e.y));
+  });
+}
+
+// ─── TRADE MENU ───────────────────────────────────────────────────
+
+function openTradeMenu(obj) {
+  if(State.running && !State.paused) pauseGame();
+  const el = document.getElementById('tradeOverlay');
+  if(!el) return;
+  const upgrades = RUN_UPGRADES_POOL.filter(u=>(State.runUpgrades[u.id]||0)<u.maxLevel);
+  const shuffled = [...upgrades].sort(()=>Math.random()-0.5).slice(0,3);
+  const prices = [50, 100, 150];
+  let html = `<div style="font-family:Orbitron,monospace;font-size:10px;color:rgba(0,255,136,0.7);margin-bottom:12px;">COINS: <span style="color:#ffd60a;">${State.coins}</span></div>`;
+  shuffled.forEach((up,i)=>{
+    const price=prices[i];
+    const canAfford=State.coins>=price;
+    html+=`<div class="trade-item" onclick="buyTradeUpgrade('${up.id}',${price})" style="opacity:${canAfford?1:0.4}">
+      <h3>${up.icon} ${up.name}</h3>
+      <p>${up.desc}</p>
+      <div class="trade-cost">${price} COINS</div>
+    </div>`;
+  });
+  // Ally ship recruits
+  html += '<div style="margin-top:12px;font-family:Orbitron,monospace;font-size:10px;color:rgba(0,255,136,0.5);">RECRUIT ALLIES:</div>';
+  ALLY_SHIP_TYPES.slice(0,2).forEach(cfg=>{
+    const canAfford=State.coins>=cfg.cost;
+    html+=`<div class="trade-item" onclick="recruitAllyAt('${cfg.type}')" style="opacity:${canAfford?1:0.4}">
+      <h3>${cfg.label}</h3>
+      <p>Speed:${cfg.speed} | Dmg:${cfg.damage} | HP:${cfg.health}</p>
+      <div class="trade-cost">${cfg.cost} COINS</div>
+    </div>`;
+  });
+  document.getElementById('tradeContent').innerHTML = html;
+  el.classList.add('open');
+  updateQuestProgress('trade');
+  discoverCodex('c11');
+}
+
+function buyTradeUpgrade(id, price) {
+  const up = RUN_UPGRADES_POOL.find(u=>u.id===id); if(!up) return;
+  if(State.coins < price) { showWaveAnnounce('NOT ENOUGH COINS','#ff4444'); return; }
+  const p=State.players[0]; if(!p) return;
+  const currentLevel=State.runUpgrades[id]||0;
+  if(currentLevel>=up.maxLevel){showWaveAnnounce('ALREADY MAXED','#ff4444');return;}
+  addCoins(-price);
+  State.runUpgrades[id]=(State.runUpgrades[id]||0)+1;
+  if(up.apply) up.apply(p);
+  showWaveAnnounce(up.name+' UPGRADED!','#00ff88');
+  openTradeMenu(State._activeTradeObj);
+}
+
+function closeTradeMenu() {
+  const el=document.getElementById('tradeOverlay');
+  if(el) el.classList.remove('open');
+  State._tradeMenuOpen=false;
+  if(State.paused) resumeGame();
+}
+
+// ─── KEYBOARD SHORTCUTS FOR NEW SYSTEMS ───────────────────────────
+
+function handleOpenWorldKey(key) {
+  if(!State.openWorldMode) return false;
+  if(key==='q') { toggleQuestLog(); return true; }
+  if(key==='c') { toggleCraftingMenu(); return true; }
+  if(key==='f') {
+    // Only toggle fleet if not in 2player mode
+    if(!State.twoPlayer) { toggleFleetManager(); return true; }
+  }
+  if(key==='m') { toggleGalaxyMap(); return true; }
+  return false;
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 28 – MAIN GAME LOOP (IMPROVEMENT 2: screen shake)
@@ -5117,35 +7125,73 @@ function gameLoop() {
       State.currentSector=newSector;
       if(!State.visitedSectors.includes(newSector)) {
         State.visitedSectors.push(newSector);
-        showWaveAnnounce(PHASE_THEMES[newSector].name,'#7b2fff');
+        const secTheme=State.galaxySectors[newSector]&&State.galaxySectors[newSector].theme?State.galaxySectors[newSector].theme.name:(PHASE_THEMES[newSector%PHASE_THEMES.length]||{name:'SECTOR'}).name;
+        showWaveAnnounce(secTheme,'#7b2fff');
+        updateQuestProgress('explore');
+        discoverCodex('c'+(newSector%20));
       }
+      // Update sector objective tracking
+      updateSectorObjectiveHUD();
     }
+    // ─── EXPANSION: Update all new systems ───
+    updateSpaceWeather();
+    updateGalaxyEvents();
+    checkRandomEvents();
+    updatePlanets();
+    updateOpenWorldEnemyBehaviors();
+    checkQuestCompletion();
+    updateOpenWorldHUDPanel();
+    updateWeatherHUD();
+    drawFactionHUD();
+    // ─────────────────────────────────────────
     // Auto-shoot at nearest enemy
     State.players.forEach(p=>autoShootOpenWorld(p));
     // Apply camera transform for world drawing
     CTX.save();
     CTX.translate(-State.camera.x, -State.camera.y);
+    // ─── Galaxy star parallax ───
+    drawGalaxyStarField();
     drawSectorBoundaries();
+    // ─── Old galaxy objects (stations, wormholes) ───
     drawGalaxyObjects();
+    // ─── New expanded galaxy objects ───
+    drawNewGalaxyObjects();
     State.players.forEach(p=>{p.update();p.draw();});
     processLasers();
     processBullets();
     processAllyRobots();
+    // ─── EXPANSION: Ally fleet ───
+    processAllyFleet();
     processOpenWorldEnemies();
     processBoss();
+    // ─── EXPANSION: Fortress bullets ───
+    processFortressBullets();
     processExplosions();
     processXPOrbs();
     processFloatingTexts();
     CTX.restore();
+    // ─── EXPANSION: Bullet-asteroid/crystal/fortress collisions ───
+    checkAsteroidBulletCollisions();
     // HUD elements (not translated)
     checkBossZones();
-    drawGalaxyMiniMap();
+    // drawGalaxyMiniMap() replaced by drawExtendedMiniMap() below
+    // ─── EXPANSION: Weather visual effects ───
+    drawWeatherEffects();
     // Sector name in HUD top center
     CTX.fillStyle='rgba(180,120,255,0.6)'; CTX.textAlign='center';
     CTX.font='11px Orbitron, monospace';
-    CTX.fillText(PHASE_THEMES[State.currentSector||0].name, CANVAS.width/2, 56);
+    const owSecName=State.galaxySectors[State.currentSector]&&State.galaxySectors[State.currentSector].theme?State.galaxySectors[State.currentSector].theme.name:(OW_SECTOR_THEMES[State.currentSector%OW_SECTOR_THEMES.length].name);
+    CTX.fillText(owSecName, CANVAS.width/2, 56);
     CTX.textAlign='left';
-    if(State.infiniteMode||State.bossRushMode) drawMiniRadar();
+    // ─── EXPANSION: check sector objective & all expansion systems ───
+    checkSectorObjective();
+    updateCodexHUD();
+    updateOpenWorldExpansion();
+    drawOpenWorldExpansionHUD();
+    drawEnhancedBossZones();
+    drawPlanetOrbits();
+    drawExtendedMiniMap();
+    drawOpenWorldFullFrame();
   } else {
     State.players.forEach(p=>{p.update();p.draw();});
     processLasers();
@@ -5183,6 +7229,1166 @@ function gameLoop() {
 
   requestAnimationFrame(gameLoop);
 }
+
+
+// ═══════════════════════════════════════════════════════════════════
+// OPEN WORLD EXPANSION – ADDITIONAL SYSTEMS & ENHANCEMENTS
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── ENHANCED OPEN WORLD ENEMY AI WITH BEHAVIORS ──────────────────
+
+/**
+ * Processes open world enemies with:
+ * - Formation-aware movement
+ * - Mining enemy patrol
+ * - Faction patrol with waypoints
+ * - Weather speed modifier
+ */
+function processOpenWorldEnemyAI() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  const wMult = getWeatherEnemySpeedMult();
+  State.enemies.forEach(e=>{
+    if(!e._openWorld) return;
+    if(!e._aiInit) {
+      e._aiInit = true;
+      e._aiState = 'wander';
+      e._aiTimer = now + Math.random()*3000;
+      e._origSpeed = e.speed || 2;
+      e._wanderAngle = Math.random()*Math.PI*2;
+    }
+    // Apply weather speed modifier
+    const spd = (e._origSpeed||2)*wMult;
+    // State transitions
+    if(now > e._aiTimer) {
+      const roll = Math.random();
+      if(roll < 0.3) e._aiState='wander';
+      else if(roll < 0.6) e._aiState='patrol';
+      else e._aiState='idle';
+      e._aiTimer = now + 2000 + Math.random()*5000;
+      e._wanderAngle = Math.random()*Math.PI*2;
+    }
+    const p = State.players[0];
+    if(p) {
+      const dx=(p.x+p.width/2)-(e.x+e.width/2);
+      const dy=(p.y+p.height/2)-(e.y+e.height/2);
+      const dist=Math.hypot(dx,dy);
+      if(dist < 280) {
+        // Chase player
+        e.x += (dx/dist)*spd;
+        e.y += (dy/dist)*spd;
+        e._aiState = 'chase';
+      } else {
+        if(e._aiState==='wander') {
+          e.x += Math.cos(e._wanderAngle)*spd*0.5;
+          e.y += Math.sin(e._wanderAngle)*spd*0.5;
+        } else if(e._aiState==='patrol') {
+          const t2=now*0.0008+(e.homeX||0)*0.001;
+          e.x = (e.homeX||e.x) + Math.cos(t2)*120;
+          e.y = (e.homeY||e.y) + Math.sin(t2)*120;
+        }
+        // idle: don't move
+      }
+    }
+    // Clamp to world bounds
+    e.x = Math.max(0, Math.min(State.worldWidth-(e.width||30), e.x));
+    e.y = Math.max(0, Math.min(State.worldHeight-(e.height||30), e.y));
+  });
+}
+
+// ─── HUD HELPERS ──────────────────────────────────────────────────
+
+function hideOpenWorldHUDs() {
+  ['owHudPanel','weatherHud','factionHud','sectorObjHud','codexHud'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('visible');
+  });
+}
+
+function showOpenWorldHUDs() {
+  if(!State.openWorldMode) return;
+  const owHud=document.getElementById('owHudPanel');
+  if(owHud) owHud.classList.add('visible');
+  updateCodexHUD();
+}
+
+// ─── EXTENDED MINIMAP WITH FACTION COLORS ─────────────────────────
+
+function drawExtendedMiniMap() {
+  if(!State.openWorldMode) return;
+  const mw=140, mh=140;
+  const mx=CANVAS.width-mw-16, my=60;
+  const scaleX=mw/State.worldWidth, scaleY=mh/State.worldHeight;
+  CTX.save();
+  CTX.fillStyle='rgba(0,0,0,0.75)'; CTX.fillRect(mx,my,mw,mh);
+  CTX.strokeStyle='rgba(0,245,255,0.3)'; CTX.lineWidth=1; CTX.strokeRect(mx,my,mw,mh);
+  // Draw sectors with faction tint
+  State.galaxySectors.forEach((s,i)=>{
+    const visited = State.visitedSectors.includes(i);
+    const faction = s.faction && FACTIONS[s.faction];
+    let fillColor = 'rgba(255,255,255,0.04)';
+    if(visited && faction) {
+      fillColor = faction.color+'22';
+    } else if(s.objectiveComplete) {
+      fillColor = 'rgba(57,255,20,0.15)';
+    } else if(s.bossDefeated) {
+      fillColor = 'rgba(0,255,100,0.1)';
+    }
+    CTX.fillStyle=fillColor;
+    CTX.fillRect(mx+s.x*scaleX,my+s.y*scaleY,s.w*scaleX,s.h*scaleY);
+    // Current sector highlight
+    if(i===State.currentSector) {
+      CTX.strokeStyle='rgba(0,245,255,0.5)'; CTX.lineWidth=1;
+      CTX.strokeRect(mx+s.x*scaleX,my+s.y*scaleY,s.w*scaleX,s.h*scaleY);
+    }
+    if(!s.bossDefeated && visited) {
+      CTX.fillStyle='rgba(255,100,0,0.9)';
+      CTX.beginPath();
+      CTX.arc(mx+(s.x+s.w/2)*scaleX,my+(s.y+s.h/2)*scaleY,2,0,Math.PI*2);
+      CTX.fill();
+    }
+  });
+  // Grid lines
+  CTX.strokeStyle='rgba(255,255,255,0.05)'; CTX.lineWidth=0.5;
+  for(let c=1;c<6;c++){CTX.beginPath();CTX.moveTo(mx+c*mw/6,my);CTX.lineTo(mx+c*mw/6,my+mh);CTX.stroke();}
+  for(let r=1;r<6;r++){CTX.beginPath();CTX.moveTo(mx,my+r*mh/6);CTX.lineTo(mx+mw,my+r*mh/6);CTX.stroke();}
+  // Player blip
+  if(State.players[0]) {
+    const p=State.players[0];
+    CTX.fillStyle='#39ff14'; CTX.shadowColor='#39ff14'; CTX.shadowBlur=6;
+    CTX.beginPath(); CTX.arc(mx+p.x*scaleX,my+p.y*scaleY,4,0,Math.PI*2); CTX.fill();
+    CTX.shadowBlur=0;
+  }
+  // Ally fleet blips
+  State.allyFleet.forEach(a=>{
+    CTX.fillStyle=a.color;
+    CTX.beginPath(); CTX.arc(mx+a.x*scaleX,my+a.y*scaleY,2,0,Math.PI*2); CTX.fill();
+  });
+  // Camera viewport rect
+  CTX.strokeStyle='rgba(0,245,255,0.25)'; CTX.lineWidth=0.5;
+  CTX.strokeRect(mx+State.camera.x*scaleX,my+State.camera.y*scaleY,CANVAS.width*scaleX,CANVAS.height*scaleY);
+  // Labels
+  CTX.fillStyle='rgba(0,245,255,0.5)'; CTX.font='7px Orbitron, monospace'; CTX.textAlign='left';
+  CTX.fillText('MAP [M]',mx+3,my+9);
+  CTX.fillStyle='rgba(255,255,255,0.25)'; CTX.font='6px monospace';
+  CTX.fillText(State.visitedSectors.length+'/'+State.galaxySectors.length+' sectors',mx+3,my+mh-4);
+  CTX.restore();
+}
+
+// ─── BOSS DEFEAT IN OPEN WORLD (ENHANCED) ─────────────────────────
+
+function onOpenWorldBossDefeated() {
+  if(!State.openWorldMode) return;
+  const si = State._currentBossSector;
+  if(si !== undefined && State.galaxySectors[si]) {
+    State.galaxySectors[si].bossDefeated = true;
+    // Update quest progress
+    updateQuestProgress('boss');
+    updateSectorObjectiveProgress(si, 'kill', 5);
+    // Big reward
+    addCoins(100 + si*20);
+    gainXP(500 + si*50);
+    showWaveAnnounce('SECTOR BOSS DEFEATED!','#ff6600');
+    State.stats.bossesDefeated++;
+    // Codex discovery
+    discoverCodex('c'+(si%20));
+    // Check if it's the final sector boss
+    if(si===35) {
+      updateQuestProgress('omega');
+      showWaveAnnounce('OMEGA DIMENSION CLEARED!','#00ffff');
+    }
+    // Spawn power-up at boss location
+    if(State.boss) {
+      State.galaxyObjects.push({
+        type:'debris',
+        x: State.boss.x, y: State.boss.y,
+        radius:30, sectorIdx:si, used:false, lootCoins:200+si*10,
+      });
+    }
+  }
+  State.openWorldBossActive = false;
+}
+
+// ─── OPEN WORLD STATUS: ON ENEMY KILL ─────────────────────────────
+
+function onOpenWorldEnemyKilled(enemy) {
+  if(!State.openWorldMode) return;
+  // Update faction rep
+  const sectorIdx = enemy.sectorIdx !== undefined ? enemy.sectorIdx : State.currentSector;
+  updateFactionRep(sectorIdx, -1);
+  // Update kill quest
+  updateQuestProgress('kill');
+  // Update sector objective
+  updateSectorObjectiveProgress(sectorIdx, 'kill', 1);
+  // No damage quest: reset timer
+  if(!State._lastDamageTime) State._lastDamageTime = Date.now();
+}
+
+// ─── PLAYER DAMAGE HOOK FOR NO-DAMAGE QUEST ───────────────────────
+
+function onOpenWorldPlayerDamaged() {
+  if(!State.openWorldMode) return;
+  State._lastDamageTime = Date.now();
+  // Fail no-damage quests
+  State.activeQuests.forEach(q=>{
+    if(q.type==='nodmg') {
+      q.startTime = Date.now(); // reset timer
+    }
+  });
+}
+
+// ─── FULL PLANET ORBIT VISUAL EFFECTS ─────────────────────────────
+
+function drawPlanetOrbits() {
+  if(!State.openWorldMode) return;
+  State.galaxyObjects.forEach(obj=>{
+    if(obj.type!=='planet'||!obj.moons||obj.moons.length===0) return;
+    const sx=obj.x-State.camera.x, sy=obj.y-State.camera.y;
+    if(sx<-400||sx>CANVAS.width+400||sy<-400||sy>CANVAS.height+400) return;
+    // Draw orbit paths
+    obj.moons.forEach(m=>{
+      CTX.beginPath();
+      CTX.ellipse(sx,sy,m.distance,m.distance*0.4,0,0,Math.PI*2);
+      CTX.strokeStyle='rgba(255,255,255,0.04)'; CTX.lineWidth=0.5; CTX.stroke();
+    });
+  });
+}
+
+// ─── WEATHER PARTICLE SYSTEM ──────────────────────────────────────
+
+function updateWeatherParticles() {
+  if(!State.openWorldMode) return;
+  const weather = State.spaceWeather.type;
+  if(weather==='clear') { State._weatherParticles=[]; return; }
+  const now=Date.now();
+  // Spawn new particles based on weather
+  if(weather==='nebula_surge' && State._weatherParticles.length<50) {
+    State._weatherParticles.push({
+      x: Math.random()*CANVAS.width, y: Math.random()*CANVAS.height,
+      vx:(Math.random()-0.5)*1.5, vy:(Math.random()-0.5)*1.5,
+      radius:2+Math.random()*4, color:'#cc44ff', alpha:0.6+Math.random()*0.4,
+      life:120+Math.floor(Math.random()*80),
+    });
+  }
+  if(weather==='ion_storm' && State._weatherParticles.length<60) {
+    State._weatherParticles.push({
+      x: Math.random()<0.5?0:CANVAS.width, y: Math.random()*CANVAS.height,
+      vx:(Math.random()-0.5)*3, vy:(Math.random()-0.5)*0.5,
+      radius:1+Math.random()*2, color:'#44aaff', alpha:0.7, life:80,
+    });
+  }
+  // Update & draw existing particles
+  for(let i=State._weatherParticles.length-1;i>=0;i--) {
+    const pt=State._weatherParticles[i];
+    pt.x+=pt.vx; pt.y+=pt.vy; pt.life--;
+    if(pt.life<=0||(pt.x<-10||pt.x>CANVAS.width+10||pt.y<-10||pt.y>CANVAS.height+10)){
+      State._weatherParticles.splice(i,1); continue;
+    }
+    const fadeAlpha=pt.alpha*(pt.life/100);
+    CTX.fillStyle=pt.color; CTX.globalAlpha=Math.min(1,fadeAlpha);
+    CTX.shadowColor=pt.color; CTX.shadowBlur=6;
+    CTX.beginPath(); CTX.arc(pt.x,pt.y,pt.radius,0,Math.PI*2); CTX.fill();
+    CTX.shadowBlur=0; CTX.globalAlpha=1;
+  }
+}
+
+// ─── OPEN WORLD SCORE/EXPLORATION STATS ───────────────────────────
+
+function getOpenWorldStats() {
+  const totalSectors = State.galaxySectors.length || 36;
+  const visited = State.visitedSectors.length;
+  const bossesDefeated = State.galaxySectors.filter(s=>s.bossDefeated).length;
+  const objectivesComplete = State.galaxySectors.filter(s=>s.objectiveComplete).length;
+  return { totalSectors, visited, bossesDefeated, objectivesComplete };
+}
+
+// ─── DRAW OPEN WORLD SCORE OVERLAY (on canvas) ────────────────────
+
+function drawOpenWorldStatusBar() {
+  if(!State.openWorldMode) return;
+  const stats = getOpenWorldStats();
+  // Draw a status bar at top-right area (below minimap)
+  const barX = CANVAS.width - 156;
+  const barY = 210;
+  CTX.save();
+  CTX.fillStyle='rgba(2,8,23,0.7)';
+  CTX.fillRect(barX-4, barY-4, 152, 60);
+  CTX.strokeStyle='rgba(0,245,255,0.15)'; CTX.lineWidth=1;
+  CTX.strokeRect(barX-4, barY-4, 152, 60);
+  CTX.fillStyle='rgba(0,245,255,0.5)'; CTX.font='7px Orbitron, monospace'; CTX.textAlign='left';
+  CTX.fillText('SECTORS:  '+stats.visited+'/'+stats.totalSectors, barX, barY+10);
+  CTX.fillStyle='rgba(255,100,0,0.7)';
+  CTX.fillText('BOSSES:   '+stats.bossesDefeated+'/'+stats.totalSectors, barX, barY+22);
+  CTX.fillStyle='rgba(57,255,20,0.7)';
+  CTX.fillText('OBJ DONE: '+stats.objectivesComplete, barX, barY+34);
+  CTX.fillStyle='rgba(0,255,136,0.7)';
+  CTX.fillText('FLEET:    '+State.allyFleet.length+'/5', barX, barY+46);
+  CTX.restore();
+}
+
+// ─── ADVANCED SECTOR TRANSITION ANIMATION ─────────────────────────
+
+let _sectorTransitionAlpha = 0;
+let _sectorTransitionTimer = 0;
+let _sectorTransitionName = '';
+
+function triggerSectorTransitionFX(sectorName, color) {
+  _sectorTransitionAlpha = 0.6;
+  _sectorTransitionTimer = Date.now();
+  _sectorTransitionName = sectorName;
+  State._sectorTransitionColor = color || '#7b2fff';
+}
+
+function drawSectorTransitionFX() {
+  if(_sectorTransitionAlpha <= 0) return;
+  const elapsed = (Date.now()-_sectorTransitionTimer)/1000;
+  _sectorTransitionAlpha = Math.max(0, 0.6 - elapsed*0.4);
+  if(_sectorTransitionAlpha > 0) {
+    CTX.save();
+    CTX.globalAlpha = _sectorTransitionAlpha;
+    CTX.fillStyle = State._sectorTransitionColor||'#7b2fff';
+    CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+    CTX.globalAlpha = Math.min(1, _sectorTransitionAlpha*2.5);
+    CTX.fillStyle='#ffffff'; CTX.font='bold 20px Orbitron, monospace';
+    CTX.textAlign='center'; CTX.textBaseline='middle';
+    CTX.fillText(_sectorTransitionName, CANVAS.width/2, CANVAS.height/2);
+    CTX.textAlign='left'; CTX.textBaseline='alphabetic';
+    CTX.restore();
+  }
+}
+
+// ─── POWER-UP DROPS IN OPEN WORLD ────────────────────────────────
+
+function spawnOpenWorldPowerUp(x, y) {
+  if(!State.openWorldMode) return;
+  // Add a special debris object that acts as a power-up
+  State.galaxyObjects.push({
+    type:'debris',
+    x: x + (Math.random()-0.5)*40,
+    y: y + (Math.random()-0.5)*40,
+    radius:20, sectorIdx:State.currentSector,
+    used:false, lootCoins:30+Math.floor(Math.random()*70),
+  });
+}
+
+// ─── WARP EFFECT WHEN USING WORMHOLE / GATE ───────────────────────
+
+function triggerWarpEffect(targetX, targetY, color) {
+  State.screenShake = 15;
+  triggerExplosion(targetX, targetY, color||'#7b2fff', 40);
+  for(let i=0;i<8;i++) {
+    const angle=i/8*Math.PI*2;
+    State.xpOrbs.push(new XPOrb(targetX+Math.cos(angle)*50, targetY+Math.sin(angle)*50, 5));
+  }
+}
+
+// ─── DYNAMIC SECTOR NAME DISPLAY ──────────────────────────────────
+
+function drawCurrentSectorInfo() {
+  if(!State.openWorldMode) return;
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector) return;
+  const theme = sector.theme || OW_SECTOR_THEMES[State.currentSector%OW_SECTOR_THEMES.length];
+  const faction = sector.faction ? FACTIONS[sector.faction] : null;
+  CTX.save();
+  // Sector name in top-center
+  CTX.fillStyle = theme.color||'rgba(180,120,255,0.6)';
+  CTX.globalAlpha=0.8; CTX.font='bold 12px Orbitron, monospace'; CTX.textAlign='center';
+  CTX.fillText(theme.name, CANVAS.width/2, 56);
+  // Faction below sector name
+  if(faction) {
+    CTX.fillStyle=faction.color; CTX.font='9px Orbitron, monospace';
+    CTX.globalAlpha=0.6;
+    CTX.fillText('CONTROLLED BY: '+faction.name, CANVAS.width/2, 72);
+  }
+  // Current sector index
+  CTX.fillStyle='rgba(255,255,255,0.25)'; CTX.font='8px monospace'; CTX.globalAlpha=0.5;
+  CTX.fillText('SECTOR '+(State.currentSector+1)+'/36', CANVAS.width/2, 85);
+  CTX.textAlign='left'; CTX.globalAlpha=1; CTX.restore();
+}
+
+// ─── ENHANCED BOSS ZONE DISPLAY ───────────────────────────────────
+
+function drawEnhancedBossZones() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  CTX.save();
+  State.galaxySectors.forEach(s=>{
+    if(s.bossDefeated) return;
+    const bz=s.bossZone;
+    const bsx=bz.x-State.camera.x, bsy=bz.y-State.camera.y;
+    if(bsx<-300||bsx>CANVAS.width+300||bsy<-300||bsy>CANVAS.height+300) return;
+    const pulse=Math.sin(now*0.002)*0.3+0.7;
+    CTX.strokeStyle=`rgba(255,80,0,${0.25*pulse})`; CTX.lineWidth=2;
+    CTX.setLineDash([8,8]);
+    CTX.strokeRect(bsx,bsy,bz.w,bz.h);
+    CTX.setLineDash([]);
+    // Boss zone label
+    CTX.fillStyle=`rgba(255,100,0,${0.6*pulse})`;
+    CTX.font='10px Orbitron, monospace'; CTX.textAlign='center';
+    CTX.fillText('BOSS ZONE',bsx+bz.w/2,bsy+bz.h/2);
+    // Warning skull indicator
+    CTX.font='20px Arial'; CTX.globalAlpha=0.4*pulse;
+    CTX.fillText('💀',bsx+bz.w/2-10,bsy+bz.h/2+25);
+    CTX.globalAlpha=1;
+  });
+  CTX.textAlign='left'; CTX.restore();
+}
+
+// ─── ADVANCED XP/COIN NOTIFICATION SYSTEM ─────────────────────────
+
+function showGalaxyNotification(text, subText, color, duration) {
+  duration = duration || 3000;
+  const el = document.getElementById('waveAnnounce');
+  if(!el) return;
+  el.style.opacity='1';
+  el.style.color=color||'#00f5ff';
+  el.innerHTML=text+(subText?'<br><span style="font-size:14px;opacity:0.7;">'+subText+'</span>':'');
+  clearTimeout(el._notifTimeout);
+  el._notifTimeout=setTimeout(()=>{
+    el.style.transition='opacity 0.5s';
+    el.style.opacity='0';
+    setTimeout(()=>{el.style.transition='';},600);
+  }, duration);
+}
+
+// ─── LORE TEXT SYSTEM ────────────────────────────────────────────
+
+const LORE_MESSAGES = [
+  'Ancient transmissions echo through the void...',
+  'The empire\'s reach extends to the outer arms.',
+  'Pirates have been spotted near sector 7.',
+  'Merchant convoys depart at solar noon.',
+  'Crystal formations predate the known galaxy.',
+  'Wormholes were discovered by the Precursors.',
+  'Black holes are portals to nothing and everything.',
+  'The Rebel Fleet fights for freedom across all sectors.',
+  'The Omega Dimension holds the final truth.',
+  'Space fortresses were built during the Great War.',
+];
+
+let _loreMessageTimer = 0;
+let _currentLoreMsg = '';
+let _loreMsgAlpha = 0;
+
+function updateLoreMessages() {
+  if(!State.openWorldMode) return;
+  const now = Date.now();
+  if(now - _loreMessageTimer > 45000) {
+    _loreMessageTimer = now;
+    _currentLoreMsg = LORE_MESSAGES[Math.floor(Math.random()*LORE_MESSAGES.length)];
+    _loreMsgAlpha = 1;
+  }
+  if(_loreMsgAlpha > 0) _loreMsgAlpha -= 0.003;
+}
+
+function drawLoreMessage() {
+  if(!State.openWorldMode || _loreMsgAlpha <= 0 || !_currentLoreMsg) return;
+  CTX.save();
+  CTX.globalAlpha = Math.max(0, _loreMsgAlpha);
+  CTX.fillStyle='rgba(180,120,255,0.8)';
+  CTX.font='italic 12px Rajdhani, sans-serif';
+  CTX.textAlign='center';
+  CTX.fillText(_currentLoreMsg, CANVAS.width/2, CANVAS.height-40);
+  CTX.textAlign='left'; CTX.restore();
+}
+
+// ─── MISSION OBJECTIVE TICKER ─────────────────────────────────────
+
+function drawMissionObjectiveTicker() {
+  if(!State.openWorldMode) return;
+  if(State.activeQuests.length===0) return;
+  const q = State.activeQuests[0];
+  if(!q) return;
+  CTX.save();
+  CTX.fillStyle='rgba(2,8,23,0.75)';
+  CTX.fillRect(12, CANVAS.height/2-20, 200, 48);
+  CTX.strokeStyle='rgba(255,170,0,0.3)'; CTX.lineWidth=1;
+  CTX.strokeRect(12, CANVAS.height/2-20, 200, 48);
+  CTX.fillStyle='rgba(255,170,0,0.8)'; CTX.font='8px Orbitron, monospace';
+  CTX.fillText('ACTIVE QUEST', 20, CANVAS.height/2-5);
+  CTX.fillStyle='#ffffff'; CTX.font='9px Orbitron, monospace';
+  CTX.fillText(q.name, 20, CANVAS.height/2+10);
+  // Progress bar
+  const pct=Math.min(1,(q.progress||0)/q.target);
+  CTX.fillStyle='rgba(255,255,255,0.1)'; CTX.fillRect(20,CANVAS.height/2+18,180,4);
+  CTX.fillStyle='#ffaa00'; CTX.fillRect(20,CANVAS.height/2+18,180*pct,4);
+  CTX.fillStyle='rgba(255,255,255,0.4)'; CTX.font='8px monospace';
+  CTX.fillText((q.progress||0)+'/'+q.target, 20, CANVAS.height/2+34);
+  CTX.restore();
+}
+
+// ─── SPECIAL ENCOUNTER: VOID CREATURE ─────────────────────────────
+
+function spawnVoidCreature(x, y) {
+  const e=createEnemy('tank');
+  e.x=x; e.y=y; e.worldX=x; e.worldY=y; e.homeX=x; e.homeY=y;
+  e._openWorld=true; e.sectorIdx=State.currentSector;
+  e.health*=5; e.maxHealth=e.health;
+  e.speed=1.5; e._origSpeed=1.5;
+  e._voidCreature=true;
+  e.color='#330033'; e.borderColor='#8800ff';
+  // Scale up size
+  e.width=(e.width||30)*2; e.height=(e.height||30)*2;
+  State.enemies.push(e);
+  showWaveAnnounce('VOID ENTITY SPAWNED','#8800ff');
+}
+
+// ─── ZONE COMPLETION CELEBRATION ──────────────────────────────────
+
+function celebrateSectorObjectiveComplete(sectorIdx) {
+  const sector=State.galaxySectors[sectorIdx];
+  if(!sector||!sector.sectorObjective||!sector.sectorObjective.completed) return;
+  // Spawn XP burst
+  const cx=sector.x+sector.w/2, cy=sector.y+sector.h/2;
+  for(let i=0;i<8;i++) {
+    State.xpOrbs.push(new XPOrb(cx+(Math.random()-0.5)*100, cy+(Math.random()-0.5)*100, 30));
+  }
+  // Trigger explosion burst
+  triggerExplosion(cx,cy,'#39ff14',30);
+  triggerExplosion(cx-40,cy,'#00f5ff',20);
+  triggerExplosion(cx+40,cy,'#ffaa00',20);
+}
+
+// ─── CRYSTAL COLLECTION TRACKER ───────────────────────────────────
+
+function trackCrystalCollection(amount) {
+  State.craftingMaterials.crystals=(State.craftingMaterials.crystals||0)+amount;
+  updateQuestProgress('crystal', amount*10);
+}
+
+// ─── AMBIENT SPACE SOUNDS CONTROLLER ─────────────────────────────
+
+let _ambientTimer = 0;
+function processAmbientEffects() {
+  if(!State.openWorldMode) return;
+  const now=Date.now();
+  if(now-_ambientTimer > 8000) {
+    _ambientTimer=now;
+    // Occasional distant explosion ambiance
+    if(Math.random()<0.2) {
+      const p=State.players[0];
+      if(p) triggerExplosion(
+        p.x+(Math.random()-0.5)*800, p.y+(Math.random()-0.5)*800,
+        '#ff4400', 5
+      );
+    }
+  }
+}
+
+// ─── XP GAIN FROM ION STORM ───────────────────────────────────────
+
+function getWeatherXPMult() {
+  if(!State.openWorldMode) return 1;
+  if(State.spaceWeather.type==='ion_storm') return 1.5;
+  return 1;
+}
+
+function getWeatherCoinMult() {
+  if(!State.openWorldMode) return 1;
+  if(State.spaceWeather.type==='ion_storm') return 1.5;
+  return 1;
+}
+
+// ─── VOID RIFT BLACK HOLE EXPANSION ───────────────────────────────
+
+function getBlackHoleRadiusMult() {
+  if(!State.openWorldMode) return 1;
+  if(State.spaceWeather.type==='void_rift') return 1.5;
+  return 1;
+}
+
+// ─── QUEST HUD MINI PANEL (canvas drawn) ─────────────────────────
+
+function drawQuestMiniPanel() {
+  if(!State.openWorldMode || State.activeQuests.length===0) return;
+  const panelX=12, panelY=CANVAS.height-200;
+  const panelW=200, qH=42;
+  const show=Math.min(3,State.activeQuests.length);
+  CTX.save();
+  CTX.fillStyle='rgba(2,8,23,0.75)';
+  CTX.fillRect(panelX,panelY,panelW,show*qH+24);
+  CTX.strokeStyle='rgba(255,170,0,0.25)'; CTX.lineWidth=1;
+  CTX.strokeRect(panelX,panelY,panelW,show*qH+24);
+  CTX.fillStyle='rgba(255,170,0,0.7)'; CTX.font='8px Orbitron,monospace';
+  CTX.fillText('ACTIVE QUESTS [Q]',panelX+8,panelY+14);
+  for(let i=0;i<show;i++) {
+    const q=State.activeQuests[i];
+    const qy=panelY+20+i*qH;
+    // Quest name
+    CTX.fillStyle='rgba(255,255,255,0.8)'; CTX.font='8px Orbitron,monospace';
+    CTX.fillText(q.name.substring(0,22),panelX+8,qy+14);
+    // Progress bar
+    const pct=Math.min(1,(q.progress||0)/q.target);
+    CTX.fillStyle='rgba(255,255,255,0.1)'; CTX.fillRect(panelX+8,qy+18,panelW-16,3);
+    CTX.fillStyle='#ffaa00'; CTX.fillRect(panelX+8,qy+18,(panelW-16)*pct,3);
+    // Progress text
+    CTX.fillStyle='rgba(255,255,255,0.4)'; CTX.font='7px monospace';
+    CTX.fillText((q.progress||0)+'/'+q.target,panelX+8,qy+32);
+  }
+  CTX.restore();
+}
+
+// ─── OPEN WORLD INPUT CONTROLS (NEBULA SLOW) ─────────────────────
+
+function getPlayerOpenWorldSpeedMult(player) {
+  let mult=1;
+  if(player._nebulaSlowed) mult*=0.7;
+  mult*=getWeatherSpeedMult();
+  // Crafting speed boost
+  if(State._craftEffects&&State._craftEffects.speedBoost10s&&State._craftEffects.speedBoost10s>Date.now()) mult*=3;
+  return mult;
+}
+
+// ─── BOSS KILL INTEGRATION WITH EXPANSION ─────────────────────────
+
+// Called when boss is defeated (integration point)
+function expandedBossDeathHook() {
+  if(!State.openWorldMode) return;
+  onOpenWorldBossDefeated();
+}
+
+// ─── FULL GALAXY MAP: DRAW LORE TEXT ─────────────────────────────
+
+function renderGalaxyMapLore() {
+  const canvas=document.getElementById('galaxyMapCanvas'); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  // Draw legend
+  const legendX=10, legendY=canvas.height-60;
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(legendX,legendY,280,55);
+  ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=0.5; ctx.strokeRect(legendX,legendY,280,55);
+  ctx.font='8px Orbitron, monospace'; ctx.textAlign='left';
+  const items=[
+    {color:'rgba(255,68,68,0.8)',  label:'Pirate Territory'},
+    {color:'rgba(68,136,255,0.8)', label:'Empire Space'},
+    {color:'rgba(255,170,0,0.8)',  label:'Rebel Zone'},
+    {color:'rgba(0,255,136,0.8)',  label:'Merchant Space'},
+    {color:'rgba(255,100,0,0.9)',  label:'Active Boss'},
+    {color:'#39ff14',              label:'Your Position'},
+  ];
+  items.forEach((item,i)=>{
+    const col=i<3?0:3;
+    const row=i%3;
+    ctx.fillStyle=item.color;
+    ctx.fillRect(legendX+8+col*90,legendY+8+row*14,8,8);
+    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.fillText(item.label,legendX+20+col*90,legendY+15+row*14);
+  });
+}
+
+// ─── EXPLORATION REWARDS ──────────────────────────────────────────
+
+function checkExplorationMilestones() {
+  if(!State.openWorldMode) return;
+  const visited=State.visitedSectors.length;
+  const milestones=[
+    {sectors:5,  reward:{coins:100,xp:200}, msg:'EXPLORER I: 5 Sectors!'},
+    {sectors:10, reward:{coins:200,xp:400}, msg:'EXPLORER II: 10 Sectors!'},
+    {sectors:18, reward:{coins:400,xp:800}, msg:'DEEP SPACE: 18 Sectors!'},
+    {sectors:27, reward:{coins:600,xp:1200},msg:'VOID TRAVELER: 27 Sectors!'},
+    {sectors:36, reward:{coins:1000,xp:2000},msg:'GALAXY MASTER: ALL SECTORS!'},
+  ];
+  milestones.forEach(m=>{
+    const key='_milestone_'+m.sectors;
+    if(visited>=m.sectors && !State[key]) {
+      State[key]=true;
+      addCoins(m.reward.coins);
+      gainXP(m.reward.xp);
+      showWaveAnnounce(m.msg,'#ffd60a');
+    }
+  });
+}
+
+// ─── OPEN WORLD GAME OVER INTEGRATION ────────────────────────────
+
+function openWorldGameOverSummary() {
+  if(!State.openWorldMode) return;
+  const stats=getOpenWorldStats();
+  return {
+    sectors: stats.visited+'/'+stats.totalSectors,
+    bosses: stats.bossesDefeated,
+    objectives: stats.objectivesComplete,
+    quests: State.completedQuests.length,
+    codex: State.codex.discoveries.length+'/'+CODEX_ENTRIES.length,
+    allies: State.allyFleet.length,
+    crystals: State.craftingMaterials.crystals||0,
+  };
+}
+
+// ─── SECTOR OBJECTIVE DISPLAY ON SECTOR ENTER ────────────────────
+
+function announceSectorObjective(sectorIdx) {
+  const sector=State.galaxySectors[sectorIdx]; if(!sector||!sector.sectorObjective) return;
+  const obj=sector.sectorObjective;
+  if(obj.completed) return;
+  const typeLabel={kill:'ELIMINATE ENEMIES',collect:'COLLECT XP',defend:'SURVIVE',explore:'EXPLORE'}[obj.type]||'COMPLETE TASK';
+  showWaveAnnounce(typeLabel+': '+obj.target,'rgba(0,245,255,0.8)');
+}
+
+// ─── OPEN WORLD CLEANUP ON GAME END ──────────────────────────────
+
+function cleanupOpenWorldSystems() {
+  hideOpenWorldHUDs();
+  const overlays=['questLogOverlay','craftingOverlay','fleetOverlay','galaxyMapOverlay','tradeOverlay'];
+  overlays.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('open'); });
+  State._weatherParticles=[];
+  _sectorTransitionAlpha=0;
+  _loreMsgAlpha=0;
+}
+
+// ─── ALLY FLEET DAMAGE FROM ENEMIES ──────────────────────────────
+
+function checkAllyFleetDamage() {
+  if(!State.openWorldMode||State.allyFleet.length===0) return;
+  State.allyFleet.forEach(ship=>{
+    if(ship.dead) return;
+    // Check collision with enemies
+    for(let i=State.enemies.length-1;i>=0;i--) {
+      const e=State.enemies[i];
+      const dx=(ship.x+ship.width/2)-(e.x+e.width/2);
+      const dy=(ship.y+ship.height/2)-(e.y+e.height/2);
+      if(Math.hypot(dx,dy)<(ship.width+e.width)/2+10) {
+        ship.takeDamage(1);
+        break;
+      }
+    }
+    // Enemy bullets
+    State.enemies.forEach(e=>{
+      if(!e.bullets) return;
+      for(let bi=e.bullets.length-1;bi>=0;bi--) {
+        const b=e.bullets[bi];
+        const dx=(ship.x+ship.width/2)-b.x, dy=(ship.y+ship.height/2)-b.y;
+        if(Math.hypot(dx,dy)<ship.width) {
+          ship.takeDamage(1);
+          e.bullets.splice(bi,1);
+          break;
+        }
+      }
+    });
+  });
+}
+
+// ─── GALAXY RENDERING OPTIMIZATIONS ──────────────────────────────
+
+/**
+ * Pre-calculate visibility for galaxy objects to skip off-screen rendering.
+ * Returns true if the object at (x,y) with given radius is visible in viewport.
+ */
+function isInViewport(x, y, radius) {
+  const sx=x-State.camera.x, sy=y-State.camera.y;
+  return sx>-radius-50&&sx<CANVAS.width+radius+50&&sy>-radius-50&&sy<CANVAS.height+radius+50;
+}
+
+// ─── SPECIAL WARP TUNNEL VISUAL ──────────────────────────────────
+
+function drawWarpTunnel() {
+  if(!State.openWorldMode) return;
+  // Only when void_rift weather is active
+  if(State.spaceWeather.type!=='void_rift') return;
+  const now=Date.now()*0.001;
+  CTX.save();
+  CTX.globalAlpha=0.05+0.02*Math.sin(now*3);
+  const grad=CTX.createRadialGradient(CANVAS.width/2,CANVAS.height/2,0,CANVAS.width/2,CANVAS.height/2,CANVAS.width);
+  grad.addColorStop(0,'rgba(100,0,150,0.8)');
+  grad.addColorStop(0.5,'rgba(50,0,100,0.4)');
+  grad.addColorStop(1,'transparent');
+  CTX.fillStyle=grad;
+  CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+  // Radial lines
+  CTX.globalAlpha=0.06+0.02*Math.sin(now*2);
+  CTX.strokeStyle='rgba(150,0,255,0.8)'; CTX.lineWidth=1;
+  for(let a=0;a<Math.PI*2;a+=Math.PI/8) {
+    const twist=a+now*0.3;
+    CTX.beginPath();
+    CTX.moveTo(CANVAS.width/2+Math.cos(twist)*20,CANVAS.height/2+Math.sin(twist)*20);
+    CTX.lineTo(CANVAS.width/2+Math.cos(twist)*CANVAS.width,CANVAS.height/2+Math.sin(twist)*CANVAS.width);
+    CTX.stroke();
+  }
+  CTX.restore();
+}
+
+// ─── ASTEROID FIELD RESPAWN TIMER ────────────────────────────────
+
+function respawnAsteroidFields() {
+  if(!State.openWorldMode) return;
+  State.galaxyObjects.forEach(obj=>{
+    if(obj.type!=='asteroidField') return;
+    if(!obj.asteroids) return;
+    const allDead=obj.asteroids.every(a=>a.health<=0);
+    if(allDead) {
+      if(!obj._respawnTimer) obj._respawnTimer=Date.now()+30000;
+      if(Date.now()>obj._respawnTimer) {
+        // Respawn asteroids
+        obj.asteroids.forEach(a=>{a.health=a.maxHealth; a.angle=Math.random()*Math.PI*2;});
+        obj._respawnTimer=null;
+      }
+    }
+  });
+}
+
+// ─── CRYSTAL FIELD RESPAWN ────────────────────────────────────────
+
+function respawnCrystalFields() {
+  if(!State.openWorldMode) return;
+  State.galaxyObjects.forEach(obj=>{
+    if(obj.type!=='crystal'||!obj.crystals) return;
+    const allDead=obj.crystals.every(c=>c.health<=0);
+    if(allDead) {
+      if(!obj._respawnTimer) obj._respawnTimer=Date.now()+60000;
+      if(Date.now()>obj._respawnTimer) {
+        obj.crystals.forEach(c=>{c.health=c.maxHealth;});
+        obj._respawnTimer=null;
+        showWaveAnnounce('CRYSTALS REGROWN','#44aaff');
+      }
+    }
+  });
+}
+
+// ─── ALL EXPANSION UPDATE CALL ────────────────────────────────────
+
+/**
+ * Main entry point for all expansion update logic.
+ * Call once per frame in the open world game loop.
+ */
+function updateOpenWorldExpansion() {
+  if(!State.openWorldMode) return;
+  processOpenWorldEnemyAI();
+  updateLoreMessages();
+  updateWeatherParticles();
+  checkExplorationMilestones();
+  checkAllyFleetDamage();
+  respawnAsteroidFields();
+  respawnCrystalFields();
+  processAmbientEffects();
+}
+
+/**
+ * Main entry point for all expansion draw calls.
+ * Call once per frame (NOT inside camera transform) in open world.
+ */
+function drawOpenWorldExpansionHUD() {
+  if(!State.openWorldMode) return;
+  drawCurrentSectorInfo();
+  drawOpenWorldStatusBar();
+  drawLoreMessage();
+  drawQuestMiniPanel();
+  drawSectorTransitionFX();
+  drawWarpTunnel();
+  updateWeatherParticles();
+}
+
+
+
+
+// ═══════════════════════════════════════════════════════════════════
+// OPEN WORLD EXPANSION – FINAL SYSTEMS & POLISH
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── OPEN WORLD PAUSE MENU EXTENSION ────────────────────────────
+
+function getOpenWorldPauseInfo() {
+  if(!State.openWorldMode) return '';
+  const stats = getOpenWorldStats();
+  const sector = State.galaxySectors[State.currentSector];
+  const theme = sector && sector.theme ? sector.theme.name : 'Unknown';
+  const faction = sector && sector.faction ? FACTIONS[sector.faction].name : 'None';
+  return `Sector: ${theme} | Faction: ${faction} | Explored: ${stats.visited}/${stats.totalSectors} | Quests: ${State.activeQuests.length}`;
+}
+
+// ─── CRYSTALS DISPLAY ON HUD ─────────────────────────────────────
+
+function updateCrystalsDisplay() {
+  if(!State.openWorldMode) return;
+  const el = document.getElementById('coinDisplay');
+  if(!el) return;
+  const crystals = State.craftingMaterials.crystals || 0;
+  // Append crystal count to coin display
+  const coinPart = el.textContent.split('|')[0].trim();
+  // Only show if we have crystals
+  if(crystals > 0) {
+    el.innerHTML = `${coinPart} | <span style="color:#44aaff">🔷 ${crystals}</span>`;
+  }
+}
+
+// ─── FLEET DAMAGE INDICATOR ──────────────────────────────────────
+
+function drawFleetHealthBars() {
+  if(!State.openWorldMode || State.allyFleet.length === 0) return;
+  const startX = CANVAS.width - 160;
+  const startY = CANVAS.height - 30 - State.allyFleet.length * 18;
+  CTX.save();
+  CTX.fillStyle = 'rgba(2,8,23,0.7)';
+  CTX.fillRect(startX-4, startY-4, 152, State.allyFleet.length*18+12);
+  CTX.strokeStyle = 'rgba(0,255,136,0.2)'; CTX.lineWidth=1;
+  CTX.strokeRect(startX-4, startY-4, 152, State.allyFleet.length*18+12);
+  State.allyFleet.forEach((ship, i)=>{
+    if(ship.dead) return;
+    const y = startY + i*18;
+    const pct = ship.health / ship.maxHealth;
+    // Ship label
+    CTX.fillStyle = ship.color; CTX.font='7px Orbitron,monospace';
+    CTX.fillText(ship.label, startX, y+10);
+    // Health bar
+    CTX.fillStyle='rgba(255,255,255,0.1)'; CTX.fillRect(startX+50,y+3,90,6);
+    CTX.fillStyle=pct>0.5?'#39ff14':pct>0.25?'#ffaa00':'#ff4444';
+    CTX.fillRect(startX+50,y+3,90*pct,6);
+  });
+  CTX.restore();
+}
+
+// ─── BEACON TRIGGERED EVENT REWARD CHEST ─────────────────────────
+
+function spawnEventRewardChest(x, y) {
+  State.galaxyObjects.push({
+    type:'debris', x, y, radius:25,
+    sectorIdx: State.currentSector, used:false,
+    lootCoins: 100 + Math.floor(Math.random()*100),
+    isReward: true,
+  });
+  triggerExplosion(x, y, '#ffdd00', 20);
+}
+
+// ─── TRADING POST COOLDOWN SYSTEM ────────────────────────────────
+
+function resetTradingPostCooldowns() {
+  // Called periodically to allow trading posts to be reused
+  State.galaxyObjects.forEach(obj=>{
+    if(obj.type!=='trader') return;
+    if(obj.tradeOpen && Date.now() - (obj._lastTradeTime||0) > 120000) {
+      obj.tradeOpen = false; // Reset after 2 minutes
+    }
+  });
+}
+
+// ─── SPECIAL SECTOR: OMEGA DIMENSION ─────────────────────────────
+
+function checkOmegaSector() {
+  if(!State.openWorldMode) return;
+  if(State.currentSector === 35) {
+    updateQuestProgress('omega');
+    if(!State._omegaDiscovered) {
+      State._omegaDiscovered = true;
+      discoverCodex('c19');
+      showWaveAnnounce('OMEGA DIMENSION REACHED!','#00ffff');
+      triggerGalaxyEvent('void_creature');
+    }
+  }
+}
+
+// ─── NEBULA SPEED REDUCTION VISUAL ───────────────────────────────
+
+function drawNebulaSpeedEffect() {
+  if(!State.openWorldMode) return;
+  const p = State.players[0]; if(!p) return;
+  if(!p._nebulaSlowed) return;
+  CTX.save();
+  CTX.globalAlpha=0.08+0.04*Math.sin(Date.now()*0.004);
+  const nebColors = ['#aa44ff','#4488ff','#44ffaa'];
+  const nc = nebColors[Math.floor(Date.now()/1000)%nebColors.length];
+  CTX.fillStyle=nc;
+  CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+  CTX.globalAlpha=1;
+  CTX.fillStyle=nc; CTX.font='9px Orbitron,monospace'; CTX.textAlign='center';
+  CTX.globalAlpha=0.6;
+  CTX.fillText('NEBULA: -30% SPEED | -20% DAMAGE', CANVAS.width/2, CANVAS.height-25);
+  CTX.textAlign='left'; CTX.globalAlpha=1; CTX.restore();
+}
+
+// ─── CRAFTING EFFECT INDICATORS ──────────────────────────────────
+
+function drawCraftEffectIndicators() {
+  if(!State.openWorldMode) return;
+  const effects = State._craftEffects || {};
+  const now = Date.now();
+  const active = Object.entries(effects).filter(([k,v])=>v>now);
+  if(active.length===0) return;
+  CTX.save();
+  const panelX=CANVAS.width/2-80, panelY=CANVAS.height-90;
+  CTX.fillStyle='rgba(2,8,23,0.75)';
+  CTX.fillRect(panelX, panelY, 160, active.length*20+10);
+  CTX.strokeStyle='rgba(123,47,255,0.4)'; CTX.lineWidth=1;
+  CTX.strokeRect(panelX, panelY, 160, active.length*20+10);
+  active.forEach(([effect, endTime], i)=>{
+    const remaining = ((endTime-now)/1000).toFixed(1);
+    const effectNames={tripleDamage5s:'3x DAMAGE',speedBoost10s:'3x SPEED',invincible8s:'INVINCIBLE',stunAllEnemies:'STUN'};
+    const label = effectNames[effect]||effect;
+    CTX.fillStyle='rgba(180,120,255,0.9)'; CTX.font='8px Orbitron,monospace'; CTX.textAlign='center';
+    CTX.fillText(label+' '+remaining+'s', panelX+80, panelY+15+i*20);
+  });
+  CTX.textAlign='left'; CTX.restore();
+}
+
+// ─── OPEN WORLD HELP TOOLTIP ─────────────────────────────────────
+
+function drawOpenWorldHelp() {
+  if(!State.openWorldMode) return;
+  if(Date.now()-State.gameStartTime > 30000) return; // Only show for first 30s
+  const helpText = [
+    'WASD/ARROWS: Move',
+    'SPACE: Shoot',
+    'Q: Quest Log',
+    'C: Crafting',
+    'F: Fleet Manager',
+    'M: Galaxy Map',
+  ];
+  CTX.save();
+  CTX.fillStyle='rgba(2,8,23,0.8)';
+  CTX.fillRect(CANVAS.width-200, CANVAS.height-helpText.length*16-20, 190, helpText.length*16+14);
+  CTX.strokeStyle='rgba(0,245,255,0.2)'; CTX.lineWidth=1;
+  CTX.strokeRect(CANVAS.width-200, CANVAS.height-helpText.length*16-20, 190, helpText.length*16+14);
+  CTX.fillStyle='rgba(0,245,255,0.5)'; CTX.font='8px Orbitron,monospace';
+  helpText.forEach((line,i)=>{
+    const alpha = Math.max(0, 1 - (Date.now()-State.gameStartTime)/30000);
+    CTX.globalAlpha=alpha;
+    CTX.fillText(line, CANVAS.width-195, CANVAS.height-helpText.length*16-10+i*16);
+  });
+  CTX.globalAlpha=1; CTX.restore();
+}
+
+// ─── GALAXY OBJECT COUNT STATS ────────────────────────────────────
+
+function getGalaxyObjectStats() {
+  const counts = {};
+  State.galaxyObjects.forEach(obj=>{
+    counts[obj.type]=(counts[obj.type]||0)+1;
+  });
+  return counts;
+}
+
+// ─── SECTOR THEME COLOR OVERLAY ──────────────────────────────────
+
+function drawSectorThemeOverlay() {
+  if(!State.openWorldMode) return;
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector || !sector.theme) return;
+  const theme = sector.theme;
+  if(!theme.bg) return;
+  // Very subtle background tint matching sector theme
+  CTX.save();
+  CTX.globalAlpha=0.04;
+  CTX.fillStyle=theme.color||'#ffffff';
+  CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+  CTX.globalAlpha=1; CTX.restore();
+}
+
+// ─── DRAW ALLY FLEET BULLETS TRAIL ───────────────────────────────
+
+function drawAllyBulletTrails() {
+  // Ally bullets already have their main rendering in processAllyFleet
+  // This adds a subtle trail to them
+  State._allyBullets.forEach(b=>{
+    CTX.save();
+    CTX.globalAlpha=0.3;
+    CTX.fillStyle=b.color; CTX.shadowColor=b.color; CTX.shadowBlur=4;
+    CTX.beginPath(); CTX.arc(b.x-State.camera.x-b.vx*2, b.y-State.camera.y-b.vy*2, 2, 0, Math.PI*2); CTX.fill();
+    CTX.shadowBlur=0; CTX.globalAlpha=1; CTX.restore();
+  });
+}
+
+// ─── SECTOR FACTION BORDER VISUAL ────────────────────────────────
+
+function drawFactionBorderEffect() {
+  if(!State.openWorldMode) return;
+  const sector = State.galaxySectors[State.currentSector];
+  if(!sector || !sector.faction) return;
+  const faction = FACTIONS[sector.faction];
+  if(!faction) return;
+  CTX.save();
+  CTX.strokeStyle=faction.color+'33'; CTX.lineWidth=6;
+  // Draw glowing border at screen edges
+  CTX.shadowColor=faction.color; CTX.shadowBlur=15;
+  const m=3;
+  CTX.strokeRect(m,m,CANVAS.width-m*2,CANVAS.height-m*2);
+  CTX.shadowBlur=0;
+  CTX.restore();
+}
+
+// ─── SPECIAL VISUAL: BOSS SECTOR WARNING ─────────────────────────
+
+function drawBossProximityWarning() {
+  if(!State.openWorldMode) return;
+  const p = State.players[0]; if(!p) return;
+  let nearBoss = false;
+  State.galaxySectors.forEach(s=>{
+    if(s.bossDefeated) return;
+    const bz=s.bossZone;
+    const bx=bz.x+bz.w/2, by=bz.y+bz.h/2;
+    const dist=Math.hypot((p.x+p.width/2)-bx,(p.y+p.height/2)-by);
+    if(dist<300) nearBoss=true;
+  });
+  if(!nearBoss) return;
+  const pulse=Math.abs(Math.sin(Date.now()*0.003))*0.4;
+  CTX.save();
+  CTX.globalAlpha=pulse;
+  CTX.fillStyle='rgba(255,60,0,0.15)';
+  CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+  CTX.globalAlpha=pulse*2;
+  CTX.fillStyle='rgba(255,80,0,0.7)'; CTX.font='bold 11px Orbitron,monospace'; CTX.textAlign='center';
+  CTX.fillText('BOSS ZONE NEARBY', CANVAS.width/2, 120);
+  CTX.textAlign='left'; CTX.globalAlpha=1; CTX.restore();
+}
+
+// ─── ACTIVE EVENT VISUAL INDICATORS ──────────────────────────────
+
+function drawActiveEventIndicators() {
+  if(!State.openWorldMode || State.activeEvents.length===0) return;
+  CTX.save();
+  State.activeEvents.forEach((ev,i)=>{
+    const y=100+i*20;
+    CTX.fillStyle='rgba(2,8,23,0.75)';
+    CTX.fillRect(CANVAS.width/2-90, y, 180, 16);
+    CTX.fillStyle='rgba(255,68,68,0.8)'; CTX.font='8px Orbitron,monospace'; CTX.textAlign='center';
+    CTX.fillText('EVENT: '+ev.name, CANVAS.width/2, y+11);
+  });
+  CTX.textAlign='left'; CTX.restore();
+}
+
+// ─── OPEN WORLD COMPLETE DRAW PASS ───────────────────────────────
+
+/**
+ * The complete set of expansion draw calls for each frame.
+ * This is called AFTER CTX.restore() (outside camera transform).
+ */
+function drawOpenWorldFullFrame() {
+  if(!State.openWorldMode) return;
+  drawSectorThemeOverlay();
+  drawFactionBorderEffect();
+  drawBossProximityWarning();
+  drawActiveEventIndicators();
+  drawCraftEffectIndicators();
+  drawFleetHealthBars();
+  drawNebulaSpeedEffect();
+  checkOmegaSector();
+  drawOpenWorldHelp();
+  updateCrystalsDisplay();
+  resetTradingPostCooldowns();
+}
+
+// ─── OPEN WORLD FINAL INIT HOOK ───────────────────────────────────
+
+/**
+ * Extra initialization called at the end of startOpenWorldMode.
+ * Sets up additional expansion state.
+ */
+function initOpenWorldExpansion() {
+  State._omegaDiscovered = false;
+  State._lastDamageTime = Date.now();
+  State._asteroidRainTimer = Date.now();
+  State._quantumTimer = Date.now();
+  _loreMessageTimer = Date.now();
+  _loreMsgAlpha = 0;
+  _sectorTransitionAlpha = 0;
+  _ambientTimer = Date.now();
+  // Show initial sector info
+  const sector0=State.galaxySectors[0];
+  if(sector0) {
+    const theme0=sector0.theme||OW_SECTOR_THEMES[0];
+    triggerSectorTransitionFX(theme0.name, theme0.color);
+  }
+  showOpenWorldHUDs();
+}
+
+
 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 29 – RESIZE & INIT
@@ -5237,5 +8443,88 @@ window.addEventListener('load',()=>{
   },25);
 });
 </script>
+
+<!-- ═══ OPEN WORLD EXPANSION HTML OVERLAYS ═══ -->
+
+<!-- Quest Log Overlay -->
+<div id="questLogOverlay">
+  <h2>ACTIVE QUESTS</h2>
+  <div id="questLogContent"></div>
+  <button class="modal-close" onclick="toggleQuestLog()">CLOSE [Q]</button>
+</div>
+
+<!-- Crafting Menu Overlay -->
+<div id="craftingOverlay">
+  <h2>CRAFTING STATION</h2>
+  <div id="craftMatsDisplay">CRYSTALS: 0 | COINS: 0</div>
+  <div id="craftingContent"></div>
+  <button class="modal-close" onclick="toggleCraftingMenu()">CLOSE [C]</button>
+</div>
+
+<!-- Fleet Manager Overlay -->
+<div id="fleetOverlay">
+  <h2>FLEET MANAGEMENT</h2>
+  <div id="fleetContent"></div>
+  <button class="modal-close" onclick="toggleFleetManager()">CLOSE [F]</button>
+</div>
+
+<!-- Galaxy Map Overlay -->
+<div id="galaxyMapOverlay">
+  <h2>GALAXY MAP</h2>
+  <canvas id="galaxyMapCanvas" width="640" height="400"></canvas>
+  <button class="modal-close" onclick="toggleGalaxyMap()">CLOSE [M]</button>
+</div>
+
+<!-- Trade Overlay -->
+<div id="tradeOverlay">
+  <h2>TRADING POST</h2>
+  <div id="tradeContent"></div>
+  <button class="modal-close" onclick="closeTradeMenu()">CLOSE</button>
+</div>
+
+<!-- Open World HUD Panel -->
+<div id="owHudPanel">
+  <div class="ow-hud-section">
+    <div class="ow-hud-label">SECTOR</div>
+    <div class="ow-hud-value" id="owSectorName">—</div>
+  </div>
+  <div class="ow-hud-section">
+    <div class="ow-hud-label">FACTION</div>
+    <div class="ow-hud-value" id="owFactionName">—</div>
+    <div class="ow-hud-bar"><div class="ow-hud-bar-fill" id="owFactionBar" style="width:50%;background:#4488ff"></div></div>
+  </div>
+  <div class="ow-hud-section">
+    <div class="ow-hud-label">WEATHER</div>
+    <div class="ow-hud-value" id="owWeatherName">CLEAR</div>
+  </div>
+  <div class="ow-hud-section">
+    <div class="ow-hud-label">FLEET / CRYSTALS</div>
+    <div class="ow-hud-value" id="owFleetCrystals">0 allies | 0 crystals</div>
+  </div>
+  <div class="ow-hud-section">
+    <div class="ow-hud-label">EXPLORED</div>
+    <div class="ow-hud-value" id="owExplored">0 / 36</div>
+    <div class="ow-hud-bar"><div class="ow-hud-bar-fill" id="owExploredBar" style="width:0%;background:#39ff14"></div></div>
+  </div>
+  <div class="ow-hud-section" style="color:rgba(255,255,255,0.3);font-size:8px;">
+    [Q] QUESTS | [C] CRAFT<br>[F] FLEET | [M] MAP
+  </div>
+</div>
+
+<!-- Weather HUD -->
+<div id="weatherHud"></div>
+
+<!-- Faction HUD -->
+<div id="factionHud"></div>
+
+<!-- Sector Objective HUD -->
+<div id="sectorObjHud"></div>
+
+<!-- Active Event Banner -->
+<div id="eventBanner"></div>
+
+<!-- Codex HUD -->
+<div id="codexHud"></div>
+
 </body>
 </html>
