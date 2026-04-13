@@ -134,23 +134,15 @@
     /* ─── LOADING ─── */
     .loading-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--dark); display: none; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 20;
+      background: #020817; display: none; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 9999;
     }
     .loading-screen.active { display: flex; }
-    .loading-screen h1 {
-      font-family: 'Orbitron', monospace;
-      font-size: 24px; color: var(--cyan); margin-bottom: 8px;
-    }
-    .loading-screen p { font-size: 14px; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
-    #loadingBar {
-      width: 300px; height: 2px; background: rgba(255,255,255,0.1);
-      margin-top: 24px; position: relative;
-    }
-    #loadingProgress {
-      height: 100%; background: var(--cyan);
-      box-shadow: 0 0 10px var(--cyan);
-      transition: width 0.1s;
+    .loading-screen::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at center, rgba(123,47,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
     }
 
     /* ─── HUD ─── */
@@ -610,7 +602,7 @@
       display: flex; gap: 40px; align-items: center;
       width: min(900px, 96vw); padding: 0 20px;
     }
-    .title-left { flex: 1; min-width: 280px; }
+    .title-left { flex: 1; min-width: 280px; max-height: 90vh; overflow-y: auto; overflow-x: hidden; }
     .title-right {
       width: 260px; flex-shrink: 0;
       display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -1326,9 +1318,20 @@
 
 <!-- Loading -->
 <div id="loading" class="loading-screen active">
-  <h1>RAFA PAOLI'S SHOOTER</h1>
-  <p>TRIBUTE TO MARCELO — AI PROFESSOR</p>
-  <div id="loadingBar"><div id="loadingProgress"></div></div>
+  <div style="text-align:center;">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,245,255,0.4);letter-spacing:6px;margin-bottom:8px;">INITIALIZING</div>
+    <h1 style="font-family:'Orbitron',monospace;font-size:clamp(20px,5vw,42px);font-weight:900;color:transparent;background:linear-gradient(135deg,#00f5ff,#7b2fff,#ff006e);-webkit-background-clip:text;background-clip:text;letter-spacing:4px;margin-bottom:4px;">RAFA PAOLI'S SHOOTER</div></h1>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(224,247,250,0.35);letter-spacing:5px;text-transform:uppercase;margin-bottom:36px;">TRIBUTE TO MARCELO — AI PROFESSOR</div>
+    <div id="loadingBar" style="width:300px;height:3px;background:rgba(255,255,255,0.08);margin:0 auto 10px;border-radius:2px;overflow:hidden;">
+      <div id="loadingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#7b2fff,#00f5ff);box-shadow:0 0 12px #00f5ff;transition:width 0.08s linear;border-radius:2px;"></div>
+    </div>
+    <div id="loadPct" style="font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,245,255,0.5);letter-spacing:2px;">0%</div>
+    <div style="margin-top:32px;display:flex;gap:20px;justify-content:center;">
+      <div style="font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:1px;">20+ SISTEMAS</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:1px;">8 BOSSES ÉPICOS</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:1px;">50 CONQUISTAS</div>
+    </div>
+  </div>
 </div>
 <div id="phaseLoading" class="loading-screen">
   <h1>PHASE <span id="nextPhase">2</span></h1>
@@ -1337,7 +1340,7 @@
 </div>
 
 <!-- Main Menu Title Screen V3 -->
-<div id="titleScreen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:10; align-items:center; justify-content:center;">
+<div id="titleScreen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:10; align-items:center; justify-content:center; overflow-y:auto;">
   <div class="title-layout">
     <!-- LEFT: logo + menu -->
     <div class="title-left">
@@ -1627,6 +1630,8 @@
 <div id="comboDisplay">
   <div class="combo-num" id="comboNum">x0</div>
   <div class="combo-label">COMBO</div>
+  <div id="comboCurrent" style="display:none;"></div>
+  <div id="comboMultiplier" style="display:none;"></div>
 </div>
 
 <!-- Wave Announce -->
@@ -3779,7 +3784,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 // ═══════════════════════════════════════════════════════════════════
 // SECTION 14 – MENU NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
-const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen','onlineScreen','equipScreen','pvpOver'];
+const ALL_OVERLAYS=['gameModeSelect','difficultyScreen','characterSelect','survivorModeScreen','pauseScreen','gameOver','finalEnding','instructionsScreen','settingsPanel','skillTreePanel','bossRushScreen','statsScreen','onlineScreen','equipScreen','pvpOver','rpgPanel','economyPanel','missionBoard','shipCustomPanel','achGallery','challengeScreen','mpSimPanel','navPanel','bossEncounterOverlay','narrativeOverlay'];
 
 function hideAllOverlays() {
   document.getElementById('titleScreen').style.display='none';
@@ -8751,12 +8756,17 @@ window.addEventListener('load',()=>{
 
   // Loading animation
   const bar=document.getElementById('loadingProgress');
+  const loadPct=document.getElementById('loadPct');
   let prog=0;
+  if(bar) bar.style.width='0%';
   const iv=setInterval(()=>{
-    prog+=2; bar.style.width=prog+'%';
+    prog+=2;
+    if(bar) bar.style.width=prog+'%';
+    if(loadPct) loadPct.textContent=prog+'%';
     if(prog>=100) {
       clearInterval(iv);
-      document.getElementById('loading').classList.remove('active');
+      const loadEl=document.getElementById('loading');
+      if(loadEl) loadEl.classList.remove('active');
       updateTitleHighScores();
       updateTitleStats();
       navigateMenu('main');
@@ -12327,7 +12337,7 @@ const CRAFT_MATERIALS = {
 const CRAFT_INVENTORY = {};
 Object.keys(CRAFT_MATERIALS).forEach(k => CRAFT_INVENTORY[k] = 0);
 
-const CRAFT_RECIPES = [
+const EXP_CRAFT_RECIPES = [
   // Basic
   { id:'r_plasma_rifle', name:'Plasma Rifle', result:'plasma_core', resultRarity:'rare',
     materials:{ crystal_shard:3, plasma_cell:2 }, time:5,
@@ -12380,7 +12390,7 @@ function hasMaterialsForRecipe(recipe) {
 
 function startCraft(recipeId) {
   if (ACTIVE_CRAFTS.length >= 2) { showToast('Max 2 concurrent crafts!', '#ff4444'); return; }
-  const recipe = CRAFT_RECIPES.find(r=>r.id===recipeId);
+  const recipe = EXP_CRAFT_RECIPES.find(r=>r.id===recipeId);
   if (!recipe) return;
   if (!hasMaterialsForRecipe(recipe)) { showToast('Not enough materials!', '#ff4444'); return; }
   // Consume materials
@@ -12438,7 +12448,7 @@ function renderCraftingPanel() {
     ` : ''}
     <h3 style="font-family:Orbitron,monospace;font-size:12px;color:#aa44ff;margin-bottom:12px;">RECIPES</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:400px;overflow-y:auto;">
-      ${CRAFT_RECIPES.map(recipe=>{
+      ${EXP_CRAFT_RECIPES.map(recipe=>{
         const canCraft = hasMaterialsForRecipe(recipe);
         const rd = RARITY_DATA[recipe.resultRarity]||{label:'?',color:'#888'};
         return `<div style="background:rgba(170,68,255,${canCraft?'0.1':'0.04'});border:1px solid rgba(170,68,255,${canCraft?'0.4':'0.15'});border-radius:8px;padding:12px;cursor:${canCraft?'pointer':'not-allowed'};opacity:${canCraft?1:0.6};"
@@ -12461,11 +12471,20 @@ const _origToggleCrafting = typeof toggleCraftingMenu !== 'undefined' ? toggleCr
 function toggleCraftingMenu() {
   const el = document.getElementById('craftingOverlay');
   if (!el) return;
-  if (el.style.display==='flex' || el.classList.contains('active')) {
-    el.style.display='none'; el.classList.remove('active');
+  if (el.classList.contains('open')) {
+    el.classList.remove('open');
+    if (typeof resumeGame === 'function' && State && State.paused) resumeGame();
   } else {
-    el.style.display='flex'; el.classList.add('active');
-    renderCraftingPanel();
+    // Use expanded crafting panel when EXP system is loaded
+    const hasMats = typeof CRAFT_MATERIALS !== 'undefined';
+    if (hasMats) {
+      el.innerHTML = '';
+      renderCraftingPanel();
+    } else {
+      renderCraftingMenu();
+    }
+    el.classList.add('open');
+    if (State && State.running && !State.paused && typeof pauseGame === 'function') pauseGame();
   }
 }
 
@@ -13099,29 +13118,28 @@ function showPrestigeModal() {
 
 // Inject expansion buttons into main menu when it loads
 function injectExpansionMenuButtons() {
-  // Try to add buttons to existing menu
-  const menuGrid = document.querySelector('.mode-grid') || document.querySelector('#mainMenu');
+  if (document.getElementById('expansionButtons')) return; // already injected
+  // Use the actual menu container
+  const menuGrid = document.querySelector('.title-menu-grid');
   if (!menuGrid) return;
-  // Add expansion buttons
   const buttons = [
-    { label:'⚔️ RPG CLASS', fn:'openRPGPanel()', color:'#ffd60a' },
+    { label:'⚔️ RPG', fn:'openRPGPanel()', color:'#ffd60a' },
     { label:'💰 MARKET', fn:"openEconomyPanel('buy')", color:'#ffd60a' },
     { label:'📋 MISSIONS', fn:'openMissionBoard()', color:'#39ff14' },
     { label:'🚀 SHIP', fn:'openShipCustomPanel()', color:'#7b2fff' },
-    { label:'⚔️ CHALLENGES', fn:'openChallengeScreen()', color:'#ff006e' },
+    { label:'🏆 CHALLENGES', fn:'openChallengeScreen()', color:'#ff006e' },
     { label:'🌐 NETWORK', fn:'openMpSimPanel()', color:'#4488ff' },
     { label:'🌌 NAV MAP', fn:'openNavPanel()', color:'#00f5ff' },
-    { label:'🏆 GALLERY', fn:'openAchGallery()', color:'#ffd60a' }
+    { label:'🎖 GALLERY', fn:'openAchGallery()', color:'#ffd60a' }
   ];
   const container = document.createElement('div');
   container.id = 'expansionButtons';
-  container.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;max-width:900px;width:100%;padding:0 16px;box-sizing:border-box;';
-  buttons.forEach(btn => {
+  container.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px;width:100%;';
+  buttons.forEach(b => {
     const el = document.createElement('button');
-    el.className = 'menu-btn';
-    el.style.cssText = `font-size:11px;padding:8px;border-color:${btn.color}44;color:${btn.color};background:rgba(0,0,0,0.5);`;
-    el.textContent = btn.label;
-    el.onclick = () => { eval(btn.fn); };
+    el.style.cssText = `font-size:10px;padding:8px 4px;margin:0;border:1px solid ${b.color}66;color:${b.color};background:rgba(0,0,0,0.4);cursor:pointer;font-family:Orbitron,monospace;border-radius:2px;clip-path:none;`;
+    el.textContent = b.label;
+    el.onclick = () => { const f = new Function(b.fn); try { f(); } catch(e) { eval(b.fn); } };
     container.appendChild(el);
   });
   menuGrid.appendChild(container);
@@ -13382,13 +13400,20 @@ const SOUND_SYSTEM = {
 };
 
 // Enhanced playSound function that falls back gracefully
-function playSound(type) {
-  if (SOUND_SYSTEM.enabled && SOUND_SYSTEM.audioCtx) {
-    SOUND_SYSTEM.play(type);
-  } else if (typeof playSound_orig === 'function') {
+// Preserve original playSound before overriding
+const playSound_orig = playSound;
+// Enhanced playSound: uses SOUND_SYSTEM if available, falls back to original
+window.playSound = function playSound(type) {
+  try {
+    if (SOUND_SYSTEM && SOUND_SYSTEM.enabled && SOUND_SYSTEM.audioCtx) {
+      SOUND_SYSTEM.play(type);
+      return;
+    }
+  } catch(e) {}
+  if (typeof playSound_orig === 'function') {
     playSound_orig(type);
   }
-}
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EXPANSION EXTRA 14 — PERFORMANCE MONITOR & DEBUG PANEL
@@ -15544,12 +15569,6 @@ function checkExtendedAchievements() {
 
 <!-- Status Effect HUD -->
 <div id="statusEffectHud"></div>
-
-<!-- Combo Display -->
-<div id="comboDisplay">
-  <div id="comboCurrent"></div>
-  <div id="comboMultiplier"></div>
-</div>
 
 <!-- Weapon Display -->
 <div id="weaponDisplay">🔫 Laser Pistol</div>
