@@ -1320,7 +1320,7 @@
 <div id="loading" class="loading-screen active">
   <div style="text-align:center;">
     <div style="font-family:'Orbitron',monospace;font-size:11px;color:rgba(0,245,255,0.4);letter-spacing:6px;margin-bottom:8px;">INITIALIZING</div>
-    <h1 style="font-family:'Orbitron',monospace;font-size:clamp(20px,5vw,42px);font-weight:900;color:transparent;background:linear-gradient(135deg,#00f5ff,#7b2fff,#ff006e);-webkit-background-clip:text;background-clip:text;letter-spacing:4px;margin-bottom:4px;">RAFA PAOLI'S SHOOTER</div></h1>
+    <h1 style="font-family:'Orbitron',monospace;font-size:clamp(20px,5vw,42px);font-weight:900;color:transparent;background:linear-gradient(135deg,#00f5ff,#7b2fff,#ff006e);-webkit-background-clip:text;background-clip:text;letter-spacing:4px;margin-bottom:4px;">RAFA PAOLI'S SHOOTER</h1>
     <div style="font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(224,247,250,0.35);letter-spacing:5px;text-transform:uppercase;margin-bottom:36px;">TRIBUTE TO MARCELO — AI PROFESSOR</div>
     <div id="loadingBar" style="width:300px;height:3px;background:rgba(255,255,255,0.08);margin:0 auto 10px;border-radius:2px;overflow:hidden;">
       <div id="loadingProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#7b2fff,#00f5ff);box-shadow:0 0 12px #00f5ff;transition:width 0.08s linear;border-radius:2px;"></div>
@@ -1336,7 +1336,7 @@
 <div id="phaseLoading" class="loading-screen">
   <h1>PHASE <span id="nextPhase">2</span></h1>
   <p>BOSS DEFEATED — PREPARING NEXT CHALLENGE</p>
-  <div id="loadingBar"><div id="loadingProgress2" style="height:2px;background:var(--cyan);width:0%;transition:width 0.1s;box-shadow:0 0 10px var(--cyan);"></div></div>
+  <div id="phaseLoadingBar"><div id="loadingProgress2" style="height:2px;background:var(--cyan);width:0%;transition:width 0.1s;box-shadow:0 0 10px var(--cyan);"></div></div>
 </div>
 
 <!-- Main Menu Title Screen V3 -->
@@ -15433,7 +15433,7 @@ function checkExtendedAchievements() {
 <!-- Crafting Menu Overlay -->
 <div id="craftingOverlay">
   <h2>CRAFTING STATION</h2>
-  <div id="craftMatsDisplay">CRYSTALS: 0 | COINS: 0</div>
+  <div id="craftMatsDisplayStatic">CRYSTALS: 0 | COINS: 0</div>
   <div id="craftingContent"></div>
   <button class="modal-close" onclick="toggleCraftingMenu()">CLOSE [C]</button>
 </div>
@@ -15585,11 +15585,8 @@ function checkExtendedAchievements() {
   <div class="viz-bar"></div>
 </div>
 
-<!-- Challenge HUD -->
-<div id="challengeHud">
-  <div id="challengeLabel">CHALLENGE</div>
-  <div id="challengeTimer">00:00</div>
-</div>
+<!-- Challenge HUD (content injected by JS) -->
+<div id="challengeHud"></div>
 
 <!-- Player Level HUD -->
 <div id="playerLevelHud" style="
