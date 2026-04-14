@@ -2898,34 +2898,35 @@ class Player {
     const cx=this.x+this.width/2;
     // PvP: P2 shoots downward; bullets origin from bottom of ship
     const pvpFlip = State.pvpMode && this.index===1;
-    const dir = pvpFlip ? 1 : -1;
-    const sy = pvpFlip ? this.y+this.height : this.y;
+    const dir = pvpFlip ? -1 : 1;   // P1 shoots right, P2 PvP shoots left
+    const bx = pvpFlip ? this.x : this.x+this.width;  // spawn from appropriate edge
+    const cy2 = this.y+this.height/2;  // vertical center of ship
     const _b=(x,y,ao,dm)=>new PlayerBullet(x,y,this.bulletColor,ao,dm,dir);
     switch(this.character) {
       case 'takeshi':
-        [-0.5,0,0.5].forEach(off=>this.bullets.push(_b(cx,sy,off,this.damageMultiplier)));
+        [-1,0,1].forEach(off=>this.bullets.push(_b(bx,cy2+off*12,0,this.damageMultiplier)));
         break;
       case 'deepseek':
         if(!this.laserActive){ this.laserActive=true; this.laserEndTime=now+1000; playSound('laserSound'); }
         break;
       case 'robos':
-        [-15,0,15].forEach(off=>this.bullets.push(_b(cx+off,sy,0,this.damageMultiplier)));
+        [-12,0,12].forEach(off=>this.bullets.push(_b(bx,cy2+off,0,this.damageMultiplier)));
         break;
       case 'omega':
-        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
+        this.bullets.push(_b(bx,cy2,0,this.damageMultiplier));
         break;
       case 'phantom': {
-        const pb=_b(cx,sy,0,this.damageMultiplier); pb.width=8; this.bullets.push(pb); break;
+        const pb=_b(bx,cy2,0,this.damageMultiplier); pb.width=8; this.bullets.push(pb); break;
       }
       case 'titan': {
-        const tb=_b(cx-10,sy,0,this.damageMultiplier);
+        const tb=_b(bx,cy2,0,this.damageMultiplier);
         tb.width=20; tb.height=20; tb.damage=this.damageMultiplier*3; this.bullets.push(tb); break;
       }
       default:
-        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
+        this.bullets.push(_b(bx,cy2,0,this.damageMultiplier));
         if(this.index===0 && State.powerUpActive && this.shootCooldown===100) {
-          this.bullets.push(_b(cx-10,sy,0,this.damageMultiplier));
-          this.bullets.push(_b(cx+10,sy,0,this.damageMultiplier));
+          this.bullets.push(_b(bx,cy2-10,0,this.damageMultiplier));
+          this.bullets.push(_b(bx,cy2+10,0,this.damageMultiplier));
         }
     }
     playSound('shootSound');
@@ -3058,19 +3059,19 @@ class Player {
 // ═══════════════════════════════════════════════════════════════════
 class Enemy {
   constructor() {
-    this.x=Math.random()*(CANVAS.width-40); this.y=-50;
+    this.x=CANVAS.width+50; this.y=Math.random()*(CANVAS.height-40);
     this.width=40; this.height=40; this.speed=2+Math.random();
     this.health=1; this.maxHealth=1; this.type='basic';
     this.bullets=[]; this.lastShot=Date.now();
     this.shootInterval=2000+Math.random()*2000;
   }
   update() {
-    this.y+=this.speed;
+    this.x-=this.speed;
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height);
+    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
-  shoot() { this.bullets.push(new EnemyBullet(this.x+this.width/2,this.y+this.height)); }
+  shoot() { this.bullets.push(new EnemyBullet(this.x, this.y+this.height/2)); }
   drawHealthBar() {
     if(this.health>=this.maxHealth) return;
     const pct=this.health/this.maxHealth;
@@ -3422,14 +3423,14 @@ class AllyShip {
 // ═══════════════════════════════════════════════════════════════════
 class PowerUp {
   constructor() {
-    this.x=Math.random()*(CANVAS.width-36); this.y=-36;
+    this.x=CANVAS.width+36; this.y=Math.random()*(CANVAS.height-36);
     this.width=36; this.height=36; this.speed=2.5; this.anim=0;
     const r=Math.random();
     this.type=r<0.38?'life':r<0.75?'weapon':r<0.90?'shield':r<0.95?'double':'bomb';
     this.colors={life:'#ff006e',weapon:'#00f5ff',shield:'#39ff14',double:'#ff8800',bomb:'#cc00ff'};
     this.icons={life:'♥',weapon:'⚡',shield:'⛨',double:'✦',bomb:'💥'};
   }
-  update() { this.y+=this.speed; this.anim+=0.08; }
+  update() { this.x-=this.speed; this.anim+=0.08; }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
     const r=14+Math.sin(this.anim)*2;
@@ -3451,7 +3452,7 @@ class Boss {
   constructor(level) {
     const data=BOSSES_DATA[level-1];
     this.level=level; this.name=data.name; this.subtitle=data.subtitle;
-    this.x=CANVAS.width/2-(50+level*10); this.y=50;
+    this.x=CANVAS.width+(50+level*10); this.y=CANVAS.height/2-(50+level*5);
     this.width=100+level*20; this.height=100+level*10;
     this.health=data.health; this.maxHealth=data.health;
     this.reward=data.reward; this.pattern=data.pattern;
@@ -3483,11 +3484,11 @@ class Boss {
       this.x=clamp(this.x,State.camera.x,State.camera.x+cw-this.width);
       this.y=clamp(this.y,State.camera.y,State.camera.y+ch/2-this.height);
     } else {
-      this.x=clamp(this.x,0,CANVAS.width-this.width);
-      this.y=clamp(this.y,0,CANVAS.height/2-this.height);
+      this.x=clamp(this.x,CANVAS.width*0.45,CANVAS.width-this.width);
+      this.y=clamp(this.y,0,CANVAS.height-this.height);
     }
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height+State.camera.y);
+    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
     this.bullets.forEach(b=>{b.update();b.draw();});
     // Update health bar
     document.getElementById('bossFill').style.width=(this.health/this.maxHealth*100)+'%';
@@ -5202,7 +5203,7 @@ function processBullets() {
         const dist=Math.hypot(b.x-b._originX, b.y-b._originY);
         return dist<600 && b.x>-100 && b.x<State.worldWidth+100 && b.y>-100 && b.y<State.worldHeight+100;
       }
-      return b.direction>0 ? b.y<=CANVAS.height : b.y+b.height>=0;
+      return b.direction>0 ? b.x<=CANVAS.width : b.x+b.width>=0;
     });
     for(let i=p.bullets.length-1;i>=0;i--) {
       const b=p.bullets[i]; b.update(); b.draw();
@@ -5295,7 +5296,7 @@ function processEnemies() {
         State.enemies.splice(i,1); State.scores[p.index]+=5; break;
       } else handlePlayerDamage(p);
     }
-    if(e.y>CANVAS.height) State.enemies.splice(i,1);
+    if(e.x<-e.width) State.enemies.splice(i,1);
   }
   State.enemies.forEach(e=>{
     for(let bi=e.bullets.length-1;bi>=0;bi--) {
@@ -5334,7 +5335,7 @@ function processPowerUps() {
     for(const p of State.players) {
       if(detectCollision(pw,p)){handlePowerupCollection(pw,i,p);break;}
     }
-    if(State.powerUps[i]&&State.powerUps[i].y>CANVAS.height) State.powerUps.splice(i,1);
+    if(State.powerUps[i]&&State.powerUps[i].x<-State.powerUps[i].width) State.powerUps.splice(i,1);
   }
 }
 
