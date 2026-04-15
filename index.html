@@ -2610,13 +2610,13 @@ function drawBackground() {
   BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
   // Scrolling grid
   const gs = 60;
-  gridOffset = (gridOffset + 0.5) % gs;
+  gridOffset = (gridOffset + 0.3) % gs;
   BGCTX.strokeStyle = theme.grid;
   BGCTX.lineWidth = 1;
-  for (let x=-gs+gridOffset; x<BGCANVAS.width; x+=gs) {
+  for (let x=0; x<BGCANVAS.width; x+=gs) {
     BGCTX.beginPath(); BGCTX.moveTo(x,0); BGCTX.lineTo(x,BGCANVAS.height); BGCTX.stroke();
   }
-  for (let y=0; y<BGCANVAS.height; y+=gs) {
+  for (let y=-gs+gridOffset; y<BGCANVAS.height; y+=gs) {
     BGCTX.beginPath(); BGCTX.moveTo(0,y); BGCTX.lineTo(BGCANVAS.width,y); BGCTX.stroke();
   }
   // Nebula effect
@@ -2647,8 +2647,8 @@ function drawStars() {
     CTX.fillStyle = starColor;
     CTX.beginPath(); CTX.arc(s.x,s.y,s.size,0,Math.PI*2); CTX.fill();
     if (!State.openWorldMode) {
-      s.x -= s.speed * 1.6;
-      if (s.x < 0) { s.x=CANVAS.width; s.y=Math.random()*CANVAS.height; }
+      s.y += s.speed;
+      if (s.y > CANVAS.height) { s.y=0; s.x=Math.random()*CANVAS.width; }
     }
   });
   CTX.globalAlpha = 1;
@@ -2716,54 +2716,53 @@ class FloatingText {
 // SECTION 6 – BULLETS
 // ═══════════════════════════════════════════════════════════════════
 class PlayerBullet {
-  constructor(x,y,color='#39ff14',angleOffset=0,dmgMult=1,direction=1) {
+  constructor(x,y,color='#39ff14',angleOffset=0,dmgMult=1,direction=-1) {
     this.x=x; this.y=y;
-    this.width=18; this.height=5;   // horizontal bullet
-    this.speed=13; this.color=color;
+    this.width=5; this.height=16;
+    this.speed=11; this.color=color;
     this.angleOffset=angleOffset; this.damage=1*dmgMult;
-    this.direction=direction; // +1=right (P1), -1=left (P2 PvP)
+    this.direction=direction; // -1=up (normal), +1=down (PvP P2)
     this.vx=0; this.vy=0; this._freeAim=false;
     this._originX=x; this._originY=y;
   }
   update() {
     if(this._freeAim) { this.x+=this.vx; this.y+=this.vy; }
-    else { this.x+=this.direction*this.speed; this.y+=this.angleOffset*3; }
+    else { this.y+=this.direction*this.speed; this.x+=this.angleOffset*3; }
   }
   draw() {
-    const x0 = this.direction>0 ? this.x : this.x+this.width;
-    const x1 = this.direction>0 ? this.x+this.width : this.x;
-    const grad = CTX.createLinearGradient(x0,this.y,x1,this.y);
+    // glowing bullets with gradient; flip gradient for downward bullets
+    const y0 = this.direction>0 ? this.y : this.y+this.height;
+    const y1 = this.direction>0 ? this.y+this.height : this.y;
+    const grad = CTX.createLinearGradient(this.x,y0,this.x,y1);
     grad.addColorStop(0,'transparent'); grad.addColorStop(1,this.color);
     CTX.fillStyle = grad;
     CTX.shadowColor = this.color; CTX.shadowBlur = 8;
     CTX.fillRect(this.x,this.y,this.width,this.height);
     CTX.fillStyle = '#fff'; CTX.globalAlpha = 0.8;
-    CTX.fillRect(this.direction>0?this.x+this.width-4:this.x,this.y+1,4,2);
+    CTX.fillRect(this.x+1,this.direction>0?this.y+this.height-4:this.y,2,4);
     CTX.globalAlpha = 1; CTX.shadowBlur = 0;
   }
 }
 
 class EnemyBullet {
-  constructor(x,y,vx=-6,vy=0,color='#ff4400') {
-    this.x=x; this.y=y; this.width=12; this.height=5;  // horizontal shape
+  constructor(x,y,vx=0,vy=4,color='#ffff00') {
+    this.x=x; this.y=y; this.width=5; this.height=10;
     this.vx=vx; this.vy=vy; this.color=color;
   }
   update() { this.x+=this.vx; this.y+=this.vy; }
   draw() {
-    const grad = CTX.createLinearGradient(this.x+this.width,this.y,this.x,this.y);
-    grad.addColorStop(0,'transparent'); grad.addColorStop(1,this.color);
-    CTX.fillStyle = grad;
-    CTX.shadowColor = this.color; CTX.shadowBlur = 6;
+    CTX.fillStyle = this.color;
+    CTX.shadowColor = this.color; CTX.shadowBlur = 5;
     CTX.fillRect(this.x,this.y,this.width,this.height);
     CTX.shadowBlur = 0;
   }
 }
 
-function drawLaser(cy,c1,c2,c3) {
-  const grad = CTX.createLinearGradient(0,cy,CANVAS.width,cy);
+function drawLaser(cx,c1,c2,c3) {
+  const grad = CTX.createLinearGradient(cx,CANVAS.height,cx,0);
   grad.addColorStop(0,c1); grad.addColorStop(0.5,c2); grad.addColorStop(1,c3);
-  CTX.fillStyle = grad; CTX.fillRect(0,cy-5,CANVAS.width,10);
-  CTX.fillStyle = 'rgba(255,255,255,0.2)'; CTX.fillRect(0,cy-12,CANVAS.width,24);
+  CTX.fillStyle = grad; CTX.fillRect(cx-5,0,10,CANVAS.height);
+  CTX.fillStyle = 'rgba(255,255,255,0.2)'; CTX.fillRect(cx-12,0,24,CANVAS.height);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2776,10 +2775,10 @@ class AllyRobot {
     this.bullets=[]; this.lastShot=Date.now(); this.bulletColor=bulletColor;
   }
   update() {
-    this.y+=this.speed*this.dir;
-    if(this.y<=0||this.y+this.height>=CANVAS.height) this.dir*=-1;
+    this.x+=this.speed*this.dir;
+    if(this.x<=0||this.x+this.width>=CANVAS.width) this.dir*=-1;
     if(Date.now()-this.lastShot>900) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.x<=CANVAS.width);
+    this.bullets=this.bullets.filter(b=>b.y+b.height>=0);
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
   draw() {
@@ -2800,7 +2799,7 @@ class AllyRobot {
     CTX.shadowBlur=0;
   }
   shoot() {
-    this.bullets.push(new PlayerBullet(this.x+this.width,this.y+this.height/2,this.bulletColor,0,1,1));
+    this.bullets.push(new PlayerBullet(this.x+this.width/2,this.y,this.bulletColor));
     playSound('shootSound');
   }
 }
@@ -2812,8 +2811,8 @@ class Player {
   constructor(characterId,playerIndex) {
     this.index=playerIndex;
     const cfg = CHARACTER_CFG[characterId]||CHARACTER_CFG.marcelo;
-    this.x = playerIndex===0 ? 80 : CANVAS.width-130;
-    this.y = CANVAS.height/2-25;
+    this.x = playerIndex===0 ? CANVAS.width/4-25 : CANVAS.width*3/4-25;
+    this.y = (State.pvpMode && playerIndex===1) ? 60 : CANVAS.height - 100;
     this.width=50; this.height=50;
     this.speed=cfg.speed;
     this.isMovingLeft=false; this.isMovingRight=false;
@@ -2853,10 +2852,8 @@ class Player {
       if(this.isMovingUp    && this.y>0)                              this.y-=this.speed;
       if(this.isMovingDown  && this.y+this.height<State.worldHeight)  this.y+=this.speed;
     } else {
-      if(this.isMovingLeft  && this.x>0)                        this.x-=this.speed;
-      if(this.isMovingRight && this.x+this.width<CANVAS.width)  this.x+=this.speed;
-      if(this.isMovingUp    && this.y>0)                        this.y-=this.speed;
-      if(this.isMovingDown  && this.y+this.height<CANVAS.height) this.y+=this.speed;
+      if(this.isMovingLeft  && this.x>0)                      this.x-=this.speed;
+      if(this.isMovingRight && this.x+this.width<CANVAS.width) this.x+=this.speed;
     }
     // IMPROVEMENT 6: check invincibility
     if(this.invincible && Date.now()>this.invincibleEnd) this.invincible=false;
@@ -2864,11 +2861,10 @@ class Player {
     if(Date.now()-this.lastTrail>50) {
       const cx=this.x+this.width/2;
       const pvpFlip = State.pvpMode && this.index===1;
-      const cy=this.y+this.height/2;
-      const trailX = pvpFlip ? this.x+this.width : this.x;
-      const trailDir = pvpFlip ? 1 : -1;
+      const trailY = pvpFlip ? this.y : this.y+this.height;
+      const trailDir = pvpFlip ? -1 : 1;
       const c=this.index===0?'rgba(0,245,255,0.4)':'rgba(255,119,0,0.4)';
-      this.trailParticles.push({x:trailX,y:cy+rand(-5,5),a:0.6,vx:rand(0.5,1.5)*trailDir,vy:rand(-0.5,0.5),size:rand(2,5),color:c});
+      this.trailParticles.push({x:cx+rand(-5,5),y:trailY,a:0.6,vx:rand(-0.5,0.5),vy:rand(0.5,1.5)*trailDir,size:rand(2,5),color:c});
       this.lastTrail=Date.now();
     }
     this.trailParticles=this.trailParticles.filter(p=>{
@@ -2891,35 +2887,34 @@ class Player {
     const cx=this.x+this.width/2;
     // PvP: P2 shoots downward; bullets origin from bottom of ship
     const pvpFlip = State.pvpMode && this.index===1;
-    const dir = pvpFlip ? -1 : 1;   // P1=right, P2 PvP=left
-    const bx = pvpFlip ? this.x : this.x+this.width;  // spawn from nose
-    const cy2 = this.y+this.height/2;
+    const dir = pvpFlip ? 1 : -1;
+    const sy = pvpFlip ? this.y+this.height : this.y;
     const _b=(x,y,ao,dm)=>new PlayerBullet(x,y,this.bulletColor,ao,dm,dir);
     switch(this.character) {
       case 'takeshi':
-        [-1,0,1].forEach(off=>this.bullets.push(_b(bx,cy2+off*14,0,this.damageMultiplier)));
+        [-0.5,0,0.5].forEach(off=>this.bullets.push(_b(cx,sy,off,this.damageMultiplier)));
         break;
       case 'deepseek':
         if(!this.laserActive){ this.laserActive=true; this.laserEndTime=now+1000; playSound('laserSound'); }
         break;
       case 'robos':
-        [-12,0,12].forEach(off=>this.bullets.push(_b(bx,cy2+off,0,this.damageMultiplier)));
+        [-15,0,15].forEach(off=>this.bullets.push(_b(cx+off,sy,0,this.damageMultiplier)));
         break;
       case 'omega':
-        this.bullets.push(_b(bx,cy2,0,this.damageMultiplier));
+        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
         break;
       case 'phantom': {
-        const pb=_b(bx,cy2,0,this.damageMultiplier); pb.height=3; this.bullets.push(pb); break;
+        const pb=_b(cx,sy,0,this.damageMultiplier); pb.width=8; this.bullets.push(pb); break;
       }
       case 'titan': {
-        const tb=_b(bx,cy2,0,this.damageMultiplier);
-        tb.width=24; tb.height=12; tb.damage=this.damageMultiplier*3; this.bullets.push(tb); break;
+        const tb=_b(cx-10,sy,0,this.damageMultiplier);
+        tb.width=20; tb.height=20; tb.damage=this.damageMultiplier*3; this.bullets.push(tb); break;
       }
       default:
-        this.bullets.push(_b(bx,cy2,0,this.damageMultiplier));
+        this.bullets.push(_b(cx,sy,0,this.damageMultiplier));
         if(this.index===0 && State.powerUpActive && this.shootCooldown===100) {
-          this.bullets.push(_b(bx,cy2-12,0,this.damageMultiplier));
-          this.bullets.push(_b(bx,cy2+12,0,this.damageMultiplier));
+          this.bullets.push(_b(cx-10,sy,0,this.damageMultiplier));
+          this.bullets.push(_b(cx+10,sy,0,this.damageMultiplier));
         }
     }
     playSound('shootSound');
@@ -2937,13 +2932,13 @@ class Player {
       case 'felipe':
         this.abilityEndTime=now+5000; this.abilityCooldown=now+10000; break;
       case 'takeshi':
-        for(let i=0;i<3;i++){const bx2=this.x+this.width,cy2=this.y+this.height/2;[-14,0,14].forEach(yoff=>this.bullets.push(new PlayerBullet(bx2,cy2+yoff,this.bulletColor,0,this.damageMultiplier*1.5,1)));}
+        for(let i=0;i<3;i++){const cx2=this.x+this.width/2;[-0.8,0,0.8].forEach(off=>this.bullets.push(new PlayerBullet(cx2,this.y,this.bulletColor,off,this.damageMultiplier*1.5)));}
         this.abilityActive=false; this.abilityCooldown=now+8000; return;
       case 'deepseek':
         this.laserActive=true; this.laserEndTime=now+2000; this.abilityCooldown=now+12000; this.abilityActive=false; return;
       case 'omega': {
         const cx3=this.x+this.width/2;
-        for(let i=0;i<8;i++){const off=(i/7-0.5)*5; const cy3=this.y+this.height/2; this.bullets.push(new PlayerBullet(this.x+this.width,cy3+off*10,this.bulletColor,0,this.damageMultiplier,1));}
+        for(let i=0;i<8;i++){const off=(i/7-0.5)*5; this.bullets.push(new PlayerBullet(cx3,this.y,this.bulletColor,off,this.damageMultiplier));}
         this.abilityActive=false; this.abilityCooldown=now+6000; return;
       }
       case 'phantom':
@@ -2981,7 +2976,7 @@ class Player {
     if(pvpFlip) {
       CTX.save();
       CTX.translate(this.x+this.width/2, this.y+this.height/2);
-      CTX.scale(-1,1);
+      CTX.scale(1,-1);
       CTX.translate(-(this.x+this.width/2), -(this.y+this.height/2));
     }
 
@@ -3052,19 +3047,19 @@ class Player {
 // ═══════════════════════════════════════════════════════════════════
 class Enemy {
   constructor() {
-    this.x=CANVAS.width+50; this.y=Math.random()*(CANVAS.height-40);
+    this.x=Math.random()*(CANVAS.width-40); this.y=-50;
     this.width=40; this.height=40; this.speed=2+Math.random();
     this.health=1; this.maxHealth=1; this.type='basic';
     this.bullets=[]; this.lastShot=Date.now();
     this.shootInterval=2000+Math.random()*2000;
   }
   update() {
-    this.x-=this.speed;
+    this.y+=this.speed;
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
+    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height);
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
-  shoot() { this.bullets.push(new EnemyBullet(this.x, this.y+this.height/2)); }
+  shoot() { this.bullets.push(new EnemyBullet(this.x+this.width/2,this.y+this.height)); }
   drawHealthBar() {
     if(this.health>=this.maxHealth) return;
     const pct=this.health/this.maxHealth;
@@ -3095,7 +3090,7 @@ class Enemy {
 }
 
 class UniqueEnemy extends Enemy {
-  constructor() { super(); this.y=Math.random()*(CANVAS.height-60); this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; this._angle=0; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.y=-60; this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; this._angle=0; }
   draw() {
     this._angle=(this._angle||0)+0.02;
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3116,11 +3111,11 @@ class UniqueEnemy extends Enemy {
 }
 
 class UFO extends Enemy {
-  constructor() { super(); this.y=Math.random()*(CANVAS.height-28); this.width=60; this.height=28; this.speed=3+Math.random(); this.type='ufo'; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.width=60; this.height=28; this.speed=3+Math.random(); this.type='ufo'; }
   update() {
-    this.x-=this.speed; this.y+=Math.sin(Date.now()/300)*2;
+    this.x+=Math.sin(Date.now()/300)*2; this.y+=this.speed;
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
+    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height);
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
   draw() {
@@ -3141,7 +3136,7 @@ class UFO extends Enemy {
 }
 
 class TankEnemy extends Enemy {
-  constructor() { super(); this.y=Math.random()*(CANVAS.height-52); this.width=70; this.height=52; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-70); this.y=-70; this.width=70; this.height=52; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
   draw() {
     const cx=this.x+this.width/2;
     // Hull
@@ -3161,7 +3156,7 @@ class TankEnemy extends Enemy {
 }
 
 class FastEnemy extends Enemy {
-  constructor() { super(); this.y=Math.random()*(CANVAS.height-32); this.width=32; this.height=32; this.speed=5+Math.random()*2; this.type='fast'; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-32); this.y=-32; this.width=32; this.height=32; this.speed=5+Math.random()*2; this.type='fast'; }
   draw() {
     const cx=this.x+this.width/2;
     CTX.fillStyle='#0090cc'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=10;
@@ -3177,7 +3172,7 @@ class FastEnemy extends Enemy {
 }
 
 class SpinnerEnemy extends Enemy {
-  constructor() { super(); this.y=Math.random()*(CANVAS.height-50); this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; this._rot=0; }
+  constructor() { super(); this.x=Math.random()*(CANVAS.width-50); this.y=-50; this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; this._rot=0; }
   draw() {
     this._rot=(this._rot||0)+0.04;
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3204,10 +3199,10 @@ class SpinnerEnemy extends Enemy {
 }
 
 class DiverEnemy extends Enemy {
-  constructor(target) { super(); this.y=Math.random()*(CANVAS.height-40); this.width=40; this.height=40; this.speed=3; this.type='diver'; this.target=target; this.isDiving=false; }
+  constructor(target) { super(); this.x=Math.random()*(CANVAS.width-40); this.y=-50; this.width=40; this.height=40; this.speed=3; this.type='diver'; this.target=target; this.isDiving=false; }
   update() {
-    if(this.x>CANVAS.width*0.65&&!this.isDiving) { this.x-=this.speed; }
-    else { this.isDiving=true; const tx=this.target?this.target.x:0, ty=this.target?this.target.y+this.target.height/2:CANVAS.height/2; const a=Math.atan2(ty-(this.y+this.height/2),tx-(this.x+this.width/2)); this.x+=Math.cos(a)*this.speed*1.5; this.y+=Math.sin(a)*this.speed*1.5; }
+    if(this.y<CANVAS.height/3&&!this.isDiving) { this.y+=this.speed; }
+    else { this.isDiving=true; const tx=this.target.x+this.target.width/2, ty=this.target.y+this.target.height/2; const a=Math.atan2(ty-this.y,tx-this.x); this.x+=Math.cos(a)*this.speed*1.5; this.y+=Math.sin(a)*this.speed*1.5; }
   }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3229,7 +3224,7 @@ class BomberEnemy extends Enemy {
     this.width=44; this.height=44; this.health=2; this.maxHealth=2;
     this.type='bomber'; this.speed=2.5+Math.random();
   }
-  update() { this.x-=this.speed; }
+  update() { this.y+=this.speed; }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
     CTX.fillStyle='#ff6600'; CTX.shadowColor='#ff4400'; CTX.shadowBlur=15;
@@ -3278,7 +3273,7 @@ class XPOrb {
       const p=State.players[0], dx=p.x+p.width/2-this.x, dy=p.y+p.height/2-this.y;
       if(Math.hypot(dx,dy)<State.magnetRadius) { const a=Math.atan2(dy,dx); this.x+=Math.cos(a)*4; this.y+=Math.sin(a)*4; return; }
     }
-    this.x-=1;
+    this.y+=1;
   }
   draw() {
     const r=this.radius*(0.9+0.2*Math.sin(this.pulse));
@@ -3416,14 +3411,14 @@ class AllyShip {
 // ═══════════════════════════════════════════════════════════════════
 class PowerUp {
   constructor() {
-    this.x=CANVAS.width+36; this.y=Math.random()*(CANVAS.height-36);
+    this.x=Math.random()*(CANVAS.width-36); this.y=-36;
     this.width=36; this.height=36; this.speed=2.5; this.anim=0;
     const r=Math.random();
     this.type=r<0.38?'life':r<0.75?'weapon':r<0.90?'shield':r<0.95?'double':'bomb';
     this.colors={life:'#ff006e',weapon:'#00f5ff',shield:'#39ff14',double:'#ff8800',bomb:'#cc00ff'};
     this.icons={life:'♥',weapon:'⚡',shield:'⛨',double:'✦',bomb:'💥'};
   }
-  update() { this.x-=this.speed; this.anim+=0.08; }
+  update() { this.y+=this.speed; this.anim+=0.08; }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
     const r=14+Math.sin(this.anim)*2;
@@ -3445,7 +3440,7 @@ class Boss {
   constructor(level) {
     const data=BOSSES_DATA[level-1];
     this.level=level; this.name=data.name; this.subtitle=data.subtitle;
-    this.x=CANVAS.width+(50+level*10); this.y=CANVAS.height/2-(50+level*5);
+    this.x=CANVAS.width/2-(50+level*10); this.y=50;
     this.width=100+level*20; this.height=100+level*10;
     this.health=data.health; this.maxHealth=data.health;
     this.reward=data.reward; this.pattern=data.pattern;
@@ -3477,11 +3472,11 @@ class Boss {
       this.x=clamp(this.x,State.camera.x,State.camera.x+cw-this.width);
       this.y=clamp(this.y,State.camera.y,State.camera.y+ch/2-this.height);
     } else {
-      this.x=clamp(this.x,CANVAS.width*0.45,CANVAS.width-this.width);
-      this.y=clamp(this.y,0,CANVAS.height-this.height);
+      this.x=clamp(this.x,0,CANVAS.width-this.width);
+      this.y=clamp(this.y,0,CANVAS.height/2-this.height);
     }
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
+    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height+State.camera.y);
     this.bullets.forEach(b=>{b.update();b.draw();});
     // Update health bar
     document.getElementById('bossFill').style.width=(this.health/this.maxHealth*100)+'%';
@@ -3503,14 +3498,14 @@ class Boss {
     }
   }
   shoot() {
-    const cx=this.x+this.width/2, bot=this.y+this.height, cy=this.y+this.height/2, lft=this.x;
+    const cx=this.x+this.width/2, bot=this.y+this.height, cy=this.y+this.height/2;
     const rage=this.isEnraged();
     switch(this.pattern) {
       case 'triple':
-        [cy,this.y+20,this.y+this.height-20].forEach(y=>this.bullets.push(new EnemyBullet(this.x,y,rage?-6:-4,0)));
+        [cx,this.x+20,this.x+this.width-20].forEach(x=>this.bullets.push(new EnemyBullet(x,bot,0,rage?6:4)));
         break;
       case 'fan':
-        for(let i=0;i<(rage?7:5);i++) this.bullets.push(new EnemyBullet(this.x,cy,(rage?-5:-4),(i-(rage?3:2))*1.5));
+        for(let i=0;i<(rage?7:5);i++) this.bullets.push(new EnemyBullet(cx,bot,(i-(rage?3:2))*1.5,4));
         break;
       case 'circle': {
         const base=Date.now()/500;
@@ -3518,16 +3513,16 @@ class Boss {
         break;
       }
       case 'burst':
-        for(let i=0;i<3;i++) setTimeout(()=>this.bullets.push(new EnemyBullet(this.x,cy+(Math.random()-0.5)*30,rage?-7:-5,0)),i*300);
+        for(let i=0;i<3;i++) setTimeout(()=>this.bullets.push(new EnemyBullet(cx,bot,(Math.random()-0.5)*2,rage?7:5)),i*300);
         break;
       case 'spiral': {
         const sa=Date.now()/200;
         for(let i=0;i<3;i++) { const a=sa+(i/3)*Math.PI*2; this.bullets.push(new EnemyBullet(cx,cy,Math.cos(a)*4,Math.sin(a)*4)); if(i%2===0){this.bullets.push(new EnemyBullet(cx,bot,0,rage?8:6));this.bullets.push(new EnemyBullet(cx,bot,-3,rage?8:6));this.bullets.push(new EnemyBullet(cx,bot,3,rage?8:6));} }
         break;
       }
-      case 'fireball': { const count=3+Math.floor(this.level/2)+(rage?2:0); for(let i=0;i<count;i++){const a=(Math.random()-0.5)*Math.PI*0.6; this.bullets.push(new EnemyBullet(this.x,cy,-Math.abs(Math.cos(a))*5,Math.sin(a)*5,'#ff4500'));} break; }
-      case 'ice_shard': { const count=4+Math.floor(this.level/2)+(rage?2:0); for(let i=0;i<count;i++) this.bullets.push(new EnemyBullet(this.x,cy+(Math.random()-0.5)*this.height,-3,0,'#00bfff')); break; }
-      case 'laser_grid': { const count=3+Math.floor(this.level/3)+(rage?2:0); for(let i=0;i<count;i++) setTimeout(()=>this.bullets.push(new EnemyBullet(this.x,this.y+(this.height/(count+1))*(i+1),-5,0,'#39ff14')),i*200); break; }
+      case 'fireball': { const count=3+Math.floor(this.level/2)+(rage?2:0); for(let i=0;i<count;i++){const a=Math.random()*Math.PI-Math.PI/2; this.bullets.push(new EnemyBullet(cx,cy,Math.cos(a)*5,Math.abs(Math.sin(a))*5,'#ff4500'));} break; }
+      case 'ice_shard': { const count=4+Math.floor(this.level/2)+(rage?2:0); for(let i=0;i<count;i++) this.bullets.push(new EnemyBullet(cx,bot,(Math.random()-0.5)*2,3,'#00bfff')); break; }
+      case 'laser_grid': { const count=3+Math.floor(this.level/3)+(rage?2:0); for(let i=0;i<count;i++) setTimeout(()=>this.bullets.push(new EnemyBullet(this.x+(this.width/(count+1))*(i+1),bot,0,5,'#39ff14')),i*200); break; }
       case 'black_hole': this.bullets.push(new EnemyBullet(cx,cy,0,1.5,'#aa00ff')); break;
       case 'ultimate':
         ['spiral','fan','burst','triple'].forEach((p,i)=>setTimeout(()=>{this.pattern=p;},i*400)); break;
@@ -3877,7 +3872,7 @@ function buySkill(id) {
 function applySkillBonuses(player) {
   const sk=State.unlockedSkills;
   // Extra bullet (fp1)
-  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const pvpFlip=State.pvpMode&&this.index===1;const dir=pvpFlip?-1:1;const bx=pvpFlip?this.x:this.x+this.width;const cy2=this.y+this.height/2;this.bullets.push(new PlayerBullet(bx,cy2-12,this.bulletColor,0,this.damageMultiplier,dir));this.bullets.push(new PlayerBullet(bx,cy2+12,this.bulletColor,0,this.damageMultiplier,dir));}}; }
+  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const cx=this.x+this.width/2;const pvpFlip=State.pvpMode&&this.index===1;const dir=pvpFlip?1:-1;const sy=pvpFlip?this.y+this.height:this.y;this.bullets.push(new PlayerBullet(cx-12,sy,this.bulletColor,-0.2,this.damageMultiplier,dir));this.bullets.push(new PlayerBullet(cx+12,sy,this.bulletColor,0.2,this.damageMultiplier,dir));}}; }
   // Damage boost (fp2)
   if(sk.fp2) player.damageMultiplier*=(1+0.25*(sk.fp2||0));
   // Rapid fire (fp3)
@@ -5196,7 +5191,7 @@ function processBullets() {
         const dist=Math.hypot(b.x-b._originX, b.y-b._originY);
         return dist<600 && b.x>-100 && b.x<State.worldWidth+100 && b.y>-100 && b.y<State.worldHeight+100;
       }
-      return b.direction>0 ? b.x<=CANVAS.width : b.x+b.width>=0;
+      return b.direction>0 ? b.y<=CANVAS.height : b.y+b.height>=0;
     });
     for(let i=p.bullets.length-1;i>=0;i--) {
       const b=p.bullets[i]; b.update(); b.draw();
@@ -5260,12 +5255,12 @@ function processAllyRobots() {
 function processLasers() {
   State.players.forEach(p=>{
     if(!p.laserActive) return;
-    const cy=p.y+p.height/2;
-    if(p.index===0) drawLaser(cy,'#00f5ff','#fff','#0000ff');
-    else drawLaser(cy,'#ff7700','#fff','#cc0000');
+    const cx=p.x+p.width/2;
+    if(p.index===0) drawLaser(cx,'#00f5ff','#fff','#0000ff');
+    else drawLaser(cx,'#ff7700','#fff','#cc0000');
     for(let i=State.enemies.length-1;i>=0;i--) {
       const e=State.enemies[i];
-      if(e.y+e.height>=cy-5&&e.y<=cy+5) {
+      if(e.x+e.width>=cx-5&&e.x<=cx+5) {
         triggerExplosion(e.x+e.width/2,e.y+e.height/2,p.laserColor,20);
         e.health-=(e.type==='tank'?3:e.health);
         if(e.health<=0) handleEnemyDeath(e,i,p);
@@ -5289,7 +5284,7 @@ function processEnemies() {
         State.enemies.splice(i,1); State.scores[p.index]+=5; break;
       } else handlePlayerDamage(p);
     }
-    if(e.x<-e.width) State.enemies.splice(i,1);
+    if(e.y>CANVAS.height) State.enemies.splice(i,1);
   }
   State.enemies.forEach(e=>{
     for(let bi=e.bullets.length-1;bi>=0;bi--) {
@@ -5328,7 +5323,7 @@ function processPowerUps() {
     for(const p of State.players) {
       if(detectCollision(pw,p)){handlePowerupCollection(pw,i,p);break;}
     }
-    if(State.powerUps[i]&&State.powerUps[i].x<-State.powerUps[i].width) State.powerUps.splice(i,1);
+    if(State.powerUps[i]&&State.powerUps[i].y>CANVAS.height) State.powerUps.splice(i,1);
   }
 }
 
