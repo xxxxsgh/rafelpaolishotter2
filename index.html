@@ -3102,7 +3102,7 @@ class Enemy {
 }
 
 class UniqueEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.y=-60; this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; this._angle=0; }
+  constructor() { super(); this.y=Math.random()*(CANVAS.height-60); this.width=60; this.height=60; this.speed=1.5; this.type='unique'; this.maxHealth=1; this._angle=0; }
   draw() {
     this._angle=(this._angle||0)+0.02;
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3123,11 +3123,11 @@ class UniqueEnemy extends Enemy {
 }
 
 class UFO extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-60); this.width=60; this.height=28; this.speed=3+Math.random(); this.type='ufo'; }
+  constructor() { super(); this.y=Math.random()*(CANVAS.height-28); this.width=60; this.height=28; this.speed=3+Math.random(); this.type='ufo'; }
   update() {
-    this.x+=Math.sin(Date.now()/300)*2; this.y+=this.speed;
+    this.x-=this.speed; this.y+=Math.sin(Date.now()/300)*1.5;
     if(Date.now()-this.lastShot>this.shootInterval) { this.shoot(); this.lastShot=Date.now(); }
-    this.bullets=this.bullets.filter(b=>b.y<=CANVAS.height);
+    this.bullets=this.bullets.filter(b=>b.x>=-b.width);
     this.bullets.forEach(b=>{b.update();b.draw();});
   }
   draw() {
@@ -3148,7 +3148,7 @@ class UFO extends Enemy {
 }
 
 class TankEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-70); this.y=-70; this.width=70; this.height=52; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
+  constructor() { super(); this.y=Math.random()*(CANVAS.height-52); this.width=70; this.height=52; this.speed=1+Math.random()*0.5; this.type='tank'; this.health=3; this.maxHealth=3; }
   draw() {
     const cx=this.x+this.width/2;
     // Hull
@@ -3168,7 +3168,7 @@ class TankEnemy extends Enemy {
 }
 
 class FastEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-32); this.y=-32; this.width=32; this.height=32; this.speed=5+Math.random()*2; this.type='fast'; }
+  constructor() { super(); this.y=Math.random()*(CANVAS.height-32); this.width=32; this.height=32; this.speed=5+Math.random()*2; this.type='fast'; }
   draw() {
     const cx=this.x+this.width/2;
     CTX.fillStyle='#0090cc'; CTX.shadowColor='#00f5ff'; CTX.shadowBlur=10;
@@ -3184,7 +3184,7 @@ class FastEnemy extends Enemy {
 }
 
 class SpinnerEnemy extends Enemy {
-  constructor() { super(); this.x=Math.random()*(CANVAS.width-50); this.y=-50; this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; this._rot=0; }
+  constructor() { super(); this.y=Math.random()*(CANVAS.height-50); this.width=50; this.height=50; this.speed=2; this.type='spinner'; this.health=2; this.maxHealth=2; this.shootInterval=1000; this.angle=0; this._rot=0; }
   draw() {
     this._rot=(this._rot||0)+0.04;
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3211,10 +3211,10 @@ class SpinnerEnemy extends Enemy {
 }
 
 class DiverEnemy extends Enemy {
-  constructor(target) { super(); this.x=Math.random()*(CANVAS.width-40); this.y=-50; this.width=40; this.height=40; this.speed=3; this.type='diver'; this.target=target; this.isDiving=false; }
+  constructor(target) { super(); this.y=Math.random()*(CANVAS.height-40); this.width=40; this.height=40; this.speed=3; this.type='diver'; this.target=target; this.isDiving=false; }
   update() {
-    if(this.y<CANVAS.height/3&&!this.isDiving) { this.y+=this.speed; }
-    else { this.isDiving=true; const tx=this.target.x+this.target.width/2, ty=this.target.y+this.target.height/2; const a=Math.atan2(ty-this.y,tx-this.x); this.x+=Math.cos(a)*this.speed*1.5; this.y+=Math.sin(a)*this.speed*1.5; }
+    if(this.x>CANVAS.width*0.65&&!this.isDiving) { this.x-=this.speed; }
+    else { this.isDiving=true; const tx=this.target?this.target.x:0, ty=this.target?this.target.y+this.target.height/2:CANVAS.height/2; const a=Math.atan2(ty-(this.y+this.height/2),tx-(this.x+this.width/2)); this.x+=Math.cos(a)*this.speed*1.5; this.y+=Math.sin(a)*this.speed*1.5; }
   }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
@@ -3236,7 +3236,7 @@ class BomberEnemy extends Enemy {
     this.width=44; this.height=44; this.health=2; this.maxHealth=2;
     this.type='bomber'; this.speed=2.5+Math.random();
   }
-  update() { this.y+=this.speed; }
+  update() { this.x-=this.speed; }
   draw() {
     const cx=this.x+this.width/2, cy=this.y+this.height/2;
     CTX.fillStyle='#ff6600'; CTX.shadowColor='#ff4400'; CTX.shadowBlur=15;
@@ -3285,7 +3285,7 @@ class XPOrb {
       const p=State.players[0], dx=p.x+p.width/2-this.x, dy=p.y+p.height/2-this.y;
       if(Math.hypot(dx,dy)<State.magnetRadius) { const a=Math.atan2(dy,dx); this.x+=Math.cos(a)*4; this.y+=Math.sin(a)*4; return; }
     }
-    this.y+=1;
+    this.x-=1;
   }
   draw() {
     const r=this.radius*(0.9+0.2*Math.sin(this.pulse));
@@ -3884,7 +3884,7 @@ function buySkill(id) {
 function applySkillBonuses(player) {
   const sk=State.unlockedSkills;
   // Extra bullet (fp1)
-  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const cx=this.x+this.width/2;const pvpFlip=State.pvpMode&&this.index===1;const dir=pvpFlip?1:-1;const sy=pvpFlip?this.y+this.height:this.y;this.bullets.push(new PlayerBullet(cx-12,sy,this.bulletColor,-0.2,this.damageMultiplier,dir));this.bullets.push(new PlayerBullet(cx+12,sy,this.bulletColor,0.2,this.damageMultiplier,dir));}}; }
+  if(sk.fp1) { const orig=player.shoot.bind(player); player._baseShoot=orig; player.shoot=function(){orig();if(sk.fp1>=1){const pvpFlip=State.pvpMode&&this.index===1;const dir=pvpFlip?-1:1;const bx=pvpFlip?this.x:this.x+this.width;const cy2=this.y+this.height/2;this.bullets.push(new PlayerBullet(bx,cy2-10,this.bulletColor,0,this.damageMultiplier,dir));this.bullets.push(new PlayerBullet(bx,cy2+10,this.bulletColor,0,this.damageMultiplier,dir));}}; }
   // Damage boost (fp2)
   if(sk.fp2) player.damageMultiplier*=(1+0.25*(sk.fp2||0));
   // Rapid fire (fp3)
