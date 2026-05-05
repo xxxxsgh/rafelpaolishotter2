@@ -2103,18 +2103,18 @@ function freshSurvivorAbilities() {
 
 // ─ Phase Themes (open world + phase backgrounds)
 const PHASE_THEMES = [
-  { name:'NEBULA GATE',     bg:'#020817', grid:'rgba(0,245,255,0.04)',  accent:'rgba(123,47,255,0.06)',  star:'#ffffff', enemyColor:'#00f5ff' },
-  { name:'CRIMSON VOID',    bg:'#0d0205', grid:'rgba(255,60,60,0.05)',  accent:'rgba(255,0,60,0.07)',    star:'#ff9999', enemyColor:'#ff3333' },
-  { name:'TOXIC SWAMP',     bg:'#010d01', grid:'rgba(57,255,20,0.05)',  accent:'rgba(0,200,30,0.06)',    star:'#99ff99', enemyColor:'#39ff14' },
-  { name:'SOLAR FURNACE',   bg:'#0d0600', grid:'rgba(255,160,0,0.06)',  accent:'rgba(255,100,0,0.07)',   star:'#ffcc66', enemyColor:'#ff8800' },
-  { name:'DEEP OCEAN',      bg:'#000b12', grid:'rgba(0,180,255,0.05)',  accent:'rgba(0,100,200,0.07)',   star:'#66ccff', enemyColor:'#0088ff' },
-  { name:'INFERNO CORE',    bg:'#0d0200', grid:'rgba(255,50,0,0.06)',   accent:'rgba(200,0,0,0.07)',     star:'#ff6633', enemyColor:'#ff2200' },
-  { name:'GLACIAL ABYSS',   bg:'#010a10', grid:'rgba(120,210,255,0.06)',accent:'rgba(60,180,255,0.06)',  star:'#ccf0ff', enemyColor:'#88ddff' },
-  { name:'MACHINE DOMAIN',  bg:'#060609', grid:'rgba(180,80,255,0.05)', accent:'rgba(120,40,200,0.06)',  star:'#cc88ff', enemyColor:'#aa44ff' },
-  { name:'EVENT HORIZON',   bg:'#000003', grid:'rgba(80,0,200,0.06)',   accent:'rgba(40,0,150,0.08)',    star:'#8866ff', enemyColor:'#6600cc' },
-  { name:'GENESIS FIELD',   bg:'#08060d', grid:'rgba(255,220,0,0.05)',  accent:'rgba(200,150,0,0.06)',   star:'#ffee88', enemyColor:'#ffcc00' },
-  { name:'CHAOS REALM',     bg:'#06000d', grid:'rgba(255,0,200,0.06)',  accent:'rgba(180,0,255,0.07)',   star:'#ff66ff', enemyColor:'#ff00cc' },
-  { name:'OMEGA DIMENSION', bg:'#000000', grid:'rgba(255,255,255,0.07)',accent:'rgba(255,255,255,0.04)', star:'#ffffff', enemyColor:'#ffffff' },
+  { name:'NEBULA GATE',     bg:'#010612', grid:'rgba(0,245,255,0.06)',  accent:'rgba(123,47,255,0.18)',  star:'#aaccff', enemyColor:'#00f5ff' },
+  { name:'CRIMSON VOID',    bg:'#0a0103', grid:'rgba(255,60,60,0.07)',  accent:'rgba(255,0,60,0.20)',    star:'#ffaabb', enemyColor:'#ff3333' },
+  { name:'TOXIC SWAMP',     bg:'#000b00', grid:'rgba(57,255,20,0.07)',  accent:'rgba(0,200,30,0.18)',    star:'#88ff88', enemyColor:'#39ff14' },
+  { name:'SOLAR FURNACE',   bg:'#0a0400', grid:'rgba(255,160,0,0.08)',  accent:'rgba(255,100,0,0.22)',   star:'#ffcc44', enemyColor:'#ff8800' },
+  { name:'DEEP OCEAN',      bg:'#000810', grid:'rgba(0,180,255,0.07)',  accent:'rgba(0,100,200,0.20)',   star:'#44aaff', enemyColor:'#0088ff' },
+  { name:'INFERNO CORE',    bg:'#0a0100', grid:'rgba(255,50,0,0.08)',   accent:'rgba(200,0,0,0.22)',     star:'#ff7744', enemyColor:'#ff2200' },
+  { name:'GLACIAL ABYSS',   bg:'#010810', grid:'rgba(120,210,255,0.08)',accent:'rgba(60,180,255,0.20)',  star:'#aaeeff', enemyColor:'#88ddff' },
+  { name:'MACHINE DOMAIN',  bg:'#040406', grid:'rgba(180,80,255,0.07)', accent:'rgba(120,40,200,0.20)',  star:'#bb88ff', enemyColor:'#aa44ff' },
+  { name:'EVENT HORIZON',   bg:'#000002', grid:'rgba(80,0,200,0.08)',   accent:'rgba(40,0,150,0.22)',    star:'#6644ff', enemyColor:'#6600cc' },
+  { name:'GENESIS FIELD',   bg:'#060408', grid:'rgba(255,220,0,0.07)',  accent:'rgba(200,150,0,0.20)',   star:'#ffdd66', enemyColor:'#ffcc00' },
+  { name:'CHAOS REALM',     bg:'#04000a', grid:'rgba(255,0,200,0.08)',  accent:'rgba(180,0,255,0.22)',   star:'#ff44ff', enemyColor:'#ff00cc' },
+  { name:'OMEGA DIMENSION', bg:'#000000', grid:'rgba(255,255,255,0.09)',accent:'rgba(255,255,255,0.14)', star:'#ffffff', enemyColor:'#ffffff' },
 ];
 
 // ─ Run Upgrade Pool (used in all modes with XP leveling)
@@ -2341,6 +2341,13 @@ const State = {
   _weatherParticles:[],
   _allyBullets:[],
   _eventCheckTimer:0,
+  // REMAKE: new visual systems
+  shockwaves:[],
+  vignetteAlpha:0,
+  comboKills:0,
+  comboTimer:0,
+  screenFlash:{alpha:0,color:'#fff'},
+  hitNumbers:[],
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2602,53 +2609,75 @@ async function showLeaderboard(mode) {
 let gridOffset = 0;
 function drawBackground() {
   BGCTX.clearRect(0,0,BGCANVAS.width,BGCANVAS.height);
-  // Pick theme based on current mode
   const themeIdx = State.openWorldMode ? (State.currentSector||0) : Math.max(0,Math.min((State.gameLevel-1),PHASE_THEMES.length-1));
   const theme = PHASE_THEMES[themeIdx] || PHASE_THEMES[0];
-  // Dark base
-  BGCTX.fillStyle = theme.bg;
-  BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
-  // Scrolling grid
+  const t = Date.now()/1000;
+
+  // Deep space base gradient
+  const baseGrad = BGCTX.createLinearGradient(0,0,BGCANVAS.width,BGCANVAS.height);
+  baseGrad.addColorStop(0, theme.bg);
+  baseGrad.addColorStop(0.5, theme.bg);
+  baseGrad.addColorStop(1, 'rgba(0,0,0,1)');
+  BGCTX.fillStyle = baseGrad; BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
+
+  // Animated nebula blobs (3 drifting clouds)
+  [[0.25,0.4,200,'#4a'],[0.7,0.6,280,'#3a'],[0.5,0.2,160,'#55']].forEach(([nx,ny,nr,op],i)=>{
+    const bx = BGCANVAS.width*(nx+Math.sin(t*0.08+i)*0.05);
+    const by = BGCANVAS.height*(ny+Math.cos(t*0.06+i)*0.04);
+    const accentHex = theme.accent.replace('rgba(','').split(',');
+    const ng = BGCTX.createRadialGradient(bx,by,0,bx,by,nr+Math.sin(t*0.3+i)*20);
+    ng.addColorStop(0, theme.accent.replace('0.06',op[1]+op[2]).replace('0.07',op[1]+op[2]).replace('0.04',op[1]+op[2]).replace('0.08',op[1]+op[2]));
+    ng.addColorStop(1,'transparent');
+    BGCTX.fillStyle=ng; BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
+  });
+
+  // Scrolling grid (vertical lines move downward)
   const gs = 60;
-  gridOffset = (gridOffset + 0.3) % gs;
-  BGCTX.strokeStyle = theme.grid;
-  BGCTX.lineWidth = 1;
+  gridOffset = (gridOffset + 0.4) % gs;
+  BGCTX.strokeStyle = theme.grid; BGCTX.lineWidth = 0.8;
   for (let x=0; x<BGCANVAS.width; x+=gs) {
     BGCTX.beginPath(); BGCTX.moveTo(x,0); BGCTX.lineTo(x,BGCANVAS.height); BGCTX.stroke();
   }
   for (let y=-gs+gridOffset; y<BGCANVAS.height; y+=gs) {
+    BGCTX.globalAlpha = 0.6 + Math.sin(t+y/50)*0.2;
     BGCTX.beginPath(); BGCTX.moveTo(0,y); BGCTX.lineTo(BGCANVAS.width,y); BGCTX.stroke();
   }
-  // Nebula effect
-  const grad = BGCTX.createRadialGradient(BGCANVAS.width*0.7, BGCANVAS.height*0.3, 0, BGCANVAS.width*0.7, BGCANVAS.height*0.3, 300);
-  grad.addColorStop(0, theme.accent);
-  grad.addColorStop(1,'transparent');
-  BGCTX.fillStyle = grad;
-  BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
+  BGCTX.globalAlpha = 1;
+
+  // Subtle vignette darkening edges
+  const vg = BGCTX.createRadialGradient(BGCANVAS.width/2,BGCANVAS.height/2,BGCANVAS.height*0.3,BGCANVAS.width/2,BGCANVAS.height/2,BGCANVAS.height*0.8);
+  vg.addColorStop(0,'transparent'); vg.addColorStop(1,'rgba(0,0,0,0.55)');
+  BGCTX.fillStyle=vg; BGCTX.fillRect(0,0,BGCANVAS.width,BGCANVAS.height);
 }
 
 // ─ Stars (on game canvas)
 function initStars() {
-  State.stars = Array.from({length:180},()=>({
-    x:Math.random()*CANVAS.width, y:Math.random()*CANVAS.height,
-    size:Math.random()*2+0.5, speed:Math.random()*0.6+0.1,
-    alpha:Math.random()*0.6+0.2,
-    twinkle:Math.random()*Math.PI*2,
-  }));
+  State.stars = [
+    // Layer 1: slow, tiny, dim (far away)
+    ...Array.from({length:120},()=>({x:Math.random()*CANVAS.width,y:Math.random()*CANVAS.height,size:Math.random()*0.8+0.2,speed:0.12+Math.random()*0.15,alpha:Math.random()*0.4+0.15,twinkle:Math.random()*Math.PI*2,layer:1})),
+    // Layer 2: medium speed
+    ...Array.from({length:70},()=>({x:Math.random()*CANVAS.width,y:Math.random()*CANVAS.height,size:Math.random()*1.4+0.4,speed:0.35+Math.random()*0.3,alpha:Math.random()*0.5+0.3,twinkle:Math.random()*Math.PI*2,layer:2})),
+    // Layer 3: fast, large, bright (close)
+    ...Array.from({length:30},()=>({x:Math.random()*CANVAS.width,y:Math.random()*CANVAS.height,size:Math.random()*2+1,speed:0.8+Math.random()*0.5,alpha:Math.random()*0.4+0.6,twinkle:Math.random()*Math.PI*2,layer:3})),
+  ];
 }
 function drawStars() {
   const themeIdx = State.openWorldMode ? (State.currentSector||0) : Math.max(0,Math.min((State.gameLevel-1),PHASE_THEMES.length-1));
   const theme = PHASE_THEMES[themeIdx] || PHASE_THEMES[0];
   const starColor = theme.star || '#ffffff';
   State.stars.forEach(s => {
-    s.twinkle += 0.02;
-    const a = s.alpha * (0.7 + 0.3*Math.sin(s.twinkle));
+    s.twinkle += 0.015 * s.layer;
+    const a = s.alpha * (0.75 + 0.25*Math.sin(s.twinkle));
+    // Colorize by layer: far=white, mid=theme, close=bright
+    const col = s.layer===3 ? starColor : s.layer===2 ? starColor : '#ccddff';
     CTX.globalAlpha = a;
-    CTX.fillStyle = starColor;
+    CTX.fillStyle = col;
+    if(s.layer===3) { CTX.shadowColor=col; CTX.shadowBlur=6; }
     CTX.beginPath(); CTX.arc(s.x,s.y,s.size,0,Math.PI*2); CTX.fill();
+    CTX.shadowBlur=0;
     if (!State.openWorldMode) {
       s.y += s.speed;
-      if (s.y > CANVAS.height) { s.y=0; s.x=Math.random()*CANVAS.width; }
+      if (s.y > CANVAS.height+2) { s.y=-2; s.x=Math.random()*CANVAS.width; }
     }
   });
   CTX.globalAlpha = 1;
@@ -2660,20 +2689,55 @@ function drawStars() {
 class Particle {
   constructor(x,y,color) {
     this.x=x; this.y=y;
-    this.size = rand(2,6);
-    this.vx = (Math.random()-0.5)*9;
-    this.vy = (Math.random()-0.5)*9;
+    this.size = rand(2,8);
+    this.vx = (Math.random()-0.5)*12;
+    this.vy = (Math.random()-0.5)*12;
     this.color = color; this.alpha = 1;
+    this.spin = (Math.random()-0.5)*0.3;
+    this.shape = Math.random()<0.3?'rect':'circle';
   }
-  update() { this.x+=this.vx; this.y+=this.vy; this.vx*=0.97; this.vy*=0.97; this.alpha-=0.018; }
+  update() { this.x+=this.vx; this.y+=this.vy; this.vx*=0.96; this.vy*=0.96; this.alpha-=0.016; }
   draw() {
     CTX.globalAlpha = this.alpha;
     CTX.fillStyle = this.color;
+    CTX.shadowColor = this.color; CTX.shadowBlur = 4;
     CTX.shadowColor = this.color; CTX.shadowBlur = 6;
     CTX.beginPath(); CTX.arc(this.x,this.y,this.size,0,Math.PI*2); CTX.fill();
     CTX.shadowBlur = 0; CTX.globalAlpha = 1;
   }
   get alive() { return this.alpha > 0; }
+}
+
+class ShockWave {
+  constructor(x,y,color='#ff6600',maxR=90) {
+    this.x=x; this.y=y; this.r=8; this.maxR=maxR; this.color=color; this.alpha=0.9; this.lineWidth=3;
+  }
+  update() { this.r+=5; this.alpha-=this.alpha*0.08; this.lineWidth=Math.max(0.5,this.lineWidth*0.95); }
+  draw() {
+    CTX.save();
+    CTX.strokeStyle=this.color; CTX.lineWidth=this.lineWidth; CTX.globalAlpha=this.alpha;
+    CTX.shadowColor=this.color; CTX.shadowBlur=12;
+    CTX.beginPath(); CTX.arc(this.x,this.y,this.r,0,Math.PI*2); CTX.stroke();
+    CTX.restore();
+  }
+  get done() { return this.r>=this.maxR||this.alpha<0.02; }
+}
+
+class HitNumber {
+  constructor(x,y,value,color='#ffff00') {
+    this.x=x; this.y=y; this.text=value; this.color=color;
+    this.alpha=1; this.vy=-2.5; this.scale=1.2; this.age=0;
+  }
+  update() { this.y+=this.vy; this.vy*=0.92; this.alpha-=0.022; this.scale=Math.max(1,this.scale*0.96); this.age++; }
+  draw() {
+    CTX.save(); CTX.globalAlpha=this.alpha;
+    CTX.font=`bold ${Math.round(16*this.scale)}px Orbitron,monospace`;
+    CTX.textAlign='center'; CTX.fillStyle=this.color;
+    CTX.shadowColor=this.color; CTX.shadowBlur=10;
+    CTX.fillText(this.text,this.x,this.y);
+    CTX.restore();
+  }
+  get done() { return this.alpha<=0; }
 }
 
 class Explosion {
@@ -2687,25 +2751,33 @@ class Explosion {
 
 function triggerExplosion(x,y,color='#ff6600',count=25) {
   const c = fxHighQuality ? count : Math.max(6, Math.floor(count * 0.4));
+  // Multi-color explosion burst
   State.explosions.push(new Explosion(x,y,color,c));
+  const brightColor = color.replace(/[0-9a-f]{2}/gi, h=>Math.min(255,parseInt(h,16)+80).toString(16).padStart(2,'0'));
+  if(fxHighQuality) State.explosions.push(new Explosion(x,y,'#ffffff',Math.floor(c*0.3)));
+  // Shockwave ring
+  State.shockwaves.push(new ShockWave(x,y,color,count*3));
+  if(count>15) State.shockwaves.push(new ShockWave(x,y,'rgba(255,255,255,0.4)',count*2));
   playSound('explosionSound');
-  // IMPROVEMENT 2: screen shake
-  State.screenShake = Math.max(State.screenShake, 5);
+  State.screenShake = Math.max(State.screenShake, count>20?10:6);
+  // Screen flash
+  State.screenFlash.alpha = Math.min(0.35, count/80);
+  State.screenFlash.color = color;
 }
 
 // ─ Floating text
 class FloatingText {
   constructor(x,y,text,color='#ffd60a') {
     this.x=x; this.y=y; this.text=text; this.color=color;
-    this.alpha=1; this.vy=-1.5;
+    this.alpha=1; this.vy=-2; this.scale=1.4; this.age=0;
   }
-  update() { this.y+=this.vy; this.alpha-=0.025; }
+  update() { this.y+=this.vy; this.vy*=0.94; this.alpha-=0.022; this.scale=Math.max(1,this.scale*0.97); this.age++; }
   draw() {
     CTX.globalAlpha = this.alpha;
     CTX.fillStyle = this.color;
-    CTX.font = 'bold 16px Orbitron, monospace';
+    CTX.font = `bold ${Math.round(18*this.scale)}px Orbitron, monospace`;
     CTX.textAlign = 'center';
-    CTX.shadowColor = this.color; CTX.shadowBlur = 8;
+    CTX.shadowColor = this.color; CTX.shadowBlur = 14;
     CTX.fillText(this.text, this.x, this.y);
     CTX.shadowBlur = 0; CTX.globalAlpha = 1;
   }
@@ -2736,11 +2808,12 @@ class PlayerBullet {
     const grad = CTX.createLinearGradient(this.x,y0,this.x,y1);
     grad.addColorStop(0,'transparent'); grad.addColorStop(1,this.color);
     CTX.fillStyle = grad;
-    CTX.shadowColor = this.color; CTX.shadowBlur = 8;
+    CTX.shadowColor = this.color; CTX.shadowBlur = 18;
     CTX.fillRect(this.x,this.y,this.width,this.height);
-    CTX.fillStyle = '#fff'; CTX.globalAlpha = 0.8;
-    CTX.fillRect(this.x+1,this.direction>0?this.y+this.height-4:this.y,2,4);
-    CTX.globalAlpha = 1; CTX.shadowBlur = 0;
+    // Bright inner core
+    CTX.shadowBlur = 0; CTX.fillStyle = '#ffffff'; CTX.globalAlpha = 0.95;
+    CTX.fillRect(this.x+1,this.y+1,Math.max(3,this.width-4),Math.max(1,this.height-2));
+    CTX.globalAlpha = 1;
   }
 }
 
@@ -3051,7 +3124,7 @@ class Enemy {
     this.width=40; this.height=40; this.speed=2+Math.random();
     this.health=1; this.maxHealth=1; this.type='basic';
     this.bullets=[]; this.lastShot=Date.now();
-    this.shootInterval=2000+Math.random()*2000;
+    this.shootInterval=2000+Math.random()*2000; this.hitFlash=0;
   }
   update() {
     this.y+=this.speed;
@@ -3063,9 +3136,15 @@ class Enemy {
   drawHealthBar() {
     if(this.health>=this.maxHealth) return;
     const pct=this.health/this.maxHealth;
-    CTX.fillStyle='rgba(0,0,0,0.5)'; CTX.fillRect(this.x,this.y-8,this.width,4);
-    CTX.fillStyle=pct>0.5?'#39ff14':'#ff006e';
-    CTX.fillRect(this.x,this.y-8,this.width*pct,4);
+    const bx=this.x, by=this.y-10, bw=this.width, bh=5;
+    // Background
+    CTX.fillStyle='rgba(0,0,0,0.7)'; CTX.fillRect(bx-1,by-1,bw+2,bh+2);
+    // Color shifts red->yellow->green
+    const hue = pct>0.5 ? 120 : pct>0.25 ? 60 : 0;
+    CTX.fillStyle=`hsl(${hue},100%,50%)`;
+    CTX.shadowColor=`hsl(${hue},100%,60%)`; CTX.shadowBlur=4;
+    CTX.fillRect(bx,by,bw*pct,bh);
+    CTX.shadowBlur=0;
   }
   draw() {
     // Enemy sprite draw
@@ -3074,16 +3153,25 @@ class Enemy {
     const sy = this.y + this.height/2 - sh/2;
     if (ENEMY_SPRITE_IMG.complete && ENEMY_SPRITE_IMG.naturalWidth > 0) {
       CTX.save();
-      CTX.shadowColor = '#ff2200'; CTX.shadowBlur = 10;
+      CTX.shadowColor = this.hitFlash>0?'#ffffff':'#ff2200';
+      CTX.shadowBlur = this.hitFlash>0?20:10;
       CTX.drawImage(ENEMY_SPRITE_IMG, sx, sy, sw, sh);
+      if(this.hitFlash>0) {
+        CTX.globalCompositeOperation='source-atop';
+        CTX.globalAlpha=this.hitFlash/10*0.6;
+        CTX.fillStyle='#ffffff'; CTX.fillRect(sx,sy,sw,sh);
+        CTX.globalCompositeOperation='source-over'; CTX.globalAlpha=1;
+        this.hitFlash--;
+      }
       CTX.shadowBlur = 0;
       CTX.restore();
     } else {
-      // Fallback: red triangle
       const cx=this.x+this.width/2;
-      CTX.fillStyle='#cc2222'; CTX.shadowColor='#ff4444'; CTX.shadowBlur=10;
+      CTX.fillStyle=this.hitFlash>0?'#ffffff':'#cc2222';
+      CTX.shadowColor=this.hitFlash>0?'#ffffff':'#ff4444'; CTX.shadowBlur=this.hitFlash>0?18:10;
       CTX.beginPath(); CTX.moveTo(cx,this.y+this.height); CTX.lineTo(this.x,this.y); CTX.lineTo(this.x+this.width,this.y); CTX.closePath(); CTX.fill();
       CTX.shadowBlur=0;
+      if(this.hitFlash>0) this.hitFlash--;
     }
     this.drawHealthBar();
   }
@@ -3545,7 +3633,7 @@ class Boss {
     }
   }
   draw() {
-    // IMPROVEMENT 10: red glow when enraged
+    // Dramatic glow effect: stronger when enraged
     if(this.isEnraged()) {
       CTX.shadowColor='#ff006e'; CTX.shadowBlur=30;
     }
@@ -4907,6 +4995,14 @@ const ENEMY_COINS={basic:5,ufo:8,tank:15,fast:10,unique:20,spinner:12,diver:10,b
 const ENEMY_SCORE={basic:10,ufo:15,tank:25,fast:20,unique:30,spinner:18,diver:15,bomber:22};
 
 function handleEnemyDeath(enemy,eIdx,killerPlayer) {
+  // Combo system
+  const _cNow=Date.now();
+  if(_cNow-State.comboTimer<3000) State.comboKills++;
+  else State.comboKills=1;
+  State.comboTimer=_cNow;
+  if(State.comboKills>=3) {
+    State.floatingTexts.push(new FloatingText(enemy.x+enemy.width/2,enemy.y-20,`${State.comboKills}x COMBO!`,State.comboKills>=10?'#ff00ff':State.comboKills>=5?'#ff8800':'#ffd700'));
+  }
   triggerExplosion(enemy.x+enemy.width/2,enemy.y+enemy.height/2);
   if(State.survivorMode||State.openWorldMode) State.xpOrbs.push(new XPOrb(enemy.x+enemy.width/2,enemy.y+enemy.height/2,10+enemy.maxHealth*5));
 
@@ -5002,6 +5098,8 @@ function pvpVictory(winnerIdx) {
 }
 
 function handlePlayerDamage(player) {
+  State.vignetteAlpha = Math.min(0.85, State.vignetteAlpha + 0.45);
+  State.screenFlash = {alpha:0.25, color:'#ff0000'};
   if(player.invincible) return; // IMPROVEMENT 6
   // Phoenix revive
   if(player.lives<=1&&(State.unlockedSkills.df2||0)>=1&&!State.phoenixUsed) {
@@ -5217,7 +5315,10 @@ function processBullets() {
         if(!detectCollision(b,State.enemies[e])) continue;
         triggerExplosion(b.x,b.y,'#ffff00',6);
         p.bullets.splice(i,1);
-        State.enemies[e].health-=b.damage*(State.doubleDamage?2:1);
+        const dmg=b.damage*(State.doubleDamage?2:1);
+        State.enemies[e].health-=dmg;
+        State.enemies[e].hitFlash=8;
+        State.hitNumbers.push(new HitNumber(State.enemies[e].x+State.enemies[e].width/2,State.enemies[e].y-5,Math.round(dmg),dmg>=3?'#ff4400':'#ffee44'));
         if(State.enemies[e].health<=0) handleEnemyDeath(State.enemies[e],e,p);
         break;
       }
@@ -5343,6 +5444,38 @@ function processExplosions() {
   for(let i=State.explosions.length-1;i>=0;i--) {
     State.explosions[i].update(); State.explosions[i].draw();
     if(!State.explosions[i].alive) State.explosions.splice(i,1);
+  }
+  // Shockwaves
+  State.shockwaves=State.shockwaves.filter(sw=>!sw.done);
+  State.shockwaves.forEach(sw=>{sw.update();sw.draw();});
+  // Hit numbers
+  State.hitNumbers=State.hitNumbers.filter(hn=>!hn.done);
+  State.hitNumbers.forEach(hn=>{hn.update();hn.draw();});
+  // Screen flash
+  if(State.screenFlash.alpha>0.01) {
+    CTX.fillStyle=State.screenFlash.color;
+    CTX.globalAlpha=State.screenFlash.alpha;
+    CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+    CTX.globalAlpha=1;
+    State.screenFlash.alpha*=0.82;
+  }
+  // Damage vignette
+  if(State.vignetteAlpha>0.01) {
+    const vg=CTX.createRadialGradient(CANVAS.width/2,CANVAS.height/2,CANVAS.height*0.25,CANVAS.width/2,CANVAS.height/2,CANVAS.height*0.75);
+    vg.addColorStop(0,'transparent'); vg.addColorStop(1,`rgba(220,0,0,${State.vignetteAlpha})`);
+    CTX.fillStyle=vg; CTX.fillRect(0,0,CANVAS.width,CANVAS.height);
+    State.vignetteAlpha*=0.88;
+  }
+  // Combo HUD
+  if(State.comboKills>=3 && Date.now()-State.comboTimer<3000) {
+    const fade=Math.max(0,1-(Date.now()-State.comboTimer)/3000);
+    CTX.save(); CTX.globalAlpha=fade*0.9;
+    const comboColor=State.comboKills>=10?'#ff00ff':State.comboKills>=5?'#ff8800':'#ffd700';
+    CTX.font=`bold ${20+Math.min(State.comboKills,10)}px Orbitron,monospace`;
+    CTX.fillStyle=comboColor; CTX.shadowColor=comboColor; CTX.shadowBlur=18;
+    CTX.textAlign='right';
+    CTX.fillText(`⚡${State.comboKills}x COMBO`,CANVAS.width-16,CANVAS.height-50);
+    CTX.shadowBlur=0; CTX.restore();
   }
 }
 
