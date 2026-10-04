@@ -286,7 +286,7 @@ export async function init(ctx) {
       fs.wbCloudParams.value[0] = wd.x * drift * 0.25 + 0.13;
       fs.wbCloudParams.value[1] = wd.y * drift * 0.25 + 0.71;
       fs.wbCloudParams.value[2] = cur.cov;
-      fs.wbCloudParams.value[3] = 0.42 * (1 - night) * (1 - oc * 0.85) * sunW;
+      fs.wbCloudParams.value[3] = 0.36 * (1 - night) * (1 - oc * 0.85) * sunW;
       fs.wbCloudShade.value[0] = 0.66; fs.wbCloudShade.value[1] = 0.73; fs.wbCloudShade.value[2] = 0.88;
 
       // ---------- sky dome ----------
@@ -354,7 +354,7 @@ export async function init(ctx) {
         if (storm > 0.01) g.uHighTint.value.lerp(tmpC.setRGB(0.94, 1.01, 0.98), storm);
         g.uVignette.value = 0.26 + oc * 0.1;
         g.uWet.value = wetness;
-        post.grade.uBloom.value = 0.28 + golden * 0.12 + night * 0.08;
+        post.grade.uBloom.value = 0.28 + golden * 0.22 + night * 0.08;
         post.setSun(sunDir, pal.sun, THREE.MathUtils.smoothstep(sunDir.y, -0.02, 0.05) * (1 - oc * 0.9));
       }
       renderer.setClearColor(pal.horizon, 1);

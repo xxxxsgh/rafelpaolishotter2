@@ -105,16 +105,16 @@ export function createSkyDome() {
         float mu = dot(d, uSunDisk);
         float sunVis = uSky.w * (1.0 - storm * 0.9);
         float disk = smoothstep(0.99955, 0.99975, mu);
-        float halo = pow(max(mu, 0.0), 900.0) * 3.0 + pow(max(mu, 0.0), 120.0) * 0.5;
+        float halo = pow(max(mu, 0.0), 900.0) * 3.0 + pow(max(mu, 0.0), 120.0) * 0.6 + pow(max(mu, 0.0), 14.0) * 0.12;
         float horizonDim = smoothstep(-0.03, 0.03, d.y);
         vec3 sunC = uSunCol * sunVis * horizonDim;
 
         // ---------- moon ----------
         float mm = dot(d, uMoonDir);
-        float moonR = 0.0185;
+        float moonR = 0.026;
         vec3 moonCol = vec3(0.0);
         float moonMask = 0.0;
-        if (mm > 0.995 && night > 0.01) {
+        if (mm > 0.99 && night > 0.01) {
           vec3 up = abs(uMoonDir.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
           vec3 mx = normalize(cross(up, uMoonDir));
           vec3 my = cross(uMoonDir, mx);
@@ -179,6 +179,9 @@ export function createSkyDome() {
             // soft painterly ramp: three soft bands with wide terminators
             float ramp = smoothstep(0.1, 0.4, light) * 0.5 + smoothstep(0.45, 0.8, light) * 0.5;
             vec3 cc = mix(uCloudShade, uCloudLit, ramp);
+            // backlit clouds toward a low sun read as darker masses with bright rims
+            float toward = pow(max(mu, 0.0), 2.0) * lowSun;
+            cc = mix(cc, uCloudShade * 0.85, toward * smoothstep(0.1, 0.7, den) * 0.75);
             // low sun: warm glow bleeding under/around clouds on the sun side
             float sunSide = pow(mu * 0.5 + 0.5, 4.0);
             cc += uSunCol * sunSide * lowSun * (0.18 + 0.3 * (1.0 - thick)) * sunVis;

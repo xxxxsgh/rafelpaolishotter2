@@ -37,22 +37,23 @@ vec3 wbFogTint(vec3 base, vec3 dir) {
   float mu = max(c, 0.0);
   float m2 = c * 0.5 + 0.5;
   float horiz = exp(-abs(dir.y) * 4.0);
-  return base + wbFogGlow.rgb * (0.22 * pow(mu, 4.0) + 0.55 * pow(mu, 18.0) + wbFogSun.w * m2 * m2 * m2 * m2 * (0.05 + 0.95 * horiz));
+  return base + wbFogGlow.rgb * (0.3 * pow(mu, 4.0) + 0.7 * pow(mu, 16.0) + wbFogSun.w * m2 * m2 * m2 * (0.04 + 0.96 * horiz));
 }
 float wbRemap(float v, float lo, float hi) { return clamp((v - lo) / max(hi - lo, 1e-4), 0.0, 1.0); }
 // Cloud density at world-plane position p (metres). Shared by sky + shadows.
 float wbCloudDensity(vec2 p, float detail) {
   vec2 uv = p / WB_CLOUD_SCALE + wbCloudParams.xy;
-  float base = texture2D(wbCloudTex, uv).r;
-  float big = texture2D(wbCloudTex, uv * 0.37 + vec2(0.31, 0.17)).a;   // coverage variation
+  float big = texture2D(wbCloudTex, uv * 0.37 + vec2(0.31, 0.17)).a;   // regional coverage variation
   float cov = clamp(wbCloudParams.z + (big - 0.5) * 0.55, 0.0, 1.0);
-  float d = wbRemap(base, 1.0 - cov, 1.0);
-  d = sqrt(d);
+  // perlin-worley body + worley lobes -> heaped cumulus outlines
+  float lobes = texture2D(wbCloudTex, uv * 1.9 + vec2(0.2, 0.6)).g;
+  float base = texture2D(wbCloudTex, uv).r * 0.75 + lobes * 0.25;
+  float d = sqrt(wbRemap(base, 1.0 - cov * 0.85 - 0.06, 1.0));
   if (detail > 0.0) {
-    float e = texture2D(wbCloudTex, uv * 3.1 + wbCloudParams.xy * 0.6).g * 0.6
-            + texture2D(wbCloudTex, uv * 8.3 - wbCloudParams.xy * 0.3).b * 0.4;
+    float e = texture2D(wbCloudTex, uv * 5.1 + wbCloudParams.xy * 0.6).g * 0.6
+            + texture2D(wbCloudTex, uv * 11.3 - wbCloudParams.xy * 0.3).b * 0.4;
     // erode mostly at the rim -> billowy, feathered outlines with solid cores
-    d = wbRemap(d, e * (0.62 - d * 0.35) * detail, 1.0);
+    d = wbRemap(d, e * (0.55 - d * 0.3) * detail, 1.0);
   }
   return d;
 }
@@ -108,7 +109,7 @@ export function installFogChunks() {
     if (wbCloudParams.w > 0.001) {
       vec3 sd = wbFogSun.xyz;
       vec2 sp = vFogWorldPos.xz + sd.xz / max(sd.y, 0.12) * (WB_CLOUD_H - vFogWorldPos.y);
-      float cs = smoothstep(0.05, 0.55, wbCloudDensity(sp, 0.0));
+      float cs = smoothstep(0.0, 0.85, wbCloudDensity(sp, 0.0));
       cs *= wbCloudParams.w * (1.0 - smoothstep(900.0, 2600.0, length(wbRay)));
       gl_FragColor.rgb *= mix(vec3(1.0), wbCloudShade.rgb, cs);
     }
