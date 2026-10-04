@@ -7,14 +7,17 @@
 //   cam {x, y?, z, tx, ty?, tz} -> ctx.cameraOverride (y/ty default to ground + offset)
 //   hud (bool, default false), extra(ctx) optional hook.
 export const SHOT_PRESETS = {
-  vista:    { time: 9.5,  weather: 'clear',  cam: { x: -300, z: 200, h: 18, tx: 400, tz: -600, th: 60 } },
+  vista:    { time: 9.5,  weather: 'clear',  cam: { x: 170, z: 520, h: 14, tx: 20, tz: -700, th: 110 } },
   meadow:   { time: 16.5, weather: 'clear',  cam: { x: 120, z: 340, h: 2.2, tx: 260, tz: 120, th: 6 } },
-  forest:   { time: 11,   weather: 'clear',  cam: { x: -620, z: -180, h: 2.5, tx: -560, tz: -260, th: 4 } },
-  river:    { time: 8,    weather: 'clear',  cam: { x: 60, z: -60, h: 6, tx: 200, tz: -200, th: 0 } },
-  mountain: { time: 18.2, weather: 'clear',  cam: { x: 0, z: 600, h: 40, tx: 300, tz: -900, th: 200 } },
+  forest:   { time: 11,   weather: 'clear',  cam: { x: -760, z: 980, h: 3, tx: -900, tz: 760, th: 12 } },
+  river:    { time: 8,    weather: 'clear',  cam: { x: 922, z: 20, h: 5, tx: 965, tz: 260, th: 2 } },
+  mountain: { time: 18.2, weather: 'clear',  cam: { x: -150, z: -450, h: 12, tx: -260, tz: -1290, th: -60 } },
+  ruins:    { time: 10.5, weather: 'clear',  cam: { x: 60, z: -95, h: 3, tx: 40, tz: -170, th: 12 } },
   sunset:   { time: 19.0, weather: 'cloudy', cam: { x: -200, z: 0, h: 12, tx: 400, tz: 100, th: 20 } },
   night:    { time: 23.5, weather: 'clear',  cam: { x: 100, z: 100, h: 6, tx: 300, tz: -100, th: 30 } },
-  storm:    { time: 14,   weather: 'storm',  cam: { x: 200, z: 300, h: 8, tx: 400, tz: 0, th: 10 } },
+  storm:    { time: 14,   weather: 'storm',  cam: { x: 200, z: 300, h: 8, tx: 400, tz: 0, th: 10 },
+              // sky: fire a lightning strike just before capture so the bolt + flash are in frame
+              extra: ctx => { const n = +(ctx.params.get('frames') || 90); let i = 0; ctx.engine.add('storm-shot', () => { if (++i === n - 3) ctx.systems.sky?.strikeLightning?.(); }); } },
   player:   { time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true },
   run:      { time: 13,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'run' } },
   climb:    { time: 15,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'climb' } },
