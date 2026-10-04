@@ -75,7 +75,9 @@ void main() {
   float snowLine = 305.0 + 40.0 * (nM.a - 0.5) * 2.0;
   float snowW = smoothstep(-12.0, 12.0, h - snowLine + (nD.g - 0.5) * 30.0 + (nL.b - 0.5) * 30.0) * (1.0 - smoothstep(0.3 + 0.12 * sat((h - snowLine) / 150.0), 0.48 + 0.12 * sat((h - snowLine) / 150.0), slope + nz * 1.5));
   rockW *= 1.0 - snowW;
-  float sandW = max(1.0 - smoothstep(1.5, 4.5, h + nz * 30.0), river * 0.85) * (1.0 - rockW) * (1.0 - snowW);
+  vec4 wm0 = texture2D(uWorldMask, (wp.xz + 2048.0) / 4096.0);
+  float lakeW = wm0.b;
+  float sandW = max(max(1.0 - smoothstep(1.5, 4.5, h + nz * 30.0), river * 0.85), lakeW * 0.9) * (1.0 - rockW) * (1.0 - snowW);
   float alpine = smoothstep(170.0, 260.0, h + (nL.r - 0.5) * 40.0);
   float slopeDirt = smoothstep(0.16, 0.25, slope + nz) * 0.75;
   float patchDirt = smoothstep(0.8, 0.95, nL.a * 0.7 + nD.r * 0.45) * 0.45 * smoothstep(0.5, 0.8, nM.a);
@@ -126,6 +128,8 @@ void main() {
   // river beds: wet rounded pebbles, grey-brown with a cool tint
   vec3 pebble = mix(vec3(0.38, 0.35, 0.3), vec3(0.47, 0.45, 0.4), smoothstep(0.2, 0.8, nF.g + (speck - 0.5) * 0.3));
   sand = mix(sand, pebble, smoothstep(0.3, 0.9, river));
+  // lake basins: pale sand ring at the shoreline, dark olive silt below the waterline
+  sand = mix(sand, vec3(0.2, 0.22, 0.14) * (0.85 + 0.3 * nD.g), smoothstep(0.75, 1.0, lakeW) * step(0.5, lakeW));
 
   // --- rock: stylised strata + fissures (triplanar)
   vec4 nTL = tri(wp, tw, 140.0);

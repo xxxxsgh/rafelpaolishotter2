@@ -15,7 +15,7 @@ import { Colliders } from './colliders.js';
 import { buildProps } from './props.js';
 import { buildRuins } from './ruins.js';
 
-// 2048^2 world mask (2 m/texel): R = footpath, G = river channel. Crisp at any LOD.
+// 2048^2 world mask (2 m/texel): R = footpath, G = river channel, B = lake basin. Crisp at any LOD.
 function makeWorldMask(THREE, world) {
   const R = 2048, data = new Uint8Array(R * R * 4), cell = world.WORLD_SIZE / R, half = world.WORLD_SIZE / 2;
   for (let j = 0; j < R; j++) {
@@ -25,6 +25,19 @@ function makeWorldMask(THREE, world) {
       data[k] = (world.getPathMask?.(x, z) || 0) * 255;
       data[k + 1] = world.getRiverMask(x, z) * 255;
       data[k + 3] = 255;
+    }
+  }
+  // B = lake proximity (1 inside the basin, fading over the shore)
+  for (const L of world.LAKES) {
+    const r = L.r * 1.7;
+    const i0 = Math.max(0, Math.floor((L.x - r + half) / cell)), i1 = Math.min(R - 1, Math.ceil((L.x + r + half) / cell));
+    const j0 = Math.max(0, Math.floor((L.z - r + half) / cell)), j1 = Math.min(R - 1, Math.ceil((L.z + r + half) / cell));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const x = i * cell - half + cell / 2, z = j * cell - half + cell / 2;
+      const d = world.getHeight(x, z) - L.y;
+      const v = 1 - Math.min(1, Math.max(0, (d - 0.3) / 2.2));
+      const k = (j * R + i) * 4;
+      data[k + 2] = Math.max(data[k + 2], v * 255);
     }
   }
   const t = new THREE.DataTexture(data, R, R, THREE.RGBAFormat);

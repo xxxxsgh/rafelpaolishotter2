@@ -16,6 +16,7 @@ export const SHOT_PRESETS = {
   cliffs:   { time: 14,   weather: 'clear',  cam: { x: 110, z: -610, h: 3, tx: 40, tz: -485, th: 22 } },
   canyon:   { time: 16,   weather: 'clear',  cam: { x: 1085, z: 640, h: 5, tx: 1150, tz: 880, th: 12 } },
   beach:    { time: 10,   weather: 'clear',  cam: { x: -1570, z: 540, h: 3, tx: -1760, tz: 680, th: 0 } },
+  lake:     { time: 16.5, weather: 'clear',  cam: { x: -470, z: 230, h: 4, tx: -650, tz: 170, th: 4 } },
   sunset:   { time: 19.0, weather: 'cloudy', cam: { x: -200, z: 0, h: 12, tx: 400, tz: 100, th: 20 } },
   night:    { time: 23.5, weather: 'clear',  cam: { x: 100, z: 100, h: 6, tx: 300, tz: -100, th: 30 } },
   storm:    { time: 14,   weather: 'storm',  cam: { x: 200, z: 300, h: 8, tx: 400, tz: 0, th: 10 },
