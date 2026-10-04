@@ -33,9 +33,9 @@ const n2 = new Simplex(91731);
 const n3 = new Simplex(5150);
 
 export const TERRAIN_PALETTE = {
-  grassSun: 0x9cc94a, grassLush: 0x7fb23a, grassDry: 0xb8c25c, grassShade: 0x5f8f3c,
+  grassSun: 0xa6cc4c, grassLush: 0x84b13c, grassDry: 0xbcc45e, grassShade: 0x5f8f3c,
   grassAlpine: 0x7a9f52, forestFloor: 0x5c7f34, dirt: 0x8d7350, sand: 0xe2d2a2,
-  rock: 0x9a9284, rockDark: 0x726d66, mesaRock: 0xc47a48, snow: 0xf3f6fa,
+  rock: 0xb4a994, rockDark: 0x857b6c, mesaRock: 0xc8784a, snow: 0xf3f6fa,
 };
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ function coastMask(x, z) {
 function plateauMask(x, z) {
   const dx = x - PLATEAU.x, dz = z - PLATEAU.z;
   const ang = Math.atan2(dz, dx);
-  const r = PLATEAU.r * (1 + 0.16 * n1.noise2(Math.cos(ang) * 1.3 + 3, Math.sin(ang) * 1.3 - 2) + 0.06 * n2.noise2(x / 120, z / 120));
+  const r = PLATEAU.r * (1 + 0.16 * n1.noise2(Math.cos(ang) * 1.3 + 3, Math.sin(ang) * 1.3 - 2) + 0.06 * n2.noise2(x / 120, z / 120) + 0.022 * n3.noise2(x / 32, z / 32));
   const d = Math.hypot(dx, dz) / r;
   // ramps: soften the cliff band in a few directions
   let soft = 0;
@@ -102,7 +102,6 @@ function terrace(v, steps, sharp) {
 // Height before rivers/lakes are carved.
 export function baseHeight(x, z) {
   const cr = coastMask(x, z);
-  const land = 1 - smooth(0.80, 1.0, cr);
   // lowland: gentle large swells + rolling hills
   const big = n1.fbm2(x / 1300 + 5, z / 1300 - 9, 3);
   const roll = n2.fbm2(x / 300, z / 300, 4);
@@ -120,7 +119,9 @@ export function baseHeight(x, z) {
   const pm = plateauMask(x, z);
   if (pm.m > 0) {
     const top = 34 + PLATEAU.h + 7 * n3.fbm2(x / 240 - 4, z / 240 + 1, 4) + 10 * big;
-    h = lerp(h, Math.max(h, top), pm.m);
+    // stepped cliff band: two ledges part-way down the escarpment
+    const mt = pm.m * 3, mf = Math.floor(mt), m2 = Math.min(1, (mf + smooth(0.35, 0.9, mt - mf)) / 3);
+    h = lerp(h, Math.max(h, top), lerp(m2, pm.m, pm.soft));
   }
 
   // south-east mesas (terraced, flat-topped, steep strata risers)
@@ -154,9 +155,13 @@ export function baseHeight(x, z) {
   if (h > 90) h += Math.min(1, (h - 90) / 120) * 14 * (n1.ridged2(x / 110, z / 110, 3) - 0.45);
 
   // coast: beaches slope gently into the sea, rocky bits stay higher
-  const shore = smooth(0.70, 0.98, cr);
-  h = lerp(h, Math.min(h, 4 + 6 * n2.noise2(x / 200, z / 200)), shore * 0.85);
-  h = lerp(-38 + 8 * n1.noise2(x / 300, z / 300), h, land);
+  // coast: wide sandy beaches, with rocky headlands where the noise says so
+  const rocky = smooth(0.15, 0.5, n2.noise2(x / 520 + 20, z / 520 - 7));
+  const beachT = smooth(0.64, 0.9, cr) * (1 - rocky * 0.85);
+  const beachH = 2.0 + Math.max(0, 0.9 - cr) * 70 + 0.8 * n1.noise2(x / 60, z / 60);
+  h = lerp(h, Math.min(h, beachH), beachT);
+  const seabed = Math.max(-38 + 6 * n1.noise2(x / 300, z / 300), -1.5 - (cr - 0.9) * lerp(260, 900, rocky));
+  h = lerp(h, Math.min(h, seabed), smooth(0.885, 0.93 + 0.05 * (1 - rocky), cr));
   return h;
 }
 
@@ -315,7 +320,8 @@ export function getHeight(x, z) {
     } else {
       const ck = canyonK(x, z);
       const gentle = wy - 0.4 + e * 0.14 + (e * 0.035) ** 2 * 40 * 0.06;
-      const steep = wy - 0.4 + Math.min(e * 0.25, 2) + Math.max(0, e - 6) * 2.4;
+      const wallT = Math.max(0, e - 6) * 2.4 / 9;
+      const steep = wy - 0.4 + Math.min(e * 0.25, 2) + (Math.floor(wallT) + smooth(0.45, 1, wallT - Math.floor(wallT)) * 0.85 + (wallT - Math.floor(wallT)) * 0.15) * 9;
       carve = lerp(gentle, steep, ck);
     }
     const fade = smooth(RMAX - 60, RMAX - 10, d);

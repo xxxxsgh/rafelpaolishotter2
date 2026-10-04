@@ -40,7 +40,9 @@ export class TerrainLOD {
     }
     for (let d = 0; d < this.mats.length; d++) {
       const S = this.rootSize / (1 << d);
-      const end = 2 * S * this.K, start = end * 0.62;
+      // Morph must be zero wherever this node can border a finer node (vertices up to
+      // S*(K + diag) away) and complete where it can border a coarser one (>= 2*S*K).
+      const end = 2 * S * this.K, start = Math.min(end * 0.9, S * (this.K + 1.6));
       this.mats[d].uniforms.uMorphRange.value.set(d === 0 ? 1e7 : start, d === 0 ? 1e7 + 1 : end);
     }
     // Root + first levels synchronously so something is always drawable.

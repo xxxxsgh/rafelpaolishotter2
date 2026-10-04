@@ -93,7 +93,7 @@ export function buildProps(ctx, { group, colliders, noiseTex, avoid = [] }) {
       world.getNormal(x, z, nrm);
       const slope = 1 - nrm.y;
       const biome = world.getBiome(x, z);
-      let p = 0.004;
+      let p = 0.008;
       if (biome === 'forest') p = 0.018;
       if (biome === 'alpine') p = 0.05;
       if (biome === 'snow') p = 0.02;

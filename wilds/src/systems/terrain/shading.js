@@ -68,9 +68,9 @@ vec3 paintLight(vec3 albedo, vec3 N, float shadow, float ao, float wrap) {
   float lit = paintRamp(ndl + wrap) * shadow;
   vec3 amb = paintAmbient(N) * ao;
   // shadows read cool blue-teal, never grey
-  vec3 coolTint = mix(vec3(0.78, 0.9, 1.08), vec3(1.0), lit);
+  vec3 coolTint = mix(vec3(0.74, 0.9, 1.15), vec3(1.0), lit);
   // generous painterly fill: vertical faces also catch bounce from the sunlit ground
-  float fill = 0.4 + 0.45 * (1.0 - abs(N.y));
+  float fill = 0.42 + 0.62 * (1.0 - abs(N.y));
   vec3 bounce = uGroundColor * 0.6 * (1.0 - abs(N.y)) * sat(L.y + 0.2);
   vec3 c = albedo * (kc * lit * RECIPROCAL_PI + (amb * coolTint + bounce) * fill);
   // warm bounce in the lit band near the terminator (painterly warmth)

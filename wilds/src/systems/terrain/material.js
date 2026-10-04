@@ -39,6 +39,7 @@ const FRAG = /* glsl */`
 #include <shadowmask_pars_fragment>
 #include <fog_pars_fragment>
 ${PAINT_PARS}
+uniform vec2 uWindDir;
 uniform vec3 cGrassSun, cGrassLush, cGrassDry, cGrassShade, cAlpine, cForest, cDirt, cSand, cRock, cRockDark, cMesa, cSnow;
 varying vec3 vWorldPos;
 varying vec3 vNormalW;
@@ -97,6 +98,10 @@ void main() {
   float nearF = 1.0 - smoothstep(10.0, 60.0, dist);
   grass *= 0.9 + 0.18 * mix(0.5, stroke, detailFade) + (nD.g - 0.5) * 0.1 * detailFade + (speck - 0.5) * 0.16 * nearF;
   grass = mix(grass, grass * vec3(1.08, 1.06, 0.8), smoothstep(0.62, 0.8, nF.a) * 0.4 * detailFade); // sun-bleached tufts
+  // rolling wind gusts: broad sheen bands drifting across the fields (matches grass gusts)
+  vec2 gp = wp.xz - uWindDir * uTime * 7.0;
+  float gust = texture2D(uNoise, gp / 160.0).r * 0.65 + texture2D(uNoise, gp / 47.0 + 0.3).g * 0.35;
+  grass *= 1.0 + smoothstep(0.55, 0.8, gust) * 0.13 * smoothstep(8.0, 60.0, dist);
   grass = mix(grass, grass * vec3(0.78, 0.86, 0.72), sat(-cav) * 0.0 + sat(cav) * 0.35); // hollows darker/lusher
 
   // --- dirt
@@ -113,22 +118,39 @@ void main() {
   sand = mix(sand, pebble, smoothstep(0.3, 0.9, river));
 
   // --- rock: stylised strata + fissures (triplanar)
-  float warp = (nT.r - 0.5) * 2.2 + (nT.a - 0.5) * 0.8;
-  float band = h / mix(3.4, 6.0, mesa) + warp;
+  vec4 nTL = tri(wp, tw, 140.0);
+  float bandH = mix(3.2, 4.6, mesa);
+  float warp = (nTL.r - 0.5) * 1.1 + (nT.a - 0.5) * 0.18;
+  float band = (h + 1.4 * sin(h / 11.0 + nTL.g * 3.0)) / bandH + warp;
   float bf = fract(band);
   float bandId = floor(band);
-  float bandRnd = fract(sin(bandId * 12.9898) * 43758.5453);
-  vec3 rockBase = mix(cRock, cRockDark, bandRnd * 0.55);
-  rockBase = mix(rockBase, mix(cMesa, cMesa * vec3(1.15, 1.05, 0.85), bandRnd), mesa);
-  // light top edge of each stratum, darker underside lip
-  rockBase *= 0.9 + 0.16 * smoothstep(0.75, 0.95, bf) - 0.14 * smoothstep(0.0, 0.12, 0.12 - bf);
-  float fiss = smoothstep(0.55, 0.9, nT.b) * detailFade;
-  rockBase *= 1.0 - fiss * 0.35;
-  rockBase *= 0.9 + 0.2 * mix(0.5, nT2.g, detailFade);
-  // moss/grass on top-facing rock
-  float moss = smoothstep(0.55, 0.85, Ng.y + (nT.g - 0.5) * 0.4) * (1.0 - alpine * 0.7) * (1.0 - mesa);
+  float bandRnd = fract(sin(bandId * 12.9898 + 3.1) * 43758.5453);
+  float bandRnd2 = fract(sin(bandId * 78.233 + 1.7) * 23421.631);
+  // face-horizontal coordinate (for vertical erosion grooves)
+  float hc = mix(wp.x, wp.z, tw.x / max(tw.x + tw.z, 1e-3));
+  float groove = texture2D(uNoise, vec2(hc / 7.0, wp.y / 70.0 + bandId * 0.13)).b;
+  float groove2 = texture2D(uNoise, vec2(hc / 2.3, wp.y / 25.0)).g;
+  vec3 rockBase = mix(cRock, cRockDark, smoothstep(0.2, 0.9, bandRnd) * 0.7);
+  rockBase = mix(rockBase, rockBase * vec3(1.08, 1.02, 0.9), bandRnd2 * 0.6);
+  vec3 mesaBand = mix(cMesa, cMesa * vec3(1.25, 1.12, 0.92), bandRnd);
+  mesaBand = mix(mesaBand, vec3(0.86, 0.72, 0.55), step(0.78, bandRnd2) * 0.7); // pale cream layers
+  mesaBand = mix(mesaBand, cMesa * vec3(0.72, 0.55, 0.5), step(bandRnd2, 0.15) * 0.6); // deep red layers
+  rockBase = mix(rockBase, mesaBand, mesa);
+  // stratum edges: bright top lip, dark recess under it
+  float lip = smoothstep(0.80, 0.96, bf);
+  float recess = 1.0 - smoothstep(0.0, 0.14, bf);
+  rockBase *= 1.0 + 0.12 * lip - 0.2 * recess;
+  float column = texture2D(uNoise, vec2(hc / 16.0, wp.y / 160.0)).r;
+  rockBase *= 0.8 + 0.32 * groove;
+  rockBase *= 0.86 + 0.28 * smoothstep(0.3, 0.7, column);
+  rockBase = hueShift(rockBase, (nTL.a - 0.5) * 0.3) * (0.88 + 0.24 * nTL.g);
+  float fiss = smoothstep(0.62, 0.92, nT.b) * detailFade;
+  rockBase *= 1.0 - fiss * 0.3;
+  rockBase *= 0.94 + 0.12 * mix(0.5, nT2.g, detailFade);
+  // moss/grass on top-facing rock and ledges
+  float moss = smoothstep(0.55, 0.85, Ng.y + (nT.g - 0.5) * 0.4 + lip * 0.25) * (1.0 - alpine * 0.7) * (1.0 - mesa);
   rockBase = mix(rockBase, mix(cGrassLush, cForest, 0.4) * 0.85, moss * 0.65);
-  rockBase *= 1.0 - sat(cav) * 0.25;
+  rockBase *= 1.0 - sat(cav) * 0.2;
 
   // --- snow
   vec3 snow = cSnow * (0.95 + 0.06 * nD.g);
@@ -141,8 +163,10 @@ void main() {
 
   // --- shading normal: subtle painterly breakup on rock (near only)
   vec3 N = Ng;
-  vec3 bump = (vec3(nT2.r, nT.g, nT2.a) - 0.5) * vec3(1.0, 0.0, 1.0);
-  N = normalize(N + bump * rockW * 0.55 * detailFade);
+  vec3 T = normalize(cross(vec3(0.0, 1.0, 0.0), Ng) + vec3(1e-4, 0.0, 0.0));
+  float rf = rockW * mix(1.0, 0.45, 1.0 - detailFade);
+  N = normalize(N + vec3(0.0, 1.0, 0.0) * (lip * 0.9 - recess * 0.7) * rf
+                  + T * ((groove - 0.5) * 1.3 + (column - 0.5) * 1.6 + (groove2 - 0.5) * 0.5 * detailFade) * rf);
 
   float shadow = getShadowMask();
   float ao = 1.0 - sat(cav) * 0.4 - (1.0 - Ng.y) * 0.08;

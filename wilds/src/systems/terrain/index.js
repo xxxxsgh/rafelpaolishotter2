@@ -18,10 +18,10 @@ import { buildRuins } from './ruins.js';
 export async function init(ctx) {
   const { THREE, world, camera } = ctx;
   const noiseTex = makeNoiseTexture(THREE);
-  const LEVELS = 8;
+  const LEVELS = 8;   // root 4096 m -> leaf 32 m (1 m vertex spacing)
   const { mats, camPos } = makeTerrainMaterials(ctx, noiseTex, LEVELS);
   const shotMode = ctx.params?.has?.('shot');
-  const lod = new TerrainLOD(ctx, mats, { N: 48, maxDepth: LEVELS - 1, K: 1.8, sync: shotMode });
+  const lod = new TerrainLOD(ctx, mats, { N: 32, maxDepth: LEVELS - 1, K: 2.4, sync: shotMode });
 
   const colliders = new Colliders();
   const props = new THREE.Group(); props.name = 'terrain-props';
