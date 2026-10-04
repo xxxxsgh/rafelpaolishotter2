@@ -40,6 +40,7 @@ const FRAG = /* glsl */`
 #include <fog_pars_fragment>
 ${PAINT_PARS}
 uniform vec2 uWindDir;
+uniform sampler2D uWorldMask;
 uniform vec3 cGrassSun, cGrassLush, cGrassDry, cGrassShade, cAlpine, cForest, cDirt, cSand, cRock, cRockDark, cMesa, cSnow;
 varying vec3 vWorldPos;
 varying vec3 vNormalW;
@@ -79,18 +80,24 @@ void main() {
   float slopeDirt = smoothstep(0.16, 0.25, slope + nz) * 0.75;
   float patchDirt = smoothstep(0.8, 0.95, nL.a * 0.7 + nD.r * 0.45) * 0.45 * smoothstep(0.5, 0.8, nM.a);
   float dirtW = (1.0 - rockW) * (1.0 - snowW) * (1.0 - sandW) * sat(max(max(mesa * 0.55, alpine * 0.35), max(slopeDirt, patchDirt * (1.0 - forest * 0.5))));
+  vec4 wm = texture2D(uWorldMask, (wp.xz + 2048.0) / 4096.0);
+  float pathRaw = wm.r;
+  float pathW = smoothstep(0.3, 0.62, pathRaw + (nD.r - 0.5) * 0.35 + (texture2D(uNoise, wp.xz / 2.1).g - 0.5) * 0.25) * (1.0 - rockW) * (1.0 - snowW);
+  dirtW = max(dirtW, pathW * (1.0 - sandW));
   float grassW = max(0.0, 1.0 - rockW - snowW - sandW - dirtW);
 
   // --- grass: big painted masses with gentle hue drift
   float m1 = nM.r, m2 = nL.r;
   vec3 grass = mix(cGrassLush, cGrassSun, smoothstep(0.25, 0.8, m2 * 0.7 + m1 * 0.5));
-  grass = mix(grass, cGrassDry, smoothstep(0.55, 0.85, nM.a * 0.8 + nL.a * 0.35) * 0.6);
+  grass = mix(grass, cGrassDry, smoothstep(0.5, 0.8, nM.a * 0.8 + nL.a * 0.35) * 0.75);
   grass = mix(grass, cForest, forest * 0.75);
   grass = mix(grass, cAlpine, alpine);
   grass = mix(grass, cGrassDry * vec3(1.05, 0.95, 0.8), mesa * 0.6);
   grass = hueShift(grass, (nM.g - 0.5) * 0.3 + (nL.a - 0.5) * 0.12);
   // large painted value masses: whole hillsides shift lighter/darker
-  grass *= 0.8 + 0.32 * smoothstep(0.15, 0.85, nM.r * 0.6 + nL.g * 0.4);
+  grass *= 0.74 + 0.4 * smoothstep(0.15, 0.85, nM.r * 0.6 + nL.g * 0.4);
+  // patches of lush deep green (moist hollows) and tan dry grass break the carpet up
+  grass = mix(grass, cGrassShade * 1.05, smoothstep(0.6, 0.85, nL.b * 0.5 + nM.g * 0.6) * 0.45);
   grass = mix(vec3(luma(grass)), grass, 0.86);
   // brush-like stroke variation (stretched along wind)
   float stroke = texture2D(uNoise, vec2(wp.x * 0.94 + wp.z * 0.34, wp.z * 0.94 - wp.x * 0.34) / vec2(5.0, 11.0)).g;
@@ -104,8 +111,11 @@ void main() {
   grass *= 1.0 + smoothstep(0.55, 0.8, gust) * 0.13 * smoothstep(8.0, 60.0, dist);
   grass = mix(grass, grass * vec3(0.78, 0.86, 0.72), sat(-cav) * 0.0 + sat(cav) * 0.35); // hollows darker/lusher
 
+  // worn, sun-dried verge along footpaths
+  grass = mix(grass, cGrassDry * vec3(1.06, 1.0, 0.82), smoothstep(0.02, 0.4, pathRaw) * 0.55);
   // --- dirt
   vec3 dirt = cDirt * (0.85 + 0.3 * nD.r) ;
+  dirt = mix(dirt, mix(cSand * 0.72, cDirt, 0.35) * (0.9 + 0.2 * nF.g), pathW * (1.0 - mesa)); // packed light track
   dirt = mix(dirt, cMesa * 0.9, mesa * 0.5);
   dirt = mix(dirt, dirt * vec3(0.9, 0.95, 1.0), alpine);
 
@@ -192,7 +202,7 @@ void main() {
 }
 `;
 
-export function makeTerrainMaterials(ctx, noiseTex, levels) {
+export function makeTerrainMaterials(ctx, noiseTex, levels, maskTex) {
   const { THREE } = ctx;
   const shared = sharedUniforms(ctx, THREE, noiseTex);
   const colors = {};
@@ -201,6 +211,7 @@ export function makeTerrainMaterials(ctx, noiseTex, levels) {
     cMesa: P.mesaRock, cSnow: P.snow };
   for (const k in map) colors[k] = { value: new THREE.Color(map[k]) };
   const camPos = { value: new THREE.Vector3() };
+  const maskWorld = { value: maskTex };
   const mats = [];
   for (let l = 0; l < levels; l++) {
     const uniforms = {
@@ -208,6 +219,7 @@ export function makeTerrainMaterials(ctx, noiseTex, levels) {
     ...THREE.UniformsLib.fog,
       ...shared, ...colors,
       uCamPos: camPos,
+      uWorldMask: maskWorld,
       uMorphRange: { value: new THREE.Vector2(1e6, 1e6 + 1) },
     };
     const m = new THREE.ShaderMaterial({ uniforms, vertexShader: VERT, fragmentShader: FRAG, lights: true, fog: true });

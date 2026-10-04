@@ -15,11 +15,30 @@ import { Colliders } from './colliders.js';
 import { buildProps } from './props.js';
 import { buildRuins } from './ruins.js';
 
+// 2048^2 world mask (2 m/texel): R = footpath, G = river channel. Crisp at any LOD.
+function makeWorldMask(THREE, world) {
+  const R = 2048, data = new Uint8Array(R * R * 4), cell = world.WORLD_SIZE / R, half = world.WORLD_SIZE / 2;
+  for (let j = 0; j < R; j++) {
+    const z = j * cell - half + cell / 2;
+    for (let i = 0; i < R; i++) {
+      const x = i * cell - half + cell / 2, k = (j * R + i) * 4;
+      data[k] = (world.getPathMask?.(x, z) || 0) * 255;
+      data[k + 1] = world.getRiverMask(x, z) * 255;
+      data[k + 3] = 255;
+    }
+  }
+  const t = new THREE.DataTexture(data, R, R, THREE.RGBAFormat);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
+  t.colorSpace = THREE.NoColorSpace; t.anisotropy = 4; t.needsUpdate = true;
+  return t;
+}
+
 export async function init(ctx) {
   const { THREE, world, camera } = ctx;
   const noiseTex = makeNoiseTexture(THREE);
   const LEVELS = 8;   // root 4096 m -> leaf 32 m (1 m vertex spacing)
-  const { mats, camPos } = makeTerrainMaterials(ctx, noiseTex, LEVELS);
+  const maskTex = makeWorldMask(THREE, world);
+  const { mats, camPos } = makeTerrainMaterials(ctx, noiseTex, LEVELS, maskTex);
   const shotMode = ctx.params?.has?.('shot');
   const lod = new TerrainLOD(ctx, mats, { N: 32, maxDepth: LEVELS - 1, K: 2.4, sync: shotMode });
 

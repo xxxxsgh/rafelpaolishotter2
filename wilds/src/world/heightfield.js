@@ -23,6 +23,7 @@
 //   TERRAIN_PALETTE           linear-ish sRGB hex colours used by the terrain shader (grass etc.) so
 //                             vegetation can match ground tint.
 //   LANDMARKS                 named points of interest {name,x,z,kind}.
+//   PATHS [{points:[{x,z,w}]}] + getPathMask(x,z)  worn footpaths between landmarks (0..1, 1 = track).
 import { Simplex } from '../core/noise.js';
 
 export const WORLD_SIZE = 4096;          // metres, square, centred on origin
@@ -300,6 +301,41 @@ function gridSample(arr, x, z) {
   return lerp(lerp(arr[k], arr[k + 1], fx), lerp(arr[k + RG], arr[k + RG + 1], fx), fz);
 }
 
+// Footpaths linking the landmarks (worn dirt tracks; vegetation should avoid them).
+const PATH_DEFS = [
+  [[40, -130], [110, 40], [250, 330], [-60, 450], [-332, 537], [-520, 610], [-760, 680], [-900, 700]],
+  [[20, -205], [-70, -300], [-164, -380], [-300, -340], [-470, -160], [-590, 140]],
+  [[300, 150], [470, 40], [586, -50], [760, 40], [900, 200], [1010, 250], [1200, 200], [1400, 125]],
+  [[250, 330], [420, 260], [560, 140], [600, -40]],
+];
+export const PATHS = [];
+const PG = 1024, PCELL = WORLD_SIZE / PG, PMAX = 16;
+const pDist = new Float32Array(PG * PG).fill(PMAX);
+for (const def of PATH_DEFS) {
+  const raw = catmull(def, 20);
+  const pts = raw.map(([x, z]) => [x + 9 * n2.noise2(x / 90, z / 90), z + 9 * n2.noise2(x / 90 + 40, z / 90)]);
+  const fine = catmull(pts, 4).map(([x, z]) => ({ x, z, w: 1.6 + 0.6 * n3.noise2(x / 70, z / 70) }));
+  PATHS.push({ points: fine });
+  for (let i = 0; i < fine.length - 1; i++) {
+    const a = fine[i], b = fine[i + 1];
+    const x0 = Math.max(0, Math.floor((Math.min(a.x, b.x) - PMAX + HALF) / PCELL)), x1 = Math.min(PG - 1, Math.ceil((Math.max(a.x, b.x) + PMAX + HALF) / PCELL));
+    const z0 = Math.max(0, Math.floor((Math.min(a.z, b.z) - PMAX + HALF) / PCELL)), z1 = Math.min(PG - 1, Math.ceil((Math.max(a.z, b.z) + PMAX + HALF) / PCELL));
+    for (let gz = z0; gz <= z1; gz++) for (let gx = x0; gx <= x1; gx++) {
+      const d = Math.sqrt(segDist2(gx * PCELL - HALF, gz * PCELL - HALF, a.x, a.z, b.x, b.z)) - (a.w - 1.6);
+      const k = gz * PG + gx;
+      if (d < pDist[k]) pDist[k] = Math.max(0, d);
+    }
+  }
+}
+// 0..1 worn-path mask (1 on the track centre)
+export function getPathMask(x, z) {
+  const gx = clamp((x + HALF) / PCELL, 0, PG - 1.001), gz = clamp((z + HALF) / PCELL, 0, PG - 1.001);
+  const ix = gx | 0, iz = gz | 0, fx = gx - ix, fz = gz - iz, k = iz * PG + ix;
+  const d = lerp(lerp(pDist[k], pDist[k + 1], fx), lerp(pDist[k + PG], pDist[k + PG + 1], fx), fz);
+  if (d >= PMAX - 1) return 0;
+  return 1 - smooth(0.6, 2.6, d);
+}
+
 // canyon factor along Brightwater through the mesas: steep walls
 function canyonK(x, z) {
   const md = Math.hypot(x - MESA.x, z - MESA.z) / MESA.r;
@@ -411,7 +447,7 @@ export function getSurface(x, z, out = {}) {
   let sand = Math.max(1 - smooth(1.5, 4.5, h + nz * 30), river * 0.8) * (1 - rock) * (1 - snow);
   const mesa = mesaFactor(x, z);
   const alpine = smooth(170, 260, h);
-  let dirt = (1 - rock) * (1 - snow) * (1 - sand) * Math.max(mesa * 0.6, alpine * 0.35, smooth(0.16, 0.24, slope + nz) * 0.7);
+  let dirt = (1 - rock) * (1 - snow) * (1 - sand) * Math.max(mesa * 0.6, alpine * 0.35, smooth(0.16, 0.24, slope + nz) * 0.7, getPathMask(x, z) * 0.95);
   const grass = Math.max(0, 1 - rock - snow - sand - dirt);
   out.grass = grass; out.dirt = dirt; out.rock = rock; out.sand = sand; out.snow = snow;
   return out;
@@ -443,5 +479,5 @@ export const world = {
   WORLD_SIZE, WATER_LEVEL, getHeight, getNormal, getBiome, getSurface,
   getRiverInfo, getRiverMask, getWaterSurface, isLake,
   RIVERS, LAKES, WATERFALLS, LANDMARKS, TERRAIN_PALETTE, FEATURES,
-  forestFactor, mesaFactor, snowLine, baseHeight,
+  forestFactor, mesaFactor, snowLine, baseHeight, getPathMask, PATHS,
 };

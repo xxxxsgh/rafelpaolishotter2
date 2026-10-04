@@ -112,7 +112,7 @@ export function makePropMaterial(ctx, noiseTex, { kind = 'rock' } = {}) {
     cStoneDark: { value: new THREE.Color(ruin ? 0xa08d6e : 0x7c766e) },
     cMoss: { value: new THREE.Color(0x6f9a3a) },
     cLichen: { value: new THREE.Color(0xd8d0a8) },
-    uMossAmt: { value: ruin ? 0.75 : 0.85 },
+    uMossAmt: { value: ruin ? 1.0 : 0.85 },
     uStrata: { value: ruin ? 0.0 : 1.0 },
     uGroundBlend: { value: 0 },
   };
