@@ -66,15 +66,20 @@ vec3 paintLight(vec3 albedo, vec3 N, float shadow, float ao, float wrap) {
   vec3 L, kc; paintKeyLight(L, kc);
   float ndl = dot(N, L);
   float lit = paintRamp(ndl + wrap) * shadow;
-  vec3 amb = paintAmbient(N) * ao;
+  // never let shade fall below a soft sky-blue floor (painterly: shadows stay luminous)
+  vec3 amb = max(paintAmbient(N), uSkyColor * 0.75 + uGroundColor * 0.25) * ao;
   // shadows read cool blue-teal, never grey
   vec3 coolTint = mix(vec3(0.74, 0.9, 1.15), vec3(1.0), lit);
   // generous painterly fill: vertical faces also catch bounce from the sunlit ground
-  float fill = 0.42 + 0.62 * (1.0 - abs(N.y));
+  float fill = 0.62 + 1.0 * (1.0 - abs(N.y));
   vec3 bounce = uGroundColor * 0.6 * (1.0 - abs(N.y)) * sat(L.y + 0.2);
   vec3 c = albedo * (kc * lit * RECIPROCAL_PI + (amb * coolTint + bounce) * fill);
   // warm bounce in the lit band near the terminator (painterly warmth)
   c += albedo * RECIPROCAL_PI * kc * 0.06 * smoothstep(0.0, 0.25, ndl) * (1.0 - smoothstep(0.25, 0.6, ndl)) * shadow * vec3(1.0, 0.7, 0.4);
+  // low light (night/moon): Purkinje shift — desaturate toward cool blue, dimmer fill
+  float dayAmt = smoothstep(0.04, 0.3, luma(uSkyColor));
+  c *= 0.55 + 0.45 * dayAmt;
+  c = mix(vec3(luma(c)) * vec3(0.62, 0.78, 1.1), c, 0.3 + 0.7 * dayAmt);
   return c;
 }
 

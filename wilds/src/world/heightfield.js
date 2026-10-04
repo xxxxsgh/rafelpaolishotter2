@@ -151,6 +151,14 @@ export function baseHeight(x, z) {
     h = smax(h, h * (1 - crest * 0.4) + mh, 20);
   }
 
+  // rocky knolls/outcrops scattered over the lowlands and plateau: steep-sided rises
+  {
+    const o = n3.noise2(x / 170 + 13, z / 170 - 5) + 0.25 * n1.noise2(x / 45, z / 45);
+    if (o > 0.5) {
+      const t = smooth(0.5, 0.62, o) * 0.7 + smooth(0.62, 0.95, o) * 0.3;
+      h += t * (9 + 8 * n2.noise2(x / 300, z / 300)) * (1 - smooth(130, 200, h));
+    }
+  }
   // fine detail (small undulation; stronger on high rocky ground)
   h += 1.6 * n3.noise2(x / 38, z / 38) + 0.5 * n1.noise2(x / 13, z / 13);
   if (h > 90) h += Math.min(1, (h - 90) / 120) * 14 * (n1.ridged2(x / 110, z / 110, 3) - 0.45);
