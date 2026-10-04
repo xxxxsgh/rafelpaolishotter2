@@ -13,7 +13,7 @@
 //   post                          post pipeline handle (enabled flag, bloom, grade uniforms)
 // Writes every frame: uniforms.uSunDir/uSunColor (key light: sun by day, moon by night),
 // uSkyColor/uGroundColor (hemisphere fill), uFogColor/uFogDensity (linear: fog = 1-exp(-d*dist)),
-// uRain, uWetness, uWindStrength, uWindDir.
+// uRain, uWetness, uSnow (snow cover 0..1, created by sky), uWindStrength, uWindDir.
 // Events: 'lightning' {position, distance, delay}, 'weatherChange' {from, to}, 'timeChange' {hour}.
 import * as THREE from 'three';
 import { installFogChunks, fogShared } from './fogChunk.js';
@@ -105,7 +105,7 @@ export async function init(ctx) {
   const cur = { ...WEATHER.clear };
   let target = WEATHER.clear;
   let weatherTimer = 240 + Math.random() * 300;
-  let wetness = 0, lightningTimer = 6, cloudT = 0, cirrusT = 0, gustT = 0;
+  let wetness = 0, snowCover = 0, lightningTimer = 6, cloudT = 0, cirrusT = 0, gustT = 0;
   const sunDir = new THREE.Vector3(), moonDir = new THREE.Vector3(), keyDir = new THREE.Vector3();
   const keyCol = new THREE.Color(), tmpC = new THREE.Color(), grey = new THREE.Color(), tmpC2 = new THREE.Color();
   const lightU = new THREE.Vector3(), lightR = new THREE.Vector3(), lightF = new THREE.Vector3(), snapP = new THREE.Vector3();
@@ -155,6 +155,8 @@ export async function init(ctx) {
       if (from !== name) ctx.events.emit('weatherChange', { from, to: name });
     },
     getWeather: () => weather,
+    setWetness(v) { wetness = Math.min(1, Math.max(0, v)); },
+    getWetness: () => wetness,
     getDaylight: () => THREE.MathUtils.smoothstep(sunDir.y, -0.1, 0.15),
     isNight: () => sunDir.y < -0.05,
     getSunDir: () => sunDir,
@@ -303,6 +305,9 @@ export async function init(ctx) {
       du.uSky.value.set(night, oc, flash, 1 - oc * 0.85);
       du.uCirrus.value.set(cirrusT * 0.0006 * wd.x + 0.3, cirrusT * 0.0006 * wd.y, cur.cirrus * (1 - night * 0.6), 0);
       du.uTime.value = uniforms.uTime.value;
+      // rainbow: lingering wetness, rain stopped, sun up behind the viewer and fairly low
+      du.uRainbow.value = Math.max(0, wetness - 0.25) * (1 - THREE.MathUtils.smoothstep(rainAmt, 0.05, 0.3))
+        * THREE.MathUtils.smoothstep(sunDir.y, 0.03, 0.12) * (1 - THREE.MathUtils.smoothstep(sunDir.y, 0.55, 0.7)) * (1 - oc * 0.7);
       if (dt > 0 && !frozen) cirrusT += dt;
       starQ.setFromAxisAngle(starAxis, (hour / 24) * Math.PI * 2);
       starM4.makeRotationFromQuaternion(starQ);
@@ -323,6 +328,8 @@ export async function init(ctx) {
         else wetness = Math.max(0, wetness - dt / 150);
       }
       if (frozen) wetness = Math.max(wetness, rainAmt * 0.9);
+      if (dt > 0 && !frozen) snowCover = snowAmt > 0.3 ? Math.min(1, snowCover + dt / 90 * snowAmt) : Math.max(0, snowCover - dt / 240);
+      if (frozen) snowCover = Math.max(snowCover, snowAmt * 0.8);
 
       // ---------- precipitation ----------
       const ws = uniforms.uWindStrength.value;
@@ -339,6 +346,8 @@ export async function init(ctx) {
       uniforms.uFogDensity.value = fogDensity;
       uniforms.uRain.value = rainAmt;
       uniforms.uWetness.value = wetness;
+      if (!uniforms.uSnow) uniforms.uSnow = { value: 0 };
+      uniforms.uSnow.value = snowCover;
 
       // ---------- post ----------
       if (post) {

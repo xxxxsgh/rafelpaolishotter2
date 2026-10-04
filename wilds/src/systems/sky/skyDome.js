@@ -21,6 +21,7 @@ export function createSkyDome() {
     uSky: { value: new THREE.Vector4(0, 0, 0, 0) },  // x night, y storm darkening, z lightning flash, w sun visibility
     uCirrus: { value: new THREE.Vector4(0, 0, 0.35, 0) }, // xy offset, z amount, w time
     uTime: { value: 0 },
+    uRainbow: { value: 0 },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,
@@ -41,7 +42,7 @@ export function createSkyDome() {
       uniform vec3 uCloudLit, uCloudShade, uFogCol;
       uniform mat3 uStarRot;
       uniform vec4 uSky, uCirrus;
-      uniform float uTime;
+      uniform float uTime, uRainbow;
       varying vec3 vDir;
 
       float hash13(vec3 p) { p = fract(p * 0.1031); p += dot(p, p.zyx + 31.32); return fract((p.x + p.y) * p.z); }
@@ -237,6 +238,16 @@ export function createSkyDome() {
           }
         }
 
+        // rainbow after rain: 42 deg around the anti-solar point
+        if (uRainbow > 0.001) {
+          float ang = acos(clamp(dot(d, -uSunDisk), -1.0, 1.0));
+          float x = (ang - 0.733) / 0.035;           // -1 (violet, inner) .. 1 (red, outer)
+          if (abs(x) < 1.4) {
+            vec3 rb = clamp(vec3(1.5 - abs(x - 0.75) * 2.2, 1.5 - abs(x) * 2.2, 1.5 - abs(x + 0.75) * 2.2), 0.0, 1.0);
+            float env = (1.0 - smoothstep(0.6, 1.4, abs(x))) * smoothstep(-0.02, 0.15, d.y);
+            col += rb * env * uRainbow * 0.22 * (0.6 + 0.4 * col);
+          }
+        }
         // storm: heavy grey overcast
         col = mix(col, col * vec3(0.55, 0.6, 0.66), storm * 0.0);
         // lightning lights the whole sky
