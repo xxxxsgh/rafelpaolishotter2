@@ -9,7 +9,8 @@
 export const SHOT_PRESETS = {
   vista:    { time: 9.5,  weather: 'clear',  cam: { x: 170, z: 520, h: 14, tx: 20, tz: -700, th: 110 } },
   meadow:   { time: 16.5, weather: 'clear',  cam: { x: 120, z: 340, h: 2.2, tx: 260, tz: 120, th: 6 } },
-  forest:   { time: 11,   weather: 'clear',  cam: { x: -760, z: 980, h: 3, tx: -900, tz: 760, th: 12 } },
+  forest:   { time: 11,   weather: 'clear',  cam: { x: -772, z: 792, h: 2.0, tx: -700, tz: 818, th: 7 } },
+  grove:    { time: 15,   weather: 'clear',  cam: { x: 128, z: 140, h: 2.4, tx: 160, tz: 95, th: 6 } },
   river:    { time: 8,    weather: 'clear',  cam: { x: 922, z: 20, h: 5, tx: 965, tz: 260, th: 2 } },
   mountain: { time: 18.2, weather: 'clear',  cam: { x: -150, z: -450, h: 12, tx: -260, tz: -1290, th: -60 } },
   ruins:    { time: 10.5, weather: 'clear',  cam: { x: 60, z: -95, h: 3, tx: 40, tz: -170, th: 12 } },
