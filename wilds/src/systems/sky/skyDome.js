@@ -139,6 +139,33 @@ export function createSkyDome() {
         col += vec3(0.6, 0.75, 0.8) * moonGlow * (1.0 - storm) * above;
         col = mix(col, moonCol + col * 0.25, moonMask * night * (1.0 - storm) * above);
 
+        // ---------- distant cumulus banks heaped on the horizon ----------
+        if (d.y > -0.02 && d.y < 0.3) {
+          float u = atan(d.z, d.x) / 6.28318;
+          float drift = wbCloudParams.x * 0.15;
+          float p1 = texture2D(wbCloudTex, vec2(u * 3.0 + drift, 0.37)).r;
+          float p2 = texture2D(wbCloudTex, vec2(u * 9.0 + drift * 2.0, 0.61)).g;
+          float bankCov = clamp(wbCloudParams.z * 1.1 - 0.05, 0.0, 1.0);
+          float top = (p1 * 0.7 + p2 * 0.3 - (1.0 - bankCov) * 0.95) * 0.3;
+          // lumpy cauliflower crowns
+          float lump = texture2D(wbCloudTex, vec2(u * 31.0 + drift * 3.0, d.y * 6.0 + 0.2)).g;
+          top += (lump - 0.5) * 0.035 * smoothstep(0.0, 0.04, top);
+          float inside = top - max(d.y, 0.0);
+          if (inside > 0.0) {
+            float hgt = clamp(d.y / max(top, 1e-3), 0.0, 1.0);
+            float l2 = texture2D(wbCloudTex, vec2(u * 17.0 + drift, d.y * 4.0)).g;
+            float bl = clamp(smoothstep(0.0, 0.85, hgt) * 0.75 + (l2 - 0.5) * 0.5 + 0.2, 0.0, 1.0);
+            float br = smoothstep(0.15, 0.45, bl) * 0.5 + smoothstep(0.5, 0.85, bl) * 0.5;
+            vec3 bc = mix(uCloudShade, uCloudLit, br);
+            float sunSideB = pow(max(dot(normalize(d.xz + 1e-5), normalize(wbFogSun.xz + 1e-5)), 0.0), 3.0);
+            bc = mix(bc, uCloudShade * 0.9, sunSideB * (1.0 - smoothstep(0.0, 0.4, wbFogSun.y)) * 0.5);
+            bc += uSunCol * pow(max(mu, 0.0), 8.0) * (1.0 - smoothstep(0.0, 0.012, inside)) * 1.5 * uSky.w;
+            bc = mix(bc, wbFogTint(uHorizon, d), 0.42 + 0.3 * (1.0 - hgt) * 0.5 + uSky.y * 0.4);
+            float ba = smoothstep(0.0, 0.01, inside) * (1.0 - uSky.y * 0.6);
+            col = mix(col, bc, ba);
+          }
+        }
+
         // ---------- clouds (cumulus deck) ----------
         if (d.y > -0.01) {
           float t = (WB_CLOUD_H - min(cameraPosition.y, WB_CLOUD_H - 200.0) * 0.6) / (d.y + 0.045);
