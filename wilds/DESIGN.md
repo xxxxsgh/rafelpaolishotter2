@@ -45,6 +45,11 @@ WebAudio synthesis).
 ## Cross-system conventions
 - Shared shader uniforms live in `ctx.uniforms` (time, wind, sun, sky/ground colour, fog, rain, wetness, player pos).
   Reference those objects directly in custom shaders. sky writes sun/fog/sky colours; vegetation reads wind.
+- Fog (owned by sky): sky patches three's `fog_*` shader chunks, so any material with `fog: true`
+  (built-ins, or ShaderMaterials that merge `THREE.UniformsLib.fog` and `#include <fog_pars_*>/<fog_*>`)
+  automatically gets height fog, sun in-scatter matching the sky dome, and drifting cloud shadows.
+  Prefer that over hand-rolled fog. If you must roll your own: `fog = 1 - exp(-uFogDensity * dist)`, colour `uFogColor`.
+  `uSunDir`/`uSunColor` are the key light (sun by day, moon by night); `ctx.systems.sky.getSunDir()` is the true sun.
 - `ctx.focus` (Vector3) is the streaming centre — the player keeps it updated.
 - `ctx.cameraOverride = {pos, target}` — when set, the player camera must not move the camera.
 - Events (`ctx.events`): `damage`, `hit`, `itemPickup`, `cook`, `enemyKilled`, `weaponBroke`, `footstep`,

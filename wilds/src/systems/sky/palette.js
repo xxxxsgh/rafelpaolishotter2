@@ -12,9 +12,9 @@ const KEYS = [
   K(-4,  { zenith: 0x2b4c80, horizon: 0xb98d88, glow: 0xd06a48, sun: 0xff7040, sunI: 0.0, sky: 0x7486ad, gnd: 0x3a3236, hemiI: 0.72, exp: 1.3, band: 0.7, cLit: 0xd88a78, cShade: 0x47486a }),
   K(1,   { zenith: 0x3d67a8, horizon: 0xd6aea0, glow: 0xff9848, sun: 0xff9050, sunI: 1.5, sky: 0x8d9ec4, gnd: 0x4f4234, hemiI: 0.85, exp: 1.18, band: 0.65, cLit: 0xf0a888, cShade: 0x6a6a88 }),
   K(6,   { zenith: 0x4a80c4, horizon: 0xcfd2cc, glow: 0xffc078, sun: 0xffb874, sunI: 2.3, sky: 0x9cb2d4, gnd: 0x5a5038, hemiI: 0.95, exp: 1.08, band: 0.45, cLit: 0xf6d4b4, cShade: 0x7c8098 }),
-  K(14,  { zenith: 0x5a91cf, horizon: 0xd6e0d6, glow: 0xffc27a, sun: 0xffdcaa, sunI: 2.9, sky: 0xa8c2de, gnd: 0x5e5a40, hemiI: 1.05, exp: 1.0, band: 0.35, cLit: 0xfff0d8, cShade: 0x8c9cb8 }),
-  K(30,  { zenith: 0x5c95d4, horizon: 0xcfe4ea, glow: 0xffe6bc, sun: 0xfff1dc, sunI: 3.25, sky: 0xb2cde8, gnd: 0x62603f, hemiI: 1.12, exp: 1.0, band: 0.1, cLit: 0xffffff, cShade: 0x98aac4 }),
-  K(70,  { zenith: 0x5893d4, horizon: 0xd2e8ee, glow: 0xfff2dc, sun: 0xfff8ee, sunI: 3.4, sky: 0xb8d4ee, gnd: 0x666442, hemiI: 1.15, exp: 0.98, band: 0.0, cLit: 0xffffff, cShade: 0x9eb0c8 }),
+  K(14,  { zenith: 0x5d99d4, horizon: 0xd6e0d6, glow: 0xffc27a, sun: 0xffdcaa, sunI: 2.9, sky: 0xa8c2de, gnd: 0x5e5a40, hemiI: 1.05, exp: 1.0, band: 0.35, cLit: 0xfff0d8, cShade: 0x8c9cb8 }),
+  K(30,  { zenith: 0x5f9ed8, horizon: 0xd4eaee, glow: 0xffe6bc, sun: 0xfff1dc, sunI: 3.25, sky: 0xb2cde8, gnd: 0x62603f, hemiI: 1.12, exp: 1.0, band: 0.1, cLit: 0xffffff, cShade: 0xa4b4ca }),
+  K(70,  { zenith: 0x5b9bd8, horizon: 0xd6ecf0, glow: 0xfff2dc, sun: 0xfff8ee, sunI: 3.4, sky: 0xb8d4ee, gnd: 0x666442, hemiI: 1.15, exp: 0.98, band: 0.0, cLit: 0xffffff, cShade: 0xa8b8cc }),
 ];
 
 const COLOR_KEYS = ['zenith', 'horizon', 'glow', 'sun', 'sky', 'gnd', 'cLit', 'cShade'];

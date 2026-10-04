@@ -345,7 +345,7 @@ export async function init(ctx) {
         const g = post.grade;
         g.uExposure.value = pal.exp * (1 + oc * 0.1 - storm * 0.22);
         g.uFlash.value = flash;
-        g.uSat.value = 1.1 - oc * 0.2 - storm * 0.1 - night * 0.25;
+        g.uSat.value = 1.06 - oc * 0.2 - storm * 0.1 - night * 0.25;
         g.uContrast.value = 1.02 - oc * 0.06;
         // warm highlights at golden hour, cool shadows always, teal night
         const golden = THREE.MathUtils.smoothstep(elev, -3, 2) * (1 - THREE.MathUtils.smoothstep(elev, 10, 25));

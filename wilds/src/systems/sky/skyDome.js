@@ -69,7 +69,7 @@ export function createSkyDome() {
         float g = pow(hc, 0.42);
         vec3 col = mix(uHorizon, uZenith, smoothstep(0.0, 1.0, g));
         // brighter near-white band hugging the horizon
-        col = mix(col, uHorizon * 1.06 + 0.02, exp(-hc * 18.0) * 0.6);
+        col = mix(col, uHorizon * 1.04 + 0.015, exp(-hc * 7.0) * 0.45 + exp(-hc * 30.0) * 0.3);
         col = wbFogTint(col, d) * 1.0;
         // anti-sun side slightly deeper / bluer (Rayleigh shadow)
         float c = dot(d, wbFogSun.xyz);
