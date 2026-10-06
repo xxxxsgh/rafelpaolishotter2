@@ -66,6 +66,7 @@ uniform float uRim;
 uniform float uShadowAmt;
 uniform float uEmitBoost;
 uniform vec3 uEmitColor;
+uniform vec4 uFire;          // nearest campfire: xyz position, w intensity (warm local light)
 varying vec3 vWorldPos;
 varying vec3 vNormalW;
 varying vec3 vColor;
@@ -130,6 +131,14 @@ void main() {
   float dayAmt = smoothstep(0.04, 0.3, luma(uSkyColor));
   col *= 0.6 + 0.4 * dayAmt;
   col = mix(vec3(luma(col)) * vec3(0.62, 0.78, 1.1), col, 0.35 + 0.65 * dayAmt);
+  // campfire light: warm wrap-lit falloff, strongest at night
+  if (uFire.w > 0.0) {
+    vec3 fd = uFire.xyz - vWorldPos;
+    float fdist = length(fd);
+    float fall = max(0.0, 1.0 - fdist / 10.0); fall *= fall;
+    float wrapL = 0.35 + 0.65 * max(dot(N, fd / max(fdist, 1e-3)), 0.0);
+    col += albedo * vec3(1.0, 0.52, 0.2) * uFire.w * fall * wrapL * (1.15 - 0.85 * dayAmt);
+  }
   // emissive (eyes, runes, embers) — survives night
   col = mix(col, vColor * uEmitColor * (1.4 + uEmitBoost), sat(vEmit) * min(1.0, 0.85 + uEmitBoost));
   col += uFlash;
@@ -197,6 +206,7 @@ void main() {
 }
 `;
 
+export const fireLight = { value: null };
 export function makeToon(ctx, { rim = 1, shadowAmt = 0.85, emitColor = 0xffffff, side = 0 } = {}) {
   const { THREE, uniforms: U } = ctx;
   const m = new THREE.ShaderMaterial({
@@ -209,6 +219,7 @@ export function makeToon(ctx, { rim = 1, shadowAmt = 0.85, emitColor = 0xffffff,
       uDissolve: { value: 0 },
       uRim: { value: rim }, uShadowAmt: { value: shadowAmt },
       uEmitBoost: { value: 0 }, uEmitColor: { value: new THREE.Color(emitColor) },
+      uFire: fireLight.value ? fireLight : (fireLight.value = new THREE.Vector4(0, -1e4, 0, 0), fireLight),
     },
     vertexShader: VERT, fragmentShader: FRAG, lights: true, fog: true, side,
   });

@@ -24,6 +24,7 @@ import { createItems } from './items.js';
 import { createProjectiles } from './projectiles.js';
 import { createHero } from './hero.js';
 import { buildCamp } from './camps.js';
+import { fireLight } from './toon.js';
 import { WEAPONS, makeWeapon } from './weapons.js';
 
 // Hand-placed camp targets (refined at runtime to the flattest nearby ground)
@@ -319,6 +320,7 @@ export async function init(ctx) {
 
     // camps: stream population, LOD visibility, fire FX
     const pp = pl?.position;
+    let nearFire = null, nfd = 70;
     for (const camp of sys.camps) {
       const d = pp ? Math.hypot(pp.x - camp.x, pp.z - camp.z) : 0;
       camp.group.visible = d < 700;
@@ -329,8 +331,9 @@ export async function init(ctx) {
         sys.fx.fire(s.x, s.y, s.z, dt, 1);
         for (const t of camp.stations.torches || []) sys.fx.torch(t.x, t.y, t.z, dt);
         const fl = 0.85 + Math.sin(sys.time * 13) * 0.07 + Math.sin(sys.time * 31) * 0.05;
-        camp.glow.material.opacity = 0.5 * fl; camp.core.material.opacity = 0.8 * fl;
+        camp.glow.material.opacity = 0.35 * fl; camp.core.material.opacity = 0.8 * fl;
         camp.core.scale.set(1.6 * fl, 2.3 * fl, 1);
+        if (d < nfd) { nfd = d; nearFire = camp; camp.flicker = fl; }
       }
       const ch = camp.chest;
       if (ch.opened && ch.openT < 1) { ch.openT = Math.min(1, ch.openT + dt * 2.5); ch.lid.rotation.x = -1.9 * (1 - Math.pow(1 - ch.openT, 3)); }
@@ -338,6 +341,10 @@ export async function init(ctx) {
       else ch.mat.uniforms.uFlash.value.setRGB(0, 0, 0);
     }
 
+    if (fireLight.value) {
+      if (nearFire) { const f = nearFire.stations.fire; fireLight.value.set(f.x, f.y + 0.8, f.z, 1.6 * nearFire.flicker); }
+      else fireLight.value.w = 0;
+    }
     sys.hero.update(dt, realDt);
     sys.enemies.update(edt, realDt);
     sys.items.update(dt);
@@ -443,6 +450,7 @@ export async function init(ctx) {
     }
     ctx.focus.copy(ctx.cameraOverride.pos);
     ctx.camera.position.copy(ctx.cameraOverride.pos); ctx.camera.lookAt(ctx.cameraOverride.target);
+    if (ctx.params.get('ct')) ctx.systems.sky?.setTime?.(+ctx.params.get('ct'));   // dev: time-of-day override
   }
   events.on('shot', ({ name }) => { if (name === 'combat' || name === 'camp') { try { setupShot(name); } catch (e) { console.error('[combat] shot setup failed', e); } } });
 

@@ -330,7 +330,7 @@ export function buildCamp(ctx, site, opts = {}) {
 
   // fire glow on the ground + flame core sprite
   const glowMat = new THREE.MeshBasicMaterial({ map: opts.glowTex, color: 0xff8a3a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.55, fog: true });
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), glowMat); glow.rotation.x = -Math.PI / 2; glow.position.set(0, H(0, 0) + 0.12, 0); glow.renderOrder = 4;
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2), glowMat); glow.rotation.x = -Math.PI / 2; glow.position.set(0, H(0, 0) + 0.12, 0); glow.renderOrder = 4;
   group.add(glow);
   const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: opts.glowTex, color: 0xffa040, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.85 }));
   core.position.set(0, H(0, 0) + 0.55, 0); core.scale.set(1.8, 2.4, 1); group.add(core);
