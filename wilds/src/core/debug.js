@@ -53,6 +53,10 @@ export const SHOT_PRESETS = {
   title:    { time: 17.4, weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'title' },
   inventory:{ time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'inventory',
               extra: ctx => ctx.systems.gameplay?.debugShot?.('inventory') },
+  spire:    { time: 16.5, weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' },
+              extra: ctx => ctx.systems.gameplay?.debugShot?.('spire') },
+  forage:   { time: 11,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' },
+              extra: ctx => ctx.systems.gameplay?.debugShot?.('forage') },
   map:      { time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'map' },
 };
 

@@ -276,6 +276,7 @@ export async function init(ctx) {
   events.on('ready', () => {
     if (!shotMode && hasSave()) { try { load(); } catch (e) { console.warn('[gameplay] load failed', e); } }
     forage.stream(true);
+    rebuildVegetation();
     const q = quests.current();
     if (!shotMode && q.step) setTimeout(() => hud.banner(q.quest.title, q.step.text, 'main'), 1800);
   });
@@ -379,6 +380,35 @@ export async function init(ctx) {
       ctx.camera.position.copy(camPos); ctx.camera.lookAt(tgt);
       ctx.focus.copy(fp);
       hud.tray(ids, true, 'Cooking');
+    } else if (name === 'spire') {
+      const s = landmarks.spires[0];
+      const a = 2.3, d = 46;
+      const cx = s.x + Math.cos(a) * d, cz = s.z + Math.sin(a) * d;
+      pl?.teleport?.(s.x + Math.cos(a) * 12, s.z + Math.sin(a) * 12, a + Math.PI);
+      const pos = new THREE.Vector3(cx, world.getHeight(cx, cz) + 3, cz);
+      const tgt = new THREE.Vector3(s.x, s.y + 17, s.z);
+      ctx.cameraOverride = { pos, target: tgt }; ctx.camera.position.copy(pos); ctx.camera.lookAt(tgt); ctx.focus.copy(pos);
+      forage.stream(true);
+    } else if (name === 'forage') {
+      // a forest floor patch rich in pickables: search the streamed chunks around the hero for the densest spot
+      forage.stream(true);
+      const p0 = pl ? pl.position : ctx.focus;
+      let best = null, bn = 0;
+      const all = [...forage.chunks.values()].flatMap(c => c.items.filter(i => i.kind !== 'fish' && !i.hanging));
+      for (const it of all) {
+        if ((it.x - p0.x) ** 2 + (it.z - p0.z) ** 2 > 130 * 130) continue;
+        let n = 0; for (const o of all) if ((o.x - it.x) ** 2 + (o.z - it.z) ** 2 < 25) n += o.kind === 'tree' ? 2 : 1;
+        if (n > bn) { bn = n; best = it; }
+      }
+      if (best) {
+        const cx = best.x + 2.1, cz = best.z + 1.6;
+        const pos = new THREE.Vector3(cx, world.getHeight(cx, cz) + 2.0, cz);
+        const tgt = new THREE.Vector3(best.x, world.getHeight(best.x, best.z) + 0.2, best.z);
+        pl?.teleport?.(best.x - 2, best.z + 3, 2.4);
+        ctx.cameraOverride = { pos, target: tgt }; ctx.camera.position.copy(pos); ctx.camera.lookAt(tgt); ctx.focus.copy(pos);
+        forage.stream(true);
+        rebuildVegetation();
+      }
     } else if (name === 'inventory') {
       if (!ctx.systems.ui?.open) {
         const d = inv.dishes.find(x => x.effect === 'warmth') || inv.dishes[0];

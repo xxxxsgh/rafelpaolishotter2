@@ -31,6 +31,8 @@ const ORE_DROPS = {
   rimeopal: [['rimeopal', 1, 1], ['skyglass', 0, 1], ['flint', 1, 2]],
   hearthsalt: [['hearthsalt', 2, 4]],
 };
+// world-size multiplier per model family: pickables must read above knee-high grass
+const WSCALE = { mushroom: 2.1, shelf: 2.0, herb: 2.3, flower: 2.0, reed: 1.6, root: 1.9, pepper: 1.9, melon: 1.5, berries: 1.25, egg: 1.6, fruit: 1.3 };
 const FISH_BY_KIND = { river: ['silverfin', 'silverfin', 'mossback'], lake: ['ribboncarp', 'silverfin', 'mossback'], ocean: ['silverfin'] };
 
 function fruitTreeGeometry(seed, fruitId) {
@@ -61,6 +63,26 @@ export function createForage(ctx, res, inv, ui) {
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
   const treeGeos = [fruitTreeGeometry(11, 'russetpome'), fruitTreeGeometry(23, 'goldplum')];
   let dirty = true, lastCX = null, lastCZ = null;
+  // grass thins out in a small ring around each pickable so it reads (extends world.getPathMask)
+  const GRID = 2, clearGrid = new Map();
+  let genning = false;
+  const gkey = (gx, gz) => gx * 73856093 ^ gz * 19349663;
+  function gridAdd(it, r) { const k = gkey(Math.floor(it.x / GRID), Math.floor(it.z / GRID)); let a = clearGrid.get(k); if (!a) clearGrid.set(k, a = []); a.push({ x: it.x, z: it.z, r, it }); }
+  function gridRemoveChunk(c) { for (const it of c.items) { const k = gkey(Math.floor(it.x / GRID), Math.floor(it.z / GRID)); const a = clearGrid.get(k); if (a) { const i = a.findIndex(e => e.it === it); if (i >= 0) a.splice(i, 1); if (!a.length) clearGrid.delete(k); } } }
+  if (world.getPathMask && !world.__gameplayForagePatched) {
+    const orig = world.getPathMask;
+    world.getPathMask = (x, z) => {
+      let m = orig(x, z);
+      if (genning || !clearGrid.size) return m;
+      const gx = Math.floor(x / GRID), gz = Math.floor(z / GRID);
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        const a = clearGrid.get(gkey(gx + dx, gz + dz)); if (!a) continue;
+        for (const e of a) { const d2 = (x - e.x) ** 2 + (z - e.z) ** 2; if (d2 < e.r * e.r) { const t = Math.max(0, Math.min(1, (Math.sqrt(d2) / e.r - 0.4) / 0.6)); m = Math.max(m, 0.78 * (1 - t * t * (3 - 2 * t))); } }
+      }
+      return m;
+    };
+    world.__gameplayForagePatched = true;
+  }
   const fishList = [];
   const drops = [];
 
@@ -108,13 +130,13 @@ export function createForage(ctx, res, inv, ui) {
       } else if (entry.startsWith('ore:')) {
         items.push({ key, kind: 'ore', id: entry.slice(4), x, y: h - 0.12, z, rot, scale: 0.8 + r2 * 0.5, hits: 0 });
       } else {
-        items.push({ key, kind: 'pick', id: entry, x, y: h - 0.02, z, rot, scale: sc });
+        items.push({ key, kind: 'pick', id: entry, x, y: h - 0.02, z, rot, scale: sc * (WSCALE[ITEMS[entry].shape] || 1) });
         // a few herbs come in little patches
         if (ITEMS[entry].shape === 'herb' || ITEMS[entry].shape === 'flower') {
           const extra = r2 > 0.55 ? 2 : r2 > 0.3 ? 1 : 0;
           for (let j = 0; j < extra; j++) {
             const ex = x + (R() - 0.5) * 2.2, ez = z + (R() - 0.5) * 2.2;
-            items.push({ key: key + ':' + j, kind: 'pick', id: entry, x: ex, y: world.getHeight(ex, ez) - 0.02, z: ez, rot: R() * 6.28, scale: sc * (0.8 + R() * 0.3) });
+            items.push({ key: key + ':' + j, kind: 'pick', id: entry, x: ex, y: world.getHeight(ex, ez) - 0.02, z: ez, rot: R() * 6.28, scale: sc * (0.8 + R() * 0.3) * (WSCALE[ITEMS[entry].shape] || 1) });
           }
         }
       }
@@ -150,9 +172,13 @@ export function createForage(ctx, res, inv, ui) {
       const want = new Set();
       for (let dz = -RADIUS; dz <= RADIUS; dz++) for (let dx = -RADIUS; dx <= RADIUS; dx++) {
         const k = (cx + dx) + ',' + (cz + dz); want.add(k);
-        if (!chunks.has(k)) chunks.set(k, genChunk(cx + dx, cz + dz));
+        if (!chunks.has(k)) {
+          genning = true; const c = genChunk(cx + dx, cz + dz); genning = false;
+          for (const it of c.items) if (it.kind === 'pick' && !it.hanging) gridAdd(it, 1.4 + 0.3 * it.scale); else if (it.kind === 'ore') gridAdd(it, 1.6 * it.scale);
+          chunks.set(k, c);
+        }
       }
-      for (const k of chunks.keys()) if (!want.has(k)) chunks.delete(k);
+      for (const [k, c] of chunks) if (!want.has(k)) { gridRemoveChunk(c); chunks.delete(k); }
     }
     rebuild();
   }

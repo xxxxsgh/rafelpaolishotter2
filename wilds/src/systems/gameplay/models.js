@@ -39,6 +39,10 @@ function herbRosette(k, it, s = 1, seed = 3) {
     const L = (0.13 + R() * 0.06) * s;
     k.add(P.leaf(0.05 * s, L, 0.5), { rot: [-0.95 - R() * 0.3, a, 0], order: 'YXZ', color: col(it.c2), color2: col(it.c), grad: (x, y) => y / L, jitter: 0.08 });
   }
+  if (it.id === 'dewleaf') for (let i = 0; i < 6; i++) {
+    const a = i / 6 * Math.PI * 2 + 0.3, d = (0.05 + R() * 0.04) * s;
+    k.add(P.sphere(0.009 * s, 6, 4), { pos: [Math.cos(a) * d, (0.05 + R() * 0.03) * s, Math.sin(a) * d], color: 0xe8fbff, emit: 0.35 });
+  }
   if (it.id === 'snowmint') for (let i = 0; i < 4; i++) k.add(P.leaf(0.035 * s, 0.1 * s, 0.2), { rot: [-0.3, i * 1.6, 0], order: 'YXZ', color: col(it.c), color2: 0xffffff, grad: (x, y) => y * 6 });
 }
 function flower(k, it, s = 1, seed = 5) {
