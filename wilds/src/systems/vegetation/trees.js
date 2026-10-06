@@ -457,7 +457,7 @@ export function createTrees(ctx, { noiseTex, group, quality = 1 }) {
         sc = 0.75 + r3 * 0.5 + dens * 0.2;
       } else {
         const g = smooth(0.38, 0.7, grove);
-        p = 0.24 * g + 0.004;
+        p = 0.32 * g + 0.005;
         const dry = h > 0 && ff < 0.05 ? 0.6 : 1;
         p *= dry;
         const birchN = noise.noise2(x / 90 + 40, z / 90);

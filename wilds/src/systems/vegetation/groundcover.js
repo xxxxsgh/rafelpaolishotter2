@@ -276,7 +276,7 @@ void main() {
   wid = 1.35;
 #elif defined(LAYER_FLOWER)
   float cl = texture(uNoise, root / 41.0 + 0.71).g * 0.7 + texture(uNoise, root / 13.0).b * 0.5;
-  cover = fd.g * (1.0 - forest) * (1.0 - alpine * 0.6) * smoothstep(0.46, 0.68, cl) * (1.0 - smoothstep(0.4, 0.7, slope));
+  cover = fd.g * (1.0 - forest) * (1.0 - alpine * 0.6) * smoothstep(0.42, 0.64, cl) * (1.0 - smoothstep(0.4, 0.7, slope));
   hgt = mix(0.75, 1.3, r1) * (1.0 - alpine * 0.35);
 #elif defined(LAYER_FERN)
   cover = smoothstep(0.35, 0.8, forest) * smoothstep(0.1, 0.4, fd.g + 0.25) * (1.0 - smoothstep(0.7, 1.1, slope)) * smoothstep(0.3, 0.55, nP.g * 0.7 + nQ.r * 0.5);
@@ -352,7 +352,9 @@ void main() {
   vec3 Fn = vec3(F.x, 0.0, F.y);
   vec3 bendDir = vec3(bend.x, 0.0, bend.y);
   nrm = normalize(Fn * 0.8 + vec3(W.x, 0.0, W.y) * side * 0.55 - bendDir * 0.6 * t + vec3(0.0, 0.35 + 0.4 * t, 0.0));
-  vData2 = vec4(head, 0.0, dry, 0.0);
+  // colour-variation patches (two scales) -> painterly hue/value masses across the field
+  float pv = texture(uNoise, root / 11.0 + 0.13).b * 0.55 + texture(uNoise, root / 37.0 + 0.61).r * 0.45;
+  vData2 = vec4(head, pv, dry, 0.0);
 #endif
   vec3 base = terrainGrass(root, forest, h);
   vBase = base;
@@ -396,22 +398,28 @@ void main() {
   vec3 albedo;
   float trans = 0.0;
 #if defined(LAYER_GRASS) || defined(LAYER_REED)
-  vec3 rootC = base * vec3(0.5, 0.6, 0.55);
+  float pv = vData2.y;
+  vec3 rootC = base * vec3(0.4, 0.5, 0.44);
   vec3 tip = mix(cTipA, cTipB, vData.w);
-  tip = mix(tip, base * 1.1, 0.32);
+  tip = mix(tip, base * 1.12, 0.3);
+  // lush deep-green masses vs sunny yellow-green masses, plus a gentle hue drift
+  tip = mix(tip * vec3(0.74, 0.9, 0.78), tip * vec3(1.07, 1.04, 0.8), smoothstep(0.28, 0.72, pv));
+  tip = vhueShift(tip, (pv - 0.5) * 0.22 + (vData.w - 0.5) * 0.1);
   tip = mix(tip, cDryTip, vData2.z * 0.55);
   #ifdef LAYER_REED
   rootC = base * vec3(0.45, 0.55, 0.4);
   tip = mix(vec3(0.33, 0.42, 0.14), vec3(0.62, 0.6, 0.3), vData.w * 0.8);
   #endif
-  albedo = mix(rootC, tip, smoothstep(0.0, 1.0, pow(t, 0.75)));
-  // gust sheen: bent blades catch the sky -> bright bands sweep across the field
-  albedo *= (1.0 + vData.z * 0.65 * t) * (0.88 + 0.12 * smoothstep(0.0, 0.25, vData.z));
-  trans = t * t * 0.7;
+  albedo = mix(rootC, tip, smoothstep(0.0, 1.0, pow(t, 0.62)));
+  albedo *= 0.9 + 0.2 * fract(vData.w * 7.31);   // per-blade value jitter
+  // gust sheen: bent blades catch the sky -> silvery bright bands sweep across the field
+  float sheen = vData.z * smoothstep(0.15, 0.9, t);
+  albedo = mix(albedo * (0.86 + 0.14 * smoothstep(0.0, 0.3, vData.z)), albedo * 1.22 + vec3(0.05, 0.06, 0.04), sheen * 0.8);
+  trans = t * t * 0.8;
   #ifdef LAYER_REED
   albedo = mix(albedo, vec3(0.2, 0.11, 0.05), smoothstep(0.2, 0.6, vData2.x));
   #endif
-  float ao = mix(0.68, 1.0, smoothstep(0.0, 0.7, t));
+  float ao = mix(0.5, 1.0, smoothstep(0.0, 0.75, t));
   vec3 N = normalize(mix(Nb, vTerrN, 0.55));
 #elif defined(LAYER_FLOWER)
   float part = vData2.x;
@@ -593,13 +601,14 @@ export function createGroundCover(ctx, field, noiseTex, quality = 1) {
   const flowerCover = (f, x, z, T) => fA(f, x, z, T) && !fB(f, x, z, T);
   const rand = mulberry32(99);
   const fprotos = [
-    protoFlower(rand, 6, 0.085, 0.32, 0.4, 0.3),
-    protoFlower(rand, 5, 0.06, 0.5, 0.3, 0.12),
-    protoFlower(rand, 8, 0.065, 0.22, 0.36, 0.45),
-    protoFlower(rand, 5, 0.07, 0.42, 0.46, 0.2),
-    protoFlower(rand, 6, 0.1, 0.28, 0.55, 0.35),
+    protoFlower(rand, 6, 0.12, 0.32, 0.42, 0.3),
+    protoFlower(rand, 5, 0.09, 0.5, 0.32, 0.12),
+    protoFlower(rand, 8, 0.095, 0.22, 0.38, 0.45),
+    protoFlower(rand, 5, 0.1, 0.42, 0.48, 0.2),
+    protoFlower(rand, 6, 0.15, 0.26, 0.6, 0.6),     // tall lily-like cup
+    protoFlower(rand, 6, 0.17, 0.24, 0.68, 0.75),
   ];
-  const fp = plantPatch(8, Math.round(360 * q), 777, fprotos, 7);
+  const fp = plantPatch(8, Math.round(480 * q), 777, fprotos, 9);
   layers.push(new GroundLayer(ctx, field, noiseTex, {
     name: 'flowers', tile: 8, rings: [26, 52, 80], define: 'LAYER_FLOWER', plant: true, patch: fp, maxHeight: 0.8, layer: [1, 1, 1, 0],
     cover: flowerCover,
