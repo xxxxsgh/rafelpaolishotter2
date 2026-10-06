@@ -203,18 +203,22 @@ export function birch(seed, { height = 11, color = 0x8fbf45, bark = 0xe9e5dc } =
     trunk.push({ p, r: r0 * (1 - 0.7 * t) });
   }
   tube(B, trunk, 7, barkC, 1, rand, 1);
-  const crown = { c: new V3(bend.x * 0.6, H * 0.66, bend.z * 0.6), r: H * 0.2, sy: 1.5 };
-  const nBlobs = 7 + Math.floor(rand() * 3);
+  const crown = { c: new V3(bend.x * 0.6, H * 0.68, bend.z * 0.6), r: H * 0.24, sy: 1.25 };
+  // airy crown: distinct clumps spiralling up the trunk on short twigs
+  const nBlobs = 6 + Math.floor(rand() * 2);
+  let a = rand() * Math.PI * 2;
   for (let i = 0; i < nBlobs; i++) {
-    const t = 0.4 + (i / nBlobs) * 0.55;
+    const t = 0.42 + (i / (nBlobs - 1)) * 0.5;
     const y = H * t;
-    const a = rand() * Math.PI * 2;
-    const rr = H * 0.07 * Math.sin(Math.PI * Math.min(1, (t - 0.25) / 0.75)) + 0.2;
+    a += 2.4 + rand() * 0.5;
+    const taper = 1 - (t - 0.42) / 0.6;
+    const rr = H * (0.06 + 0.11 * taper) * (0.8 + rand() * 0.4);
     const tc = trunk[Math.min(8, Math.round(t * 8))].p;
-    const c = new V3(tc.x + Math.cos(a) * rr, y, tc.z + Math.sin(a) * rr);
-    tube(B, branchPath(tc.clone().setY(y - 0.6), c, r0 * 0.3, r0 * 0.08, 3, 0.25, rand), 4, barkC, 1, rand);
-    leafBlob(L, c, H * (0.15 + rand() * 0.05), crown, 22, CELL.small, leafC, rand, { stretchY: 1.15, shell: true, aoBottom: 0.6 });
+    const c = new V3(tc.x + Math.cos(a) * rr, y + rr * 0.25, tc.z + Math.sin(a) * rr);
+    tube(B, branchPath(tc.clone().setY(y - 0.5), c, r0 * 0.35, r0 * 0.1, 3, 0.3, rand), 4, barkC, 1, rand);
+    leafBlob(L, c, H * (0.11 + 0.07 * taper) * (0.85 + rand() * 0.3), crown, 24, CELL.small, leafC, rand, { stretchY: 0.95, shell: true, aoBottom: 0.55 });
   }
+  leafBlob(L, trunk[8].p.clone().add(new V3(0, 0.3, 0)), H * 0.08, crown, 10, CELL.small, leafC, rand, { stretchY: 1.2, aoBottom: 0.7 });
   return { bark: B.geometry(H), leaves: L.geometry(H), height: H, radius: H * 0.28, trunkR: r0 * 1.2, species: 'birch' };
 }
 

@@ -57,7 +57,7 @@ export class FieldMap {
       const m = w.getRiverMask(x, z);
       suit *= 1 - m;
       const dh = h - ri.waterY;
-      if (ri.dist < ri.halfWidth + 14) shore = Math.max(shore, smooth(-0.7, -0.15, dh) * (1 - smooth(0.5, 1.7, dh)));
+      if (ri.dist < ri.halfWidth + 7) shore = Math.max(shore, smooth(-0.6, -0.15, dh) * (1 - smooth(0.25, 0.9, dh)) * (1 - smooth(ri.halfWidth + 2, ri.halfWidth + 7, ri.dist)));
       if (dh < -0.05 && ri.dist < ri.halfWidth + 2) suit = 0;
     }
     // lakes
@@ -67,7 +67,7 @@ export class FieldMap {
       if (dd > (L.r * 2) ** 2) continue;
       const dh = h - L.y;
       if (dh < 0.05) suit = 0;
-      shore = Math.max(shore, smooth(-0.8, -0.15, dh) * (1 - smooth(0.6, 1.9, dh)));
+      shore = Math.max(shore, smooth(-0.7, -0.15, dh) * (1 - smooth(0.3, 1.1, dh)));
     }
     if (h < 0.4) suit = 0;
     // paths, snow, mesas

@@ -7,10 +7,11 @@ import { mulberry32 } from '../../core/noise.js';
 // Uniform objects shared with the engine (reference, never copy).
 export function vegUniforms(ctx, noiseTex) {
   const u = ctx.uniforms;
+  if (!u.uSnow) u.uSnow = { value: 0 };   // sky writes it (snow cover 0..1); create early so we share the object
   return {
     uTime: u.uTime, uWindDir: u.uWindDir, uWindStrength: u.uWindStrength,
     uSunDir: u.uSunDir, uSunColor: u.uSunColor, uSkyColor: u.uSkyColor, uGroundColor: u.uGroundColor,
-    uFogColor: u.uFogColor, uWetness: u.uWetness, uRain: u.uRain, uPlayerPos: u.uPlayerPos,
+    uFogColor: u.uFogColor, uWetness: u.uWetness, uRain: u.uRain, uSnow: u.uSnow, uPlayerPos: u.uPlayerPos,
     uNoise: { value: noiseTex },
   };
 }
@@ -26,6 +27,7 @@ uniform vec3 uGroundColor;
 uniform vec3 uFogColor;
 uniform float uWetness;
 uniform float uRain;
+uniform float uSnow;
 uniform vec3 uPlayerPos;
 uniform sampler2D uNoise;
 

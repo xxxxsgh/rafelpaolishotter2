@@ -266,14 +266,14 @@ void main() {
   cover = fd.g * (1.0 - smoothstep(0.55, 0.95, slope)) * (1.0 - forest * 0.35);
   cover *= smoothstep(0.08, 0.3, nQ.g * 0.6 + nP.r * 0.6 + fd.g * 0.3);   // soft bald-patch edges
   float tall = smoothstep(0.35, 0.75, nP.r * 0.8 + texture(uNoise, root / 90.0).g * 0.5);
-  hgt = mix(0.45, 1.1, tall) * mix(0.55, 1.2, r1 * r1);
+  hgt = mix(0.5, 1.25, tall) * mix(0.55, 1.2, r1 * r1);
   hgt *= mix(1.0, 0.5, alpine) * mix(1.0, 0.6, forest) * mix(1.0, 0.85, dry);
   hgt *= 0.55 + 0.45 * smoothstep(0.0, 0.6, fd.g);
   if (r1 > 0.985) hgt *= 1.55;                       // a few tall seed stalks
 #elif defined(LAYER_REED)
   cover = fd.a * smoothstep(0.2, 0.5, nQ.r * 0.5 + nP.g * 0.7);
-  hgt = mix(1.0, 1.9, r1) * (0.7 + 0.3 * nP.b);
-  wid = 0.85;
+  hgt = mix(0.9, 2.0, r1 * r1) * (0.7 + 0.3 * nP.b);
+  wid = 1.35;
 #elif defined(LAYER_FLOWER)
   float cl = texture(uNoise, root / 41.0 + 0.71).g * 0.7 + texture(uNoise, root / 13.0).b * 0.5;
   cover = fd.g * (1.0 - forest) * (1.0 - alpine * 0.6) * smoothstep(0.46, 0.68, cl) * (1.0 - smoothstep(0.4, 0.7, slope));
@@ -283,6 +283,8 @@ void main() {
   hgt = mix(0.7, 1.35, r1);
 #endif
   cover *= uLayer.z;
+  hgt *= 1.0 - uSnow * 0.35;
+  hgt *= 1.0 - smoothstep(0.12, 0.6, slope) * 0.6;
   float present = vsat((dens * cover - rank) / max(0.12 * dens, 1e-3));
   float fadeGround = smoothstep(uRings.z * 0.55, uRings.z, dist);
   hgt *= uLayer.x * present;
@@ -297,7 +299,9 @@ void main() {
   float yaw = r2 * 6.2831 + th * 3.0;
   vec2 F = vec2(cos(yaw), sin(yaw));
   vec2 W = vec2(-F.y, F.x);
-  vec2 bend = uWindDir * (bendAmt * 0.6 + flutter) + F * (0.12 + r1 * 0.35);
+  vec2 bend = uWindDir * (bendAmt * 0.62 + ws * 0.22 + flutter) + F * (0.08 + r1 * 0.28);
+  // on slopes blades lean out downhill (grow away from the surface) instead of forming a wall
+  bend -= grad * 0.55;
   // player pushes blades aside
   vec2 dp = root - uPlayerPos.xz;
   float dl = length(dp);
@@ -329,8 +333,16 @@ void main() {
   float side = aB.x;
   float bh = hgt * mix(0.95, 1.05, nQ.b);
   float compW = clamp(inversesqrt(max(dens, 0.04)), 1.0, 3.2);
-  float bw = (0.05 + 0.035 * r1) * uLayer.y * wid * mix(1.0, compW, 0.75) * mix(1.0, 1.25, step(0.985, r1) * 0.0);
+  float bw = (0.055 + 0.04 * r1) * uLayer.y * wid * mix(1.0, compW, 0.75);
   float w = bw * (1.0 - pow(t, 1.5)) * (0.65 + 0.35 * present);
+  float head = 0.0;
+#ifdef LAYER_REED
+  // a share of the reeds carry a brown seed head near the top (stiff, straight stalks)
+  if (r1 > 0.84) {
+    head = smoothstep(0.55, 0.62, t) * (1.0 - smoothstep(0.86, 0.95, t));
+    w = mix(bw * 0.3 * (1.0 - t * 0.5), 0.07, head);
+  }
+#endif
   vec2 off = bend * bh * (t * t) * 0.85;
   float y = bh * t * (1.0 - 0.32 * bl * bl * t);
   pos = root3 + vec3(off.x, y, off.y) + vec3(W.x, 0.0, W.y) * side * w * 0.5;
@@ -340,7 +352,7 @@ void main() {
   vec3 Fn = vec3(F.x, 0.0, F.y);
   vec3 bendDir = vec3(bend.x, 0.0, bend.y);
   nrm = normalize(Fn * 0.8 + vec3(W.x, 0.0, W.y) * side * 0.55 - bendDir * 0.6 * t + vec3(0.0, 0.35 + 0.4 * t, 0.0));
-  vData2 = vec4(0.0, 0.0, dry, 0.0);
+  vData2 = vec4(head, 0.0, dry, 0.0);
 #endif
   vec3 base = terrainGrass(root, forest, h);
   vBase = base;
@@ -384,7 +396,7 @@ void main() {
   vec3 albedo;
   float trans = 0.0;
 #if defined(LAYER_GRASS) || defined(LAYER_REED)
-  vec3 rootC = base * vec3(0.42, 0.52, 0.48);
+  vec3 rootC = base * vec3(0.5, 0.6, 0.55);
   vec3 tip = mix(cTipA, cTipB, vData.w);
   tip = mix(tip, base * 1.1, 0.32);
   tip = mix(tip, cDryTip, vData2.z * 0.55);
@@ -394,9 +406,12 @@ void main() {
   #endif
   albedo = mix(rootC, tip, smoothstep(0.0, 1.0, pow(t, 0.75)));
   // gust sheen: bent blades catch the sky -> bright bands sweep across the field
-  albedo *= (1.0 + vData.z * 0.5 * t) * (0.9 + 0.1 * smoothstep(0.0, 0.2, vData.z));
+  albedo *= (1.0 + vData.z * 0.65 * t) * (0.88 + 0.12 * smoothstep(0.0, 0.25, vData.z));
   trans = t * t * 0.7;
-  float ao = mix(0.6, 1.0, smoothstep(0.0, 0.7, t));
+  #ifdef LAYER_REED
+  albedo = mix(albedo, vec3(0.2, 0.11, 0.05), smoothstep(0.2, 0.6, vData2.x));
+  #endif
+  float ao = mix(0.68, 1.0, smoothstep(0.0, 0.7, t));
   vec3 N = normalize(mix(Nb, vTerrN, 0.55));
 #elif defined(LAYER_FLOWER)
   float part = vData2.x;
@@ -416,6 +431,9 @@ void main() {
   float ao = mix(0.55, 1.0, t);
   vec3 N = normalize(mix(Nb, vec3(0.0, 1.0, 0.0), 0.35));
 #endif
+  // weather: rain darkens, snow settles on the upper parts
+  albedo *= 1.0 - uWetness * 0.22;
+  albedo = mix(albedo, vec3(0.9, 0.93, 0.98), uSnow * smoothstep(0.25, 0.9, t) * 0.75);
   // distance fade into the ground colour (no visible pop-in line)
   albedo = mix(albedo, base, vData.y);
   N = normalize(mix(N, vTerrN, vData.y));
@@ -564,8 +582,8 @@ export function createGroundCover(ctx, field, noiseTex, quality = 1) {
     cover: tileMax(1, 0.03, 2),
   }));
   // reeds along rivers + lakes
-  const rp = grassPatch(4, Math.round(220 * q), 4321, 5);
-  const rpFar = grassPatch(4, Math.round(220 * q), 4321, 2);
+  const rp = grassPatch(4, Math.round(300 * q), 4321, 5);
+  const rpFar = grassPatch(4, Math.round(300 * q), 4321, 2);
   layers.push(new GroundLayer(ctx, field, noiseTex, {
     name: 'reeds', tile: 4, rings: [30, 60, 90], define: 'LAYER_REED', patch: rp, patchFar: rpFar, maxHeight: 2.4, layer: [1, 0.55, 1, 0],
     cover: tileMax(3, 0.05, 1),

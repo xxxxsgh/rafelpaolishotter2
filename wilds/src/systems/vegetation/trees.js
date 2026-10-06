@@ -8,8 +8,8 @@ import { VEG_COMMON, VEG_LIGHT, vegUniforms } from './common.js';
 import { broadleaf, birch, conifer, deadTree, palm, bush, log, makeLeafAtlas } from './treeGeo.js';
 
 const CH = 64;                 // placement chunk size (m)
-const LOD0_FADE = [128, 150];  // trees: full mesh -> impostor cross-fade
-const BUSH_FADE = [52, 66];
+const LOD0_FADE = [138, 147];  // trees: full mesh -> impostor cross-fade
+const BUSH_FADE = [58, 65];
 const IMP_FAR = 2100;          // impostor draw distance (trees)
 const BUSH_FAR = 420;
 const LOAD_R = 2000;           // chunk streaming radius
@@ -150,6 +150,7 @@ void main() {
     return;
   }
   albedo *= 1.0 - uWetness * 0.25;
+  albedo = mix(albedo, vec3(0.92, 0.95, 1.0), uSnow * smoothstep(0.25, 0.75, N.y) * 0.85);
   float shadow = getShadowMask();
   vec3 col = vegLight(albedo, N, V, shadow, ao, trans, wrap);
   // soft sky rim on silhouettes
@@ -229,6 +230,8 @@ void main() {
   if (a.a < 0.42) discard;
   vec3 albedo = a.rgb / max(a.a, 1e-3);
   albedo *= 0.92 + 0.16 * vTint;
+  albedo *= 1.0 - uWetness * 0.25;
+  albedo = mix(albedo, vec3(0.92, 0.95, 1.0), uSnow * smoothstep(0.35, 0.9, vQ.y) * 0.6);
   // pseudo-spherical normal across the billboard
   float nx = clamp(vQ.x, -1.0, 1.0);
   float ny = clamp((vQ.y - 0.55) * 1.6, -1.0, 1.0);
@@ -434,14 +437,14 @@ export function createTrees(ctx, { noiseTex, group, quality = 1 }) {
       const snowL = world.snowLine(x, z), mesa = world.mesaFactor(x, z);
       let p = 0, proto = -1, sc = 1;
       if (h > snowL + 25) continue;
-      else if (h > snowL - 25) { p = 0.02 * (slope < 0.7 ? 1 : 0); proto = DEAD[(r2 * 2) | 0]; sc = 0.8 + r3 * 0.5; }
+      else if (h > snowL - 25) { p = 0.05 * (slope < 0.75 ? 1 : 0); proto = DEAD[(r2 * 2) | 0]; sc = 0.8 + r3 * 0.5; }
       else if (h > 165) {
         const lim = 1 - smooth(snowL - 90, snowL - 20, h);
         p = 0.34 * lim * (slope < 0.85 ? 1 : 0) * smooth(-0.6, 0.2, grove + 0.3);
-        proto = r2 < 0.06 ? DEAD[0] : CONIF[(r3 * 3) | 0]; sc = 0.75 + r3 * 0.55 * lim;
+        proto = r2 < 0.04 + 0.2 * smooth(snowL - 120, snowL - 30, h) ? DEAD[(r3 * 2) | 0] : CONIF[(r3 * 3) | 0]; sc = 0.75 + r3 * 0.55 * lim;
       } else if (mesa > 0.5) { p = 0.012; proto = DEAD[1]; sc = 0.7 + r3 * 0.4; }
-      else if (h < 6.5 && ff < 0.3) {
-        p = 0.09 * smooth(-0.2, 0.4, grove) * (slope < 0.4 ? 1 : 0); proto = PALM[(r2 * 2) | 0]; sc = 0.8 + r3 * 0.45;
+      else if (h < 8 && ff < 0.3) {
+        p = 0.16 * smooth(-0.3, 0.3, grove) * (slope < 0.4 ? 1 : 0); proto = PALM[(r2 * 2) | 0]; sc = 0.8 + r3 * 0.45;
       } else if (ff > 0.22) {
         const dens = smooth(0.22, 0.65, ff) * (0.55 + 0.45 * smooth(-0.5, 0.3, grove));
         p = 0.4 * dens;

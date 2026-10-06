@@ -14,7 +14,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const opt = (k, d) => { const i = args.indexOf('--' + k); if (i < 0) return d; const v = args[i + 1]; args.splice(i, 2); return v; };
 const out = path.resolve(root, opt('out', 'shots/latest'));
-const W = +opt('w', 1280), H = +opt('h', 720), frames = +opt('frames', 90), extra = opt('query', '');
+const W = +opt('w', 1280), H = +opt('h', 720), frames = +opt('frames', 30), extra = opt('query', '');
 const timeout = +opt('timeout', 240000);
 const presets = args.length ? args : ['vista'];
 fs.mkdirSync(out, { recursive: true });
@@ -47,7 +47,7 @@ for (const name of presets) {
     await page.goto(url);
     await page.waitForFunction(() => window.__shotReady === true, null, { timeout, polling: 250 });
     const file = path.join(out, `${name}.png`);
-    await page.screenshot({ path: file });
+    await page.screenshot({ path: file, timeout: 240000 });
     const fps = await page.evaluate(() => window.__ctx?.engine ? (1 / (window.__ctx.engine.clock.getDelta() || 1)).toFixed(1) : '?');
     console.log(`OK   ${name} -> ${path.relative(root, file)} (${((Date.now() - t0) / 1000).toFixed(1)}s, ~${fps}fps swiftshader)`);
   } catch (e) {
