@@ -44,12 +44,15 @@ export const SHOT_PRESETS = {
               extra: ctx => ctx.systems.physics?.debugShot?.('props') },
   lodestone:{ time: 12,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' },
               extra: ctx => ctx.systems.physics?.debugShot?.('sanctum-lodestone') },
-  cooking:  { time: 21,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'cooking' }, hud: true },
+  cooking:  { time: 21,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'cooking' }, hud: true,
+              // gameplay: build the hero's camp in front of them, freeze the pot mid-boil, frame across the fire
+              extra: ctx => ctx.systems.gameplay?.debugShot?.('cooking') },
   hud:      { time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true,
               // ui: a lived-in HUD — a little hurt, a prompt up, a pickup notice
               extra: ctx => ctx.systems.ui?.debugShot?.('hud') },
   title:    { time: 17.4, weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'title' },
-  inventory:{ time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'inventory' },
+  inventory:{ time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'inventory',
+              extra: ctx => ctx.systems.gameplay?.debugShot?.('inventory') },
   map:      { time: 10,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'idle' }, hud: true, ui: 'map' },
 };
 
