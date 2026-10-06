@@ -130,7 +130,7 @@ export async function init(ctx) {
         const dt = src.depthTexture ? new THREE.DepthTexture(w, h, src.depthTexture.type) : null;
         if (dt) { dt.format = src.depthTexture.format; dt.minFilter = dt.magFilter = THREE.NearestFilter; }
         grab.rt = new THREE.WebGLRenderTarget(w, h, { type: src.texture.type, depthBuffer: !!dt, depthTexture: dt,
-          stencilBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+          stencilBuffer: !!(dt && src.stencilBuffer), generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
         grab.depth = !!dt;
         sharedU.tRefractDepth.value = dt;
         grab.rt.texture.name = 'water.refract';

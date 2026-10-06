@@ -21,6 +21,8 @@ export const SHOT_PRESETS = {
   falls:    { time: 10.5, weather: 'clear',  cam: { x: 572, z: -96, h: 3, tx: 500, tz: -48, th: 16 } },
   coast:    { time: 11,   weather: 'clear',  cam: { x: -1480, z: 470, y: 95, tx: -1720, tz: 700, ty: 0 } },
   rainlake: { time: 13,   weather: 'rain',   cam: { x: -680, z: 140, h: 2.5, tx: -800, tz: 175, th: -1 } },
+  seaglow:  { time: 18.3, weather: 'clear',  cam: { x: 1490, z: 200, h: 4, tx: 1900, tz: 170, th: 8 } },
+  lakenight:{ time: 22.5, weather: 'clear',  cam: { x: -662, z: 128, h: 3.5, tx: -1000, tz: 205, th: 6 } },
   delta:    { time: 15,   weather: 'clear',  cam: { x: 1060, z: 760, y: 230, tx: 1330, tz: 1180, ty: 0 } },
   sunset:   { time: 19.0, weather: 'cloudy', cam: { x: -200, z: 0, h: 12, tx: 400, tz: 100, th: 20 } },
   night:    { time: 23.5, weather: 'clear',  cam: { x: 100, z: 100, h: 6, tx: 420, tz: 40, th: 110 } },

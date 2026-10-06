@@ -446,11 +446,12 @@ void main() {
     foam = max(foam, smoothstep(0.55, 0.85, bank * (0.45 + fc * 0.8)) * 0.7);
     // falls: aerated white water with darker glassy streaks racing down
     if (steep > 0.01) {
-      float st = texture2D(tNoise, vec2(ruv.x / 1.4, ruv.y / 5.0 - uTime * (0.9 + speed * 0.12))).r;
-      float st2 = texture2D(tNoise, vec2(ruv.x / 0.6, ruv.y / 2.3 - uTime * (1.5 + speed * 0.2))).g;
-      float st3 = texture2D(tNoise, vec2(ruv.x / 2.7, ruv.y / 11.0 - uTime * (0.6 + speed * 0.08)) + 0.37).b;
-      float white = smoothstep(0.3, 0.75, st * 0.7 + st2 * 0.5 + steep * 0.2 - (st3 - 0.5) * 0.8);
-      foam = max(foam, steep * mix(0.3, 1.0, white));
+      // long vertical ropes of white water racing down, breaking into bubbly clumps
+      float st = texture2D(tNoise, vec2(ruv.x / 1.1, ruv.y / 14.0 - uTime * (0.5 + speed * 0.06))).r;
+      float st2 = texture2D(tNoise, vec2(ruv.x / 0.45, ruv.y / 4.0 - uTime * (1.2 + speed * 0.15))).g;
+      float st3 = texture2D(tNoise, vec2(ruv.x / 2.9, ruv.y / 24.0 - uTime * (0.3 + speed * 0.04)) + 0.37).b;
+      float white = smoothstep(0.32, 0.72, st * 0.75 + st2 * 0.4 + steep * 0.15 - (st3 - 0.5) * 0.9);
+      foam = max(foam, steep * mix(0.22, 1.0, white));
       fallStreak = steep * (1.0 - white);
     }
   }

@@ -74,7 +74,7 @@ export function buildRiverGeometry(world, riverIndex) {
     const r = rows[i];
     const W = r.w + 7;
     const bx = -tz[i], bz = tx[i];
-    const steep = smooth(0.35, 1.1, slopeArr[i]);
+    const steep = smooth(0.16, 0.55, slopeArr[i]);
     // fades where another water body takes over
     let fd = 1;
     if (!lake && !fromLake && R.joins === undefined) fd = Math.min(fd, smooth(0.05, 0.9, ys[i]));   // into the sea

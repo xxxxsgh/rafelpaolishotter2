@@ -32,7 +32,7 @@ void main() {
   } else if (vKind < 1.5) {
     float k = (1.0 - exp(-t * 1.2)) / 1.2;
     p += aVel * k + vec3(uWindDir.x, 0.0, uWindDir.y) * uWindStrength * 1.6 * t + vec3(0.0, 0.55 * t, 0.0);
-    vAlpha = sin(3.14159 * u) * sin(3.14159 * u) * 0.26;
+    vAlpha = sin(3.14159 * u) * sin(3.14159 * u) * 0.2;
     size *= 0.7 + 1.4 * u;
   } else {
     float k = (1.0 - exp(-t * 2.0)) / 2.0;
