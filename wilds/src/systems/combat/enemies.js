@@ -163,7 +163,7 @@ export function createEnemies(ctx, sys) {
     s.position.y += 0.15;
     const pop = e.indT < 0.12 ? e.indT / 0.12 * 1.35 : e.indT < 0.25 ? 1.35 - (e.indT - 0.12) / 0.13 * 0.35 : 1;
     const dist = s.position.distanceTo(ctx.camera.position);
-    const base = Math.max(0.45, dist * 0.045);
+    const base = Math.max(0.5, dist * 0.06);
     const k = e.indKind === '?' ? 0.6 + e.awareness * 0.4 : 1;
     s.scale.set(base * pop * k, base * pop * k, 1);
     s.material.opacity = e.indKind === '!' ? Math.min(1, (life - e.indT) * 3) : 0.5 + e.awareness * 0.5;
@@ -451,7 +451,12 @@ export function createEnemies(ctx, sys) {
     if (e.perceiveT <= 0) { perceive(e, 0.2); e.perceiveT = 0.2; }
     if (!e.alerted && e.state !== 'dormant') {
       if (e.awareness >= 1) alert(e, true);
-      else if (e.awareness > 0.35 && e.state !== 'sleep') showIndicator(e, '?');
+      else if (e.awareness > 0.35 && e.state !== 'sleep') {
+        showIndicator(e, '?');
+        // something caught its eye: stand-up sentries go and have a look
+        if (e.awareness > 0.5 && (e.state === 'idle' || e.state === 'guard' || e.state === 'patrol' || e.state === 'patrolPause') && e.kind !== 'wisp') setState(e, 'investigate');
+        if (e.state === 'tower' || e.state === 'sit') faceToward(e, e.lastSeen.x, e.lastSeen.z, dt, 1.5);
+      }
     }
     if (e.kind === 'stonewarden' && e.state === 'dormant') {
       const d = pp ? Math.hypot(pp.x - e.pos.x, pp.z - e.pos.z) : 1e9;
@@ -501,6 +506,12 @@ export function createEnemies(ctx, sys) {
         break;
       }
       case 'patrolPause': e.vel.multiplyScalar(0.8); if (e.stateT > 2.5) setState(e, 'patrol'); break;
+      case 'investigate': {
+        const d = steer(e, e.lastSeen.x, e.lastSeen.z, sp.walk * 0.7, dt, 2.5);
+        if (d < 2.6) { e.vel.multiplyScalar(0.8); e.yaw += Math.sin(e.stateT * 1.5) * dt * 0.8; }
+        if (e.awareness < 0.15 || e.stateT > 12) setState(e, 'return');
+        break;
+      }
       case 'alerting':
         e.vel.multiplyScalar(0.85);
         if (pp) faceToward(e, pp.x, pp.z, dt, 6);

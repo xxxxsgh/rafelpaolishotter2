@@ -253,6 +253,23 @@ export function buildCamp(ctx, site, opts = {}) {
     p.add(G.lathe([[0, 0], [0.3, 0], [0.36, 0.25], [0.38, 0.45], [0.36, 0.65], [0.3, 0.9], [0, 0.9]], 12), { color: 0x8a5d34, colorFn: (xx, yy, zz, lx, ly) => (Math.abs(ly - 0.18) < 0.04 || Math.abs(ly - 0.72) < 0.04) ? 0x4a4a52 : null, jitter: 0.1 });
     colliders.push({ type: 'cylinder', x: cx + x, z: cz + z, y: cy + H(x, z) + 0.45, r: 0.38, hy: 0.45, kind: 'barrel' });
   });
+  // tall war banners over the wall: red cloth with a bone-white sigil, notched tail
+  for (const a of [ent + Math.PI * 0.8, ent - Math.PI * 0.7]) {
+    const [x, z] = at(a, R - 0.8);
+    const p = placer(b, x, H(x, z), z, a + Math.PI / 2);
+    p.add(G.cyl(0.06, 0.08, 5.2, 6), { pos: [0, 2.6, 0], color: BARK_D });
+    p.add(G.cyl(0.035, 0.035, 1.3, 5), { pos: [0, 4.95, 0.6], rot: [Math.PI / 2, 0, 0], color: BARK });
+    p.add(G.extrude([[0, 0], [1.2, 0], [1.2, -1.7], [0.6, -1.35], [0, -1.7]], 0.02, 0), { pos: [0, 4.95, -0.02], rot: [0, -Math.PI / 2, 0], color: CLOTH_R,
+      colorFn: (xx, yy, zz, lx, ly) => { const d = Math.hypot(lx - 0.6, ly + 0.6); return (d < 0.3 && d > 0.2) || (Math.abs(lx - 0.6) < 0.04 && ly < -0.6 && ly > -1.1) ? 0xf0e0b8 : (ly > -0.08 ? 0x8a2a20 : null); } });
+    for (let k = 0; k < 3; k++) p.add(G.cone(0.03, 0.22, 4), { pos: [0, 4.88 - k * 0.05, 0.15 + k * 0.45], rot: [Math.PI, 0, 0], color: k % 2 ? 0xf0e0b8 : 0x2a2a30 });
+  }
+  // hide-drying rack near the tents
+  clutter(ent + Math.PI + 1.5, R * 0.62, (p) => {
+    for (const sx of [1, -1]) p.add(G.cyl(0.05, 0.06, 1.9, 5), { pos: [0.9 * sx, 0.95, 0], color: BARK });
+    p.add(G.cyl(0.04, 0.04, 2.1, 5), { pos: [0, 1.85, 0], rot: [0, 0, Math.PI / 2], color: BARK_D });
+    p.add(G.box(0.7, 1.0, 0.03), { pos: [-0.42, 1.3, 0], rot: [0, 0, 0.04], color: 0xb08a5c, colorFn: (xx, yy, zz, lx, ly) => Math.abs(lx) > 0.3 || ly < -0.42 ? 0x8a6640 : null });
+    p.add(G.box(0.6, 0.85, 0.03), { pos: [0.4, 1.38, 0], rot: [0, 0, -0.05], color: 0x9a7448, colorFn: (xx, yy, zz, lx, ly) => vnoise3(lx * 9, ly * 9, 0) > 0.66 ? 0x6a4a30 : null });
+  });
   clutter(ent + 1.3, R * 0.45, (p) => {   // bone pile
     for (let i = 0; i < 7; i++) p.add(G.cyl(0.04, 0.04, 0.5, 5), { pos: [(rnd() - 0.5) * 0.6, 0.05 + i * 0.03, (rnd() - 0.5) * 0.6], rot: [Math.PI / 2, rnd() * 3, 0], color: BONE });
     skull(placer(p, 0, 0.12, 0, 0.5, 0.35), { y: 0, s: 1 });

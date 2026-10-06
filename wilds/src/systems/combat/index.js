@@ -426,7 +426,7 @@ export async function init(ctx) {
       ctx.camera.fov = 52; ctx.camera.updateProjectionMatrix();
     } else if (name === 'camp') {
       // establishing shot from just outside the entrance; hero crouched in the grass watching
-      const hx = camp.x + ex * (camp.r + 5), hz = camp.z + ez * (camp.r + 5);
+      const hx = camp.x + ex * (camp.r + 1.5), hz = camp.z + ez * (camp.r + 1.5);
       const yaw = Math.atan2(camp.x - hx, camp.z - hz);
       pl.debugPlace({ x: hx, z: hz, yaw, state: 'idle' });
       const P = pl.position;
