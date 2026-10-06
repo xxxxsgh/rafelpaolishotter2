@@ -224,7 +224,15 @@ export async function init(ctx) {
       else if (r.station === 'guard' && S.guard.length) { const p = pick(S.guard, 'guard'); st = { ...p, type: 'guard' }; state = 'guard'; yaw = p.yaw; }
       else { const p = S.patrol[used.patrol++ % S.patrol.length]; st = { ...p, type: 'patrol' }; state = 'patrol'; }
       const e = sys.enemies.spawn(r.kind, st.x, st.z, { tier: r.tier, variant: r.variant, weapon: r.weapon, camp, station: st, state, y, yaw });
-      if (state === 'sit') { e.pos.x = st.x; e.pos.z = st.z; }
+      if (state === 'sit') {
+        e.pos.x = st.x; e.pos.z = st.z;
+        if (e.kind === 'gnarl') {
+          // weapon leant behind the bench, a haunch in hand
+          const bx = st.x - Math.sin(st.yaw) * 1.1 + Math.cos(st.yaw) * 0.5, bz = st.z - Math.cos(st.yaw) * 1.1 - Math.sin(st.yaw) * 0.5;
+          sys.enemies.stash(e, new THREE.Vector3(bx, 0, bz));
+          sys.enemies.giveFood(e);
+        }
+      }
     }
     for (let i = 0; i < camp.bombs; i++) { const s = camp.blastSpots[i % camp.blastSpots.length]; sys.items.spawnBomb(s.x + (i * 0.7) % 1.4, s.z + (i * 0.45) % 1, { camp }); }
     for (let i = 0; i < camp.barrels; i++) { const s = camp.blastSpots[(i + 1) % camp.blastSpots.length]; sys.items.spawnBarrel(s.x + 1.2, s.z - 0.8); }
@@ -314,10 +322,12 @@ export async function init(ctx) {
     for (const camp of sys.camps) {
       const d = pp ? Math.hypot(pp.x - camp.x, pp.z - camp.z) : 0;
       camp.group.visible = d < 700;
+      camp.outline.visible = d < 140;
       if (d < 170 && !camp.populated) populate(camp);
       if (d < 140) {
         const s = camp.stations.fire;
         sys.fx.fire(s.x, s.y, s.z, dt, 1);
+        for (const t of camp.stations.torches || []) sys.fx.torch(t.x, t.y, t.z, dt);
         const fl = 0.85 + Math.sin(sys.time * 13) * 0.07 + Math.sin(sys.time * 31) * 0.05;
         camp.glow.material.opacity = 0.5 * fl; camp.core.material.opacity = 0.8 * fl;
         camp.core.scale.set(1.6 * fl, 2.3 * fl, 1);
@@ -347,9 +357,27 @@ export async function init(ctx) {
     if (!camp || !pl) return;
     populate(camp);
     // pre-warm campfire smoke so the column is already standing
-    for (let i = 0; i < 140; i++) { const s = camp.stations.fire; sys.fx.fire(s.x, s.y, s.z, 0.05, 1); sys.fx.update(0.05); }
+    for (let i = 0; i < 140; i++) { const s = camp.stations.fire; sys.fx.fire(s.x, s.y, s.z, 0.05, 1); for (const t of camp.stations.torches || []) sys.fx.torch(t.x, t.y, t.z, 0.05); sys.fx.update(0.05); }
     const ent = camp.entrance;
     const ex = Math.sin(ent), ez = Math.cos(ent);
+    if (name === 'combat' && ctx.params.get('cv') === 'boss' && sys.warden) {
+      // dev variant: the Stonewarden wakes in its ruin
+      const w = sys.warden;
+      const yaw0 = w.yaw;
+      const hx = w.pos.x + Math.sin(yaw0) * 9, hz = w.pos.z + Math.cos(yaw0) * 9;
+      pl.debugPlace({ x: hx, z: hz, yaw: Math.atan2(w.pos.x - hx, w.pos.z - hz), state: 'combat' });
+      const P = pl.position;
+      w.yaw = Math.atan2(P.x - w.pos.x, P.z - w.pos.z); w.c.root.rotation.y = w.yaw;
+      sys.enemies.alert(w); sys.freezeAI = true; w.state = 'combat'; w.anim.setBase('combat'); w.anim.play('slam', 0.5); w.exposed = 0;
+      sys.hero.setDrawn(true);
+      const yaw = Math.atan2(w.pos.x - P.x, w.pos.z - P.z);
+      const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)), right = new THREE.Vector3(-Math.cos(yaw), 0, Math.sin(yaw));
+      const cpos = new THREE.Vector3(P.x - fwd.x * 4 + right.x * 2.5, 0, P.z - fwd.z * 4 + right.z * 2.5);
+      cpos.y = Math.max(world.getHeight(cpos.x, cpos.z), P.y) + 1.6;
+      ctx.cameraOverride = { pos: cpos, target: new THREE.Vector3(w.pos.x, w.pos.y + 3.2, w.pos.z) };
+      ctx.focus.copy(cpos); ctx.camera.position.copy(cpos); ctx.camera.lookAt(ctx.cameraOverride.target);
+      return;
+    }
     if (name === 'combat') {
       // the hero fights inside the camp: a gnarl takes a hit, another winds up, a shellback looms
       const hx = camp.x + ex * 4.0, hz = camp.z + ez * 4.0;
@@ -366,6 +394,10 @@ export async function init(ctx) {
         e.c.root.position.copy(e.pos); e.c.root.rotation.y = e.yaw;
       };
       const g = live.filter(e => e.kind === 'gnarl' && e.station?.type !== 'tower');
+      // the eaters grabbed their weapons
+      for (const it of sys.items.list.slice()) if (it.type === 'weapon' && Math.hypot(it.pos.x - camp.x, it.pos.z - camp.z) < camp.r) sys.items.take(it);
+      const kit = ['spiked_bough', 'gnarl_cleaver', 'gnarl_pike', 'spiked_bough'];
+      g.forEach((e, k) => { if (!e.weapon) sys.enemies.giveWeapon(e, makeWeapon(kit[k % kit.length])); if (e.food) { e.food.parent?.remove(e.food); e.food = null; } });
       if (g[0]) { place(g[0], 1.75, 0.35); g[0].hp = g[0].maxHp = 40; }
       if (g[1]) place(g[1], 2.9, -1.9);
       if (g[2]) place(g[2], 5.6, -3.6);
@@ -382,19 +414,19 @@ export async function init(ctx) {
         if (i === 1 && g[1]) g[1].anim.play('swing', 0.72);
         if (cv === 'bow') { if (i === 1) sys.hero.st.forceAim = true; }
         else if (cv === 'guard') { if (i === 1) { pl.playAction('shield', { hold: true }); } }
-        else if (i === Math.max(2, n - 8)) sys.hero.startSwing(3, { speed: 0.9 });
+        else if (i === Math.max(2, n - 7)) sys.hero.startSwing(0, { speed: 0.8 });
       });
       // freeze-frame one beat after the blade connects (sparks, flash and trail held for the capture)
       let froze = false;
       events.on('hit', () => { if (froze) return; froze = true; let k = 0; engine.add('combat-shot-freeze', () => { if (++k === 2) sys.freezeTime = true; }); });
-      const cpos = new THREE.Vector3(P.x - fwd.x * 2.3 + right.x * 3.0, 0, P.z - fwd.z * 2.3 + right.z * 3.0);
-      cpos.y = Math.max(world.getHeight(cpos.x, cpos.z), P.y) + 1.55;
-      const tgt = new THREE.Vector3(P.x + fwd.x * 2.8 - right.x * 0.5, P.y + 1.15, P.z + fwd.z * 2.8 - right.z * 0.5);
+      const cpos = new THREE.Vector3(P.x - fwd.x * 2.9 + right.x * 3.3, 0, P.z - fwd.z * 2.9 + right.z * 3.3);
+      cpos.y = Math.max(world.getHeight(cpos.x, cpos.z), P.y) + 1.9;
+      const tgt = new THREE.Vector3(P.x + fwd.x * 3.0 - right.x * 0.6, P.y + 1.2, P.z + fwd.z * 3.0 - right.z * 0.6);
       ctx.cameraOverride = { pos: cpos, target: tgt };
       ctx.camera.fov = 52; ctx.camera.updateProjectionMatrix();
     } else if (name === 'camp') {
       // establishing shot from just outside the entrance; hero crouched in the grass watching
-      const hx = camp.x + ex * (camp.r + 7), hz = camp.z + ez * (camp.r + 7);
+      const hx = camp.x + ex * (camp.r + 5), hz = camp.z + ez * (camp.r + 5);
       const yaw = Math.atan2(camp.x - hx, camp.z - hz);
       pl.debugPlace({ x: hx, z: hz, yaw, state: 'idle' });
       const P = pl.position;

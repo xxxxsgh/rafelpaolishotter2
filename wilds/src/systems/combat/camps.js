@@ -21,8 +21,8 @@ function placer(b, x, y, z, yaw = 0, s = 1) {
 function stake(b, h, r, tilt = 0, rotY = 0, rnd = Math.random) {
   const lean = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(tilt, rotY, (rnd() - 0.5) * 0.06));
   const knot = rnd() * 10;
-  b.add(G.cyl(r, r * 1.05, h, 7), { pos: [0, h / 2, 0], matrix: lean, color: BARK, colorFn: (x, y, z, lx, ly, lz) => Math.sin(ly * 6 + knot + Math.atan2(lx, lz) * 2) > 0.93 ? BARK_D : null, jitter: 0.16 });
-  b.add(G.cone(r, r * 2.6, 7), { pos: [0, h + r * 1.3, 0], matrix: lean, color: WOOD_CUT, color2: BARK, grad: (x, y) => 0.5 - y * 2, jitter: 0.1 });
+  b.add(G.cyl(r, r * 1.05, h, 6, true), { pos: [0, h / 2, 0], matrix: lean, color: BARK, colorFn: (x, y, z, lx, ly, lz) => Math.sin(ly * 6 + knot + Math.atan2(lx, lz) * 2) > 0.93 ? BARK_D : null, jitter: 0.16 });
+  b.add(G.cone(r, r * 2.6, 6), { pos: [0, h + r * 1.3, 0], matrix: lean, color: WOOD_CUT, color2: BARK, grad: (x, y) => 0.5 - y * 2, jitter: 0.1 });
 }
 
 export function skull(b, o = {}) {
@@ -188,7 +188,7 @@ export function buildCamp(ctx, site, opts = {}) {
       const p = placer(b, x, H(x, z) - 0.25, z, 0);
       const sr = 0.16 + rnd() * 0.03;
       stake(p, h + 0.25, sr, (rnd() - 0.5) * 0.04, a, rnd);
-      for (const ry of [0.75 + 0.25, 1.75 + 0.25]) for (let k = 0; k < 2; k++) p.add(G.torus(sr + 0.012, 0.024, 4, 9), { pos: [0, ry + k * 0.055, 0], rot: [Math.PI / 2, 0, 0], color: k ? ROPE : 0xb0925e, jitter: 0 });
+      for (const ry of [0.75 + 0.25, 1.75 + 0.25]) p.add(G.torus(sr + 0.014, 0.03, 3, 7), { pos: [0, ry, 0], rot: [Math.PI / 2, 0, 0], scl: [1, 1, 1.6], color: ROPE, jitter: 0 });
       pts.push([x, z, H(x, z)]);
     }
     // two lashed horizontal rails behind the stakes
@@ -232,6 +232,14 @@ export function buildCamp(ctx, site, opts = {}) {
     p.add(G.box(0.03, 1.1, 0.6), { pos: [0, 2.2, 0.16], rot: [0, Math.PI / 2, 0], color: CLOTH_R,
       colorFn: (xx, yy, zz, lx, ly, lz) => (Math.hypot(lz, ly - 0.15) < 0.17 && Math.hypot(lz, ly - 0.15) > 0.1) || (Math.abs(lz) < 0.03 && ly < 0.1) ? 0xf0e0b8 : null });
     colliders.push({ type: 'cylinder', x: cx + x, z: cz + z, y: cy + H(x, z) + 1.9, r: 0.2, hy: 1.9, kind: 'totem' });
+    // torch post just inside the gate
+    const [tx, tz] = at(ent + side * (gapA + 0.05), R - 1.0);
+    const tp = placer(b, tx, H(tx, tz), tz, 0);
+    tp.add(G.cyl(0.05, 0.07, 2.1, 6), { pos: [0, 1.05, 0], rot: [0, 0, side * 0.06], color: BARK_D });
+    tp.add(G.cyl(0.11, 0.07, 0.28, 7), { pos: [side * 0.065, 2.15, 0], color: 0x5a4632, colorFn: (xx, yy, zz, lx, ly) => Math.sin(ly * 60) > 0.3 ? 0x7a6040 : null });
+    tp.add(G.cyl(0.1, 0.1, 0.05, 7), { pos: [side * 0.065, 2.3, 0], color: 0xff9a3a, emit: 1 });
+    stations.torches = stations.torches || [];
+    stations.torches.push({ x: cx + tx + side * 0.065, y: cy + H(tx, tz) + 2.32, z: cz + tz });
   }
 
   // ---------------------------------------------------------------- clutter: crates, barrels, bones, weapon rack
@@ -340,7 +348,7 @@ export function buildCamp(ctx, site, opts = {}) {
     stations.patrol.push({ x: cx + x, z: cz + z });
   }
 
-  return { group, mesh, material: mat, x: cx, y: cy, z: cz, r: R, entrance: ent, colliders, stations, chest, glow, core, tents, site,
+  return { group, mesh, outline, material: mat, x: cx, y: cy, z: cz, r: R, entrance: ent, colliders, stations, chest, glow, core, tents, site,
     blastSpots: [at(ent + Math.PI - 1.6, R * 0.6), at(ent + 0.9, R * 0.62)].map(([x, z]) => ({ x: cx + x, z: cz + z })) };
 }
 

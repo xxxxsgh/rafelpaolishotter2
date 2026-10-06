@@ -113,6 +113,27 @@ export function createEnemies(ctx, sys) {
   function dropWeaponMesh(e) {
     if (e.weaponMesh) { e.weaponMesh.parent?.remove(e.weaponMesh); e.weaponMesh = null; }
   }
+  // set the weapon aside at a spot (eaters lean their weapons near the fire; they fetch them when alerted)
+  function stash(e, pos) {
+    if (!e.weapon) return;
+    const w = e.weapon;
+    dropWeaponMesh(e);
+    e.weapon = null; e.archer = false; if (e.anim) e.anim.e.armed = false;
+    const it = sys.items?.dropWeapon(w, pos, _v.set(0, 0, 0));
+    if (it) { it.rest = true; it.mesh.rotation.set(Math.PI / 2, Math.random() * 6, 0); it.pos.y = world.getHeight(pos.x, pos.z) + 0.05; }
+  }
+  let foodGeo = null;
+  function giveFood(e) {
+    if (!foodGeo) {
+      const g = new THREE.SphereGeometry(0.09, 8, 6); g.scale(1.3, 0.9, 0.9);
+      const n = g.attributes.position.count;
+      const col = new Float32Array(n * 3); for (let i = 0; i < n; i++) { col[i * 3] = 0.6; col[i * 3 + 1] = 0.32; col[i * 3 + 2] = 0.16; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('emit', new THREE.BufferAttribute(new Float32Array(n), 1));
+      foodGeo = g;
+    }
+    const m = new THREE.Mesh(foodGeo, e.c.material); m.position.set(0, -0.02, 0.06);
+    e.c.socketR.add(m); e.food = m;
+  }
   function disarm(e, fling = 3) {
     if (!e.weapon) return;
     const w = e.weapon;
@@ -201,6 +222,7 @@ export function createEnemies(ctx, sys) {
     if (delay > 0) { e.alertDelay = delay; return; }
     const wasSleeping = e.state === 'sleep';
     e.alerted = true; e.awareness = 1.2;
+    if (e.food) { e.food.parent?.remove(e.food); e.food = null; }
     const pl = player(); if (pl) e.lastSeen.copy(pl.position);
     showIndicator(e, '!');
     if (e.kind === 'stonewarden') { setState(e, 'waking'); e.anim.play('roar', 0.8); }
@@ -250,6 +272,7 @@ export function createEnemies(ctx, sys) {
     return d;
   }
   function integrate(e, dt) {
+    if (e.yOverride !== null && e.station?.type === 'tower') e.vel.set(0, 0, 0);    // archers hold the platform
     const nx = e.pos.x + e.vel.x * dt, nz = e.pos.z + e.vel.z * dt;
     const ws = sys.waterHeight(nx, nz);
     const gh = world.getHeight(nx, nz);
@@ -459,6 +482,13 @@ export function createEnemies(ctx, sys) {
     switch (e.state) {
       case 'sleep': case 'sit': e.vel.set(0, 0, 0); break;
       case 'idle': case 'guard': case 'tower':
+        if (e.kind === 'wisp') {
+          // drift lazily around the spawn point
+          e.home = e.home || e.pos.clone();
+          const a = e.stateT * 0.25 + e.seed;
+          steer(e, e.home.x + Math.cos(a) * 5, e.home.z + Math.sin(a * 1.3) * 5, e.sp.walk * 0.6, dt, 0.3);
+          break;
+        }
         e.vel.multiplyScalar(0.8);
         if (e.station?.yaw !== undefined) faceToward(e, e.pos.x + Math.sin(e.station.yaw + Math.sin(e.stateT * 0.3 + e.seed) * 0.9), e.pos.z + Math.cos(e.station.yaw + Math.sin(e.stateT * 0.3 + e.seed) * 0.9), dt, 1);
         break;
@@ -762,7 +792,7 @@ export function createEnemies(ctx, sys) {
   }
 
   return {
-    list, spawn, hurt, alert, staggerEnemy, giveWeapon, disarm, update, remove,
+    list, spawn, hurt, alert, staggerEnemy, giveWeapon, disarm, stash, giveFood, update, remove,
     get attackers() { return attackers; },
     live: () => list.filter(e => !e.dead),
   };

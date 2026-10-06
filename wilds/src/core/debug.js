@@ -33,8 +33,8 @@ export const SHOT_PRESETS = {
   run:      { time: 13,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'run' } },
   climb:    { time: 15,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'climb' } },
   glide:    { time: 12,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'glide' } },
-  combat:   { time: 15,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'combat' }, hud: true },
-  camp:     { time: 17,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'camp' } },
+  combat:   { time: 15,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'combat' }, hud: true },   // combat: setupShot stages a camp fight
+  camp:     { time: 17.6, weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'camp' } },   // combat: setupShot frames the nearest enemy camp
   shrine:   { time: 12,   weather: 'clear',  player: { x: 150, z: 250, yaw: 0.6, state: 'shrine' },
               // physics: teleport into the Sanctum of Balance interior and frame the hall
               extra: ctx => ctx.systems.physics?.debugShot?.('shrine') },

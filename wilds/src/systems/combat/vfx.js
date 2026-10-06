@@ -354,6 +354,12 @@ export function createVfx(ctx) {
       if (R() < dt * 5 * intensity) nrm.spawn({ x: x + (R() - 0.5) * 0.3, y: y + 1.0, z: z + (R() - 0.5) * 0.3, vx: 0.25 + (R() - 0.5) * 0.3, vy: 1.1 + R() * 0.4, vz: 0.1,
         life: 4 + R() * 2, size: 0.5, size1: 2.6, cell: 1, r: 0.72, g: 0.72, b: 0.74, a: 0.32, drag: 0.15, rv: (R() - 0.5) * 0.5, fade: 1 });
     },
+    torch(x, y, z, dt) {
+      const n = dt * 16;
+      for (let i = 0; i < n; i++) add.spawn({ x: x + (R() - 0.5) * 0.12, y, z: z + (R() - 0.5) * 0.12, vx: (R() - 0.5) * 0.3, vy: 0.9 + R() * 0.7, vz: (R() - 0.5) * 0.3,
+        life: 0.35 + R() * 0.25, size: 0.32 + R() * 0.12, size1: 0.04, cell: 0, r: 1, g: 0.5 + R() * 0.2, b: 0.15, a: 0.8, drag: 1 });
+      if (R() < dt * 4) add.spawn({ x, y: y + 0.2, z, vx: (R() - 0.5) * 0.6, vy: 1.5 + R(), vz: (R() - 0.5) * 0.6, life: 0.9, size: 0.04, stretch: 0.02, r: 1, g: 0.7, b: 0.3, a: 1, grav: -0.2 });
+    },
     // elemental burst / bolt trail
     element(p, kind, n = 10, spread = 2) {
       const c = kind === 'frost' ? [0.6, 0.9, 1] : kind === 'storm' ? [0.85, 0.7, 1] : [1, 0.55, 0.18];

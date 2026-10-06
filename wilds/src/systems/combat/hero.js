@@ -123,6 +123,7 @@ export function createHero(ctx, sys) {
       else { ms.position.set(0, 0.0, -0.1); ms.rotation.set(Math.PI / 2, 0, 0); }
     }
   }
+  function cyc(cat, slot) { const a = inv[cat]; if (a.length < 2) return; const i = a.indexOf(inv.equipped[slot]); equip(a[(i + 1) % a.length]); }
   function setDrawn(v) { if (st.drawn === v) return; st.drawn = v; attach(); events.emit(v ? 'weaponDrawn' : 'weaponSheathed', {}); }
 
   function wear(slot, n = 1) {
@@ -505,6 +506,13 @@ export function createHero(ctx, sys) {
       }
     }
 
+    // ---- weapon switching: 1-8 pick a melee weapon, X / Z / V cycle weapon / shield / bow
+    if (!ctx.paused) {
+      for (let k = 0; k < 8; k++) if (input.justPressed('Digit' + (k + 1)) && inv.weapons[k]) equip(inv.weapons[k]);
+      if (input.justPressed('KeyX')) cyc('weapons', 'weapon');
+      if (input.justPressed('KeyZ')) cyc('shields', 'shield');
+      if (input.justPressed('KeyV')) cyc('bows', 'bow');
+    }
     // ---- pickups / chests
     if (isPressed('interact') && pl.state === 'ground') interact();
 
