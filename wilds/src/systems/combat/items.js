@@ -238,7 +238,9 @@ export function createItems(ctx, sys) {
     it.alive = false; root.remove(it.mesh);
     const M = MATERIALS[it.id];
     const gp = ctx.systems.gameplay;
-    try { gp?.addItem?.(it.id, 1, { name: M?.name, kind: 'material', source: 'combat' }); } catch (e) { /* gameplay optional */ }
+    let added = false;
+    try { if (gp?.addItem) { gp.addItem(it.id, 1, { name: M?.name, kind: 'material', source: 'combat' }); added = true; } } catch (e) { /* gameplay optional */ }
+    if (!added && it.id === 'arrow_bundle') sys.hero.inv.arrows += 5;
     events.emit('itemPickup', { id: it.id, name: M?.name || it.id, kind: 'material', count: 1, position: it.pos.clone() });
     fx.spawnAdd({ x: it.pos.x, y: it.pos.y + 0.3, z: it.pos.z, life: 0.35, size: 0.4, size1: 1.0, cell: 2, r: 1, g: 0.9, b: 0.6, a: 1 });
   }

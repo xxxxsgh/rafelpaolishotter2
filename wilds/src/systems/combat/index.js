@@ -295,7 +295,6 @@ export async function init(ctx) {
     setTimeout(() => {
       sys.items.dropWeapon(w, p, new THREE.Vector3(0, 4, 0));
       sys.items.dropMaterial('arrow_bundle', p, new THREE.Vector3(0.8, 3.5, 0.4));
-      sys.hero.inv.arrows += 10;
       sys.fx.sparks(p, null, 20, [1, 0.9, 0.5], 1.2);
     }, 450);
     events.emit('chestOpened', { id: camp.id, weapon: w.def.name, position: p });

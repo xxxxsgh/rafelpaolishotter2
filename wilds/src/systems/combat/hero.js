@@ -254,7 +254,7 @@ export function createHero(ctx, sys) {
       _v.lerp(_v2.set(pl.position.x, e.lockPoint.getWorldPosition(_v3).y, pl.position.z), 0.35);
       _d.set(dx, 0, dz).normalize();
       const base = w ? w.def.dmg : 1;
-      const dmg = base * sw.s.m * (st.flurryT > 0 ? 1 : 1);
+      const dmg = base * sw.s.m * (ctx.systems.gameplay?.getAttackMultiplier?.() || 1);   // food buffs
       const kb = (type === 'club' ? 9 : type === 'spear' ? 3 : 4.5) + (sw.s.fin ? 4 : 0) + (sw.spin ? 3 : 0);
       sys.enemies.hurt(e, dmg, { source: 'player', type: 'melee', point: _v.clone(), dir: _d.clone(), knock: _d.clone().multiplyScalar(kb), strong: sw.strong, from: pl.position });
       any = true;
@@ -386,6 +386,8 @@ export function createHero(ctx, sys) {
       if (heavy) pl.damage(Math.ceil(amount * 0.25), { source: o.source, type: o.type, iframes: 0.5 });
       return 'block';
     }
+    const def = ctx.systems.gameplay?.getDefenseMultiplier?.() || 1;                       // food buffs
+    if (def > 1) amount = Math.max(1, Math.round(amount / def));
     const ok = pl.damage(amount, { source: o.source?.kind || o.source, knockback: o.knockback, type: o.type });
     if (ok && st.swing) { st.swing = null; }
     return ok;
