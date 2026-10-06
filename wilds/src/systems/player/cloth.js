@@ -228,14 +228,15 @@ export function createCloth(ctx, rig) {
     // air relative to the cloth: world wind minus character motion
     wind.set(wd.x * ws * 4.0 * gust, 0.25 * ws * gust, wd.y * ws * 4.0 * gust).addScaledVector(opts.velocity, -1);
     const drag = 0.985, g = -9.8 * (1 - (opts.lift || 0));
-    const memAmt = opts.memory ?? 1;
+    const spd = Math.hypot(opts.velocity.x, opts.velocity.y, opts.velocity.z);
+    const memAmt = (opts.memory ?? 1) / (1 + spd * 0.45);
     const h2 = h * h;
     // cloak
     for (let j = 0; j < CH; j++) for (let i = 0; i < CW; i++) {
       const k = id(i, j) * 3;
       if (j === 0) { pos[k] = anchorW[i].x; pos[k + 1] = anchorW[i].y; pos[k + 2] = anchorW[i].z; prev[k] = pos[k]; prev[k + 1] = pos[k + 1]; prev[k + 2] = pos[k + 2]; continue; }
       const fl = 0.6 + 0.4 * Math.sin(t * 7.0 + i * 0.9 + j * 0.6);   // flutter
-      const air = 1.6 * (j / CH) * fl;
+      const air = 2.4 * (0.25 + j / CH) * fl;
       const vx = (pos[k] - prev[k]) * drag, vy = (pos[k + 1] - prev[k + 1]) * drag, vz = (pos[k + 2] - prev[k + 2]) * drag;
       prev[k] = pos[k]; prev[k + 1] = pos[k + 1]; prev[k + 2] = pos[k + 2];
       // aerodynamic push toward relative wind, proportional to velocity deficit

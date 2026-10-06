@@ -155,9 +155,9 @@ export function buildCharacter(ctx) {
     ellipsoid([sh[0], sh[1] + 0.01, sh[2] + 0.045], [0.045, 0.05, 0.025], P.bracer, ['shin' + L], { ws: 10, hs: 8 });
   }
   // ---------- torso: tunic with a flared hem ----------
-  lathe([[0.0, 0.64], [0.178, 0.645], [0.18, 0.66], [0.165, 0.74], [0.152, 0.84], [0.142, 0.95], [0.137, 1.03], [0.148, 1.12], [0.162, 1.21],
+  lathe([[0.0, 0.64], [0.178, 0.645], [0.18, 0.66], [0.1795, 0.664], [0.178, 0.668], [0.1775, 0.686], [0.177, 0.692], [0.165, 0.74], [0.152, 0.84], [0.142, 0.95], [0.137, 1.03], [0.148, 1.12], [0.162, 1.21],
     [0.165, 1.27], [0.15, 1.33], [0.11, 1.37], [0.065, 1.395], [0.0, 1.40]], [0, 0, 0], P.tunic,
-    ['hips', 'spine', 'chest', 'neck'], { radial: 22, sz: 0.72, color2: P.tunicShade, mix: (x, y) => y < 0.68 ? 0.8 : 0 });
+    ['hips', 'spine', 'chest', 'neck'], { radial: 22, sz: 0.72, colorFn: (x, y) => y < 0.665 ? P.cloak : y < 0.69 ? P.lining : null });
   // belt + buckle + pouch
   lathe([[0.149, 0.885], [0.153, 0.895], [0.153, 0.935], [0.148, 0.945]], [0, 0, 0], P.belt, ['hips', 'spine'], { radial: 22, sz: 0.76 });
   ellipsoid([0, 0.915, 0.118], [0.03, 0.026, 0.012], P.brass, 'hips', { superE: 0.4, ws: 10, hs: 8 });
@@ -176,12 +176,12 @@ export function buildCharacter(ctx) {
   }
   ellipsoid([0, 1.54, 0.128], [0.012, 0.016, 0.012], P.skin, 'head', { ws: 8, hs: 6 });  // nose
   // hair fringe tufts poking from the hood
-  for (let i = 0; i < 6; i++) {
-    const a = -0.75 + i * 0.3;
-    ellipsoid([Math.sin(a) * 0.095, 1.64 - Math.abs(a) * 0.04, 0.085 + Math.cos(a) * 0.012], [0.035, 0.05, 0.022], P.hair, 'head',
-      { ws: 8, hs: 6, rotZ: -a * 0.9 + 0.2, rotX: -0.4 });
+  for (let i = 0; i < 4; i++) {
+    const a = -0.45 + i * 0.3;
+    ellipsoid([Math.sin(a) * 0.1, 1.652 - Math.abs(a) * 0.02, Math.cos(a) * 0.098 + 0.012], [0.032, 0.03, 0.014], P.hair, 'head',
+      { ws: 8, hs: 6, rotZ: -a * 1.1 + 0.25, rotY: a, rotX: -0.5 });
   }
-  ellipsoid([0, 1.6, -0.025], [0.118, 0.11, 0.115], P.hair, 'head', { ws: 16, hs: 12 });
+  ellipsoid([0, 1.64, -0.035], [0.112, 0.085, 0.11], P.hair, 'head', { ws: 16, hs: 12 });
   // ---------- hood: thick shell open at the face, soft drooping point at the back ----------
   {
     const R = 0.172, TL = Math.PI * 0.7;
@@ -233,7 +233,7 @@ export function buildCharacter(ctx) {
     capsule([0, H[1] + 0.03, H[2] - 0.27], [0, H[1] - 0.16, H[2] - 0.33], 0.045, 0.014, P.cloak, ['head', 'neck'], { radial: 10 });
   }
   // ---------- capelet / mantle over the shoulders ----------
-  lathe([[0.29, 1.165], [0.305, 1.172], [0.305, 1.21], [0.285, 1.3], [0.235, 1.37], [0.14, 1.42], [0.075, 1.44]], [0, 0, -0.02], P.cloak,
+  lathe([[0.27, 1.175], [0.285, 1.182], [0.287, 1.215], [0.27, 1.3], [0.225, 1.37], [0.135, 1.42], [0.075, 1.44]], [0, 0, -0.02], P.cloak,
     ['chest', 'neck'], { radial: 28, sz: 0.74, colorFn: (x, y) => y < 1.2 ? P.lining : null });
   // ---------- scarf wrap ----------
   lathe([[0.072, 1.33], [0.098, 1.35], [0.104, 1.38], [0.096, 1.42], [0.075, 1.44]], [0, 0, 0.0], P.scarf,

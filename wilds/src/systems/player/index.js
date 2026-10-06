@@ -817,7 +817,7 @@ export async function init(ctx) {
       } else { const f = findFlat(x, z); p.copy(f); }
       layer = 'climb'; anim.params.move = 1; anim.params.phase = 1.1;
       hold.anim = 'climb';
-      Object.assign(camSet, [5.6, 1.4, 0.95, 0.7, 55]);
+      Object.assign(camSet, [5.6, -0.4, 0.8, 1.6, 55, 0.7]);
     } else if (st === 'glide') {
       const g = findGlideSpot(x, z);
       if (g) { p.set(g.x, g.h + 16, g.z); yaw = g.yaw; } else { p.set(x, terrainH(x, z) + 30, z); }
@@ -835,7 +835,7 @@ export async function init(ctx) {
       else if (st === 'camp') { layer = 'sit'; Object.assign(camSet, [3.0, 1.0, 2.5, 0.6, 46]); }
       else if (st === 'cooking') { layer = 'kneel'; Object.assign(camSet, [2.8, 1.1, 2.4, 0.7, 46]); }
       else if (st === 'shrine') { layer = 'look'; Object.assign(camSet, [3.4, 1.0, 0.35, 1.3, 50]); }
-      else { layer = 'idle'; Object.assign(camSet, [2.7, 1.6, 2.35, 1.15, 44, 0.55]); }
+      else { layer = 'idle'; Object.assign(camSet, [2.9, 2.05, 2.35, 1.1, 44, 0.55]); }
     }
     hold.layer = layer;
     anim.setLayer(layer); anim.snap();

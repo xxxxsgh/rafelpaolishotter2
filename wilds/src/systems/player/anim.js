@@ -143,12 +143,12 @@ export const POSES = {
   sit(o, t) {
     const br = S(t * 1.5);
     o[HX + 1] += -0.73; o[HX + 2] += -0.05;
-    set(o, 'thighL', -1.25, 0.1, 0.22); set(o, 'shinL', 2.05, 0, 0); set(o, 'footL', -0.5, 0, 0);
-    set(o, 'thighR', -1.1, -0.15, -0.3); set(o, 'shinR', 1.6, 0, 0); set(o, 'footR', -0.4, 0, 0);
+    set(o, 'thighL', -2.0, 0.1, 0.2); set(o, 'shinL', 2.45, 0, 0); set(o, 'footL', -0.4, 0, 0);
+    set(o, 'thighR', -1.75, -0.15, -0.35); set(o, 'shinR', 2.0, 0, 0); set(o, 'footR', -0.2, 0, 0);
     set(o, 'spine', 0.25 + br * 0.01, 0, 0); set(o, 'chest', 0.12 + br * 0.015, 0, 0);
     set(o, 'neck', -0.1, 0.25 + S(t * 0.3) * 0.15, 0); set(o, 'head', -0.05, 0.1, 0);
-    set(o, 'uArmL', -0.75, 0, 0.12); set(o, 'fArmL', -1.0, 0.3, 0);
-    set(o, 'uArmR', -0.55, 0, -0.35); set(o, 'fArmR', -0.7, 0, 0);
+    set(o, 'uArmL', -0.95, 0, 0.1); set(o, 'fArmL', -0.75, 0.3, 0);
+    set(o, 'uArmR', -0.5, 0, -0.3); set(o, 'fArmR', -0.55, 0, 0);
   },
   kneel(o, t) {
     o[HX + 1] += -0.45; o[HX + 2] += 0.02;
