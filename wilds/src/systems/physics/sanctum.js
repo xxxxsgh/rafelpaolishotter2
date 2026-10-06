@@ -277,8 +277,8 @@ export class Sanctums {
     halo.position.copy(rune.position); halo.renderOrder = 9; halo.frustumCulled = false;
     g.add(halo);
     // sky beacon (landmark visible from afar; fades close up)
-    const beamMat = additive({ uTime: this.ctx.uniforms.uTime, uCol: { value: new THREE.Color(s.solved ? 0x55f0d0 : 0xffa648) }, uAmp: { value: 0.32 }, uFade: { value: 60 } }, UV_VERT, BEAM_FRAG, { side: THREE.DoubleSide });
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.6, 260, 12, 1, true).translate(0, 130, 0), beamMat);
+    const beamMat = additive({ uTime: this.ctx.uniforms.uTime, uCol: { value: new THREE.Color(s.solved ? 0x55f0d0 : 0xffa648) }, uAmp: { value: 0.16 }, uFade: { value: 60 } }, UV_VERT, BEAM_FRAG, { side: THREE.DoubleSide });
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.2, 260, 16, 1, true).translate(0, 130, 0), beamMat);
     beam.position.set(0, top + ph + 3.3, -2.2); beam.renderOrder = 7; beam.frustumCulled = false;
     g.add(beam);
     this.root.add(g);
@@ -389,6 +389,14 @@ export class Sanctums {
     }
     box(gw + 1.8, H - gh - 0.4, 1.4, 0, gh + 0.4 + (H - gh - 0.4) / 2, gz, 0x8a9698, 0);
     box(gw + 1.4, 0.7, 1.5, 0, gh + 2.2, gz, 0x8a9698, 1);
+    // great sigil above the gate: concentric glowing rings on a carved disc
+    parts.push(tintGeo(new THREE.CylinderGeometry(2.3, 2.3, 0.3, 40).rotateX(Math.PI / 2).translate(0, gh + 4.4, gz + 0.8), 0x7f8b8d, 0));
+    parts.push(tintGeo(new THREE.RingGeometry(1.95, 2.1, 48).translate(0, gh + 4.4, gz + 0.96), 0xffffff, 3));
+    parts.push(tintGeo(new THREE.RingGeometry(0.55, 0.68, 32).translate(0, gh + 4.4, gz + 0.96), 0xffffff, 3));
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      parts.push(tintGeo(new THREE.PlaneGeometry(0.12, 1.2).translate(0, 1.32, 0).rotateZ(a).translate(0, gh + 4.4, gz + 0.965), 0xffffff, 3));
+    }
     addS(0, gh + 0.4 + (H - gh - 0.4) / 2, gz, gw / 2 + 0.9, (H - gh - 0.4) / 2, 0.7);
     box(gw + 2.4, 0.9, 2.0, 0, gh + 0.45, gz + 0.1, 0x9faaa9, 1);
     // gate slabs (separate meshes, slide apart)
@@ -425,7 +433,8 @@ export class Sanctums {
       // far-side pedestal with the high plate
       box(2.4, 3.0, 2.4, 6.5, 1.5, -11.6, 0x8d999b, 1);
       addS(6.5, 1.5, -11.6, 1.2, 1.5, 1.2, { noClimb: true });
-      box(0.1, 0.1, 6, 0, 0.03, pitZ1 + 0.2, 0xffffff, 3, parts, 0.01);
+      box(W, 0.1, 0.1, 0, 0.03, pitZ1 + 0.08, 0xffffff, 3, parts, 0.01);
+      box(W, 0.1, 0.1, 0, 0.03, pitZ0 - 0.08, 0xffffff, 3, parts, 0.01);
     }
     if (kind === 'balance') {
       // lectern facing the maze table
@@ -453,9 +462,9 @@ export class Sanctums {
     // lantern crystals + halos
     for (const ln of s.lanterns) {
       const cr = new THREE.Mesh(new THREE.OctahedronGeometry(0.32).scale(1, 1.6, 1), cloneMaterial(this.mGlowAmber));
-      cr.position.copy(ln.pos); cr.material.uniforms.uGlow.value = 1.6;
+      cr.position.copy(ln.pos); cr.material.uniforms.uGlow.value = 0.7;
       const ol = new THREE.Mesh(outlineGeometry(cr.geometry), this.ink); cr.add(ol);
-      const halo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), additive({ uCol: { value: new THREE.Color(1.0, 0.58, 0.26) }, uAmp: { value: 0.9 }, uSize: { value: 4.8 } }, HALO_VERT, HALO_FRAG));
+      const halo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), additive({ uCol: { value: new THREE.Color(1.0, 0.58, 0.26) }, uAmp: { value: 0.6 }, uSize: { value: 4.8 } }, HALO_VERT, HALO_FRAG));
       halo.position.copy(ln.pos); halo.renderOrder = 10; halo.frustumCulled = false;
       g.add(cr, halo);
       ln.mesh = cr; ln.halo = halo;
@@ -485,7 +494,7 @@ export class Sanctums {
     // light rig (local -> world)
     const rig = [];
     for (const ln of s.lanterns) rig.push([ln.pos.clone().add(O), new THREE.Color(1.0, 0.62, 0.32).multiplyScalar(5.0), 13]);
-    rig.push([new THREE.Vector3(0, H - 1, -1).add(O), new THREE.Color(1.0, 0.9, 0.74).multiplyScalar(9.0), 25]);
+    rig.push([new THREE.Vector3(0, H - 1, -1).add(O), new THREE.Color(1.0, 0.9, 0.74).multiplyScalar(12.0), 16]);
     rig.push([s.heart.clone().add(O), new THREE.Color(0.35, 0.95, 0.82).multiplyScalar(3.0), 14]);
     s.rig = rig;
     this.root.add(g);
@@ -792,7 +801,7 @@ export class Sanctums {
         ln.mesh.position.y = ln.pos.y + Math.sin(t * 1.3 + ln.seed) * 0.12;
         ln.mesh.rotation.y = t * 0.7 + ln.seed;
         ln.halo.position.copy(ln.mesh.position);
-        ln.halo.material.uniforms.uAmp.value = 0.85 + 0.12 * Math.sin(t * 5 + ln.seed * 3);
+        ln.halo.material.uniforms.uAmp.value = 0.55 + 0.08 * Math.sin(t * 5 + ln.seed * 3);
       }
       s.heartMesh.rotation.y = t * 0.5;
       s.heartMesh.material.uniforms.uGlow.value = 0.6 + 0.4 * Math.sin(t * 1.7) + s.gateOpen;

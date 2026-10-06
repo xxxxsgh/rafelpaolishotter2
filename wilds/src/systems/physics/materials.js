@@ -231,7 +231,7 @@ void main() {
   float gmask = vGlow;
   if (gmask > 0.5 && gmask < 1.5 && an.y > 0.6) gmask = 0.0;   // small glyph panels only on vertical faces
   if (gmask > 0.5) {
-    float gs = gmask > 1.5 ? 1.0 : 2.4;
+    float gs = gmask > 1.5 ? 1.0 : 1.8;
     float g = glyph(fp * gs, floor(gmask) * 7.0);
     // border channel around glyph panels
     float pulse = 0.65 + 0.35 * sin(uTime * 1.6 - (fp.x + fp.y) * 0.35);
