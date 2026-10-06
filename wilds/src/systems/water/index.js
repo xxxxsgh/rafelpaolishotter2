@@ -82,8 +82,8 @@ export async function init(ctx) {
   const lin = (hex) => new THREE.Color(hex).convertSRGBToLinear();
   const colors = {
     cShallow: { value: lin(0x4fd6c4) },
-    cMid: { value: lin(0x1e9bb0) },
-    cDeep: { value: lin(0x0f4f86) },
+    cMid: { value: lin(0x1fa6b8) },
+    cDeep: { value: lin(0x11579e) },
     cScatter: { value: lin(0x6ff0d2) },
     cFoam: { value: lin(0xf4fbff) },
   };
@@ -97,8 +97,70 @@ export async function init(ctx) {
     uHeightXf: { value: new THREE.Vector4(world.WORLD_SIZE / 2, 1 / world.WORLD_SIZE, 0, 0) },
     uWaves: { value: waves },
     uRipples: { value: ripples },
+    uFalls: { value: Array.from({ length: 12 }, (_, i) => {
+      const f = W.FALLS[i];
+      return f ? new THREE.Vector4(f.bx + f.dirX * 2, f.bz + f.dirZ * 2, Math.max(5, f.w * 1.9), Math.min(1, f.drop / 14)) : new THREE.Vector4(0, 0, 1, 0);
+    }) },
+    tRefract: { value: null },
+    tRefractDepth: { value: null },
+    uProj: { value: camera.projectionMatrix },
+    uNearFar: { value: new THREE.Vector2(camera.near, camera.far) },
+    uRefr: { value: new THREE.Vector4(1, 1, 0, 0) },   // xy 1/resolution, z on/off
     ...colors,
   };
+
+  // ---------- refraction grab ----------
+  // Just before the first water mesh draws (transparent pass: terrain, rocks, trees and the sky
+  // are already in the colour buffer) the current scene target is blitted into our own texture,
+  // which the water samples with a slope-distorted uv. One blit per frame, no extra scene pass.
+  const grab = { rt: null, frame: -1, ok: true, fb: null };
+  const renderer = ctx.renderer;
+  function grabScene() {
+    if (!grab.ok) return;
+    const f = renderer.info.render.frame;
+    if (grab.frame === f) return;
+    grab.frame = f;
+    const src = renderer.getRenderTarget();
+    if (!src || !renderer.capabilities.isWebGL2) { sharedU.uRefr.value.z = 0; return; }
+    try {
+      const gl = renderer.getContext(), state = renderer.state;
+      const w = src.width, h = src.height;
+      if (!grab.rt || grab.rt.width !== w || grab.rt.height !== h) {
+        grab.rt?.dispose();
+        const dt = src.depthTexture ? new THREE.DepthTexture(w, h, src.depthTexture.type) : null;
+        if (dt) { dt.format = src.depthTexture.format; dt.minFilter = dt.magFilter = THREE.NearestFilter; }
+        grab.rt = new THREE.WebGLRenderTarget(w, h, { type: src.texture.type, depthBuffer: !!dt, depthTexture: dt,
+          stencilBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+        grab.depth = !!dt;
+        sharedU.tRefractDepth.value = dt;
+        grab.rt.texture.name = 'water.refract';
+        renderer.initRenderTarget(grab.rt);
+        grab.fb = renderer.properties.get(grab.rt).__webglFramebuffer;
+        sharedU.tRefract.value = grab.rt.texture;
+        sharedU.uRefr.value.set(1 / w, 1 / h, 1, 0);
+      }
+      const sp = renderer.properties.get(src);
+      const srcFb = src.samples > 0 && sp.__webglMultisampledFramebuffer ? sp.__webglMultisampledFramebuffer : sp.__webglFramebuffer;
+      if (!srcFb || !grab.fb) { sharedU.uRefr.value.z = 0; return; }
+      if (!grab.checked) while (gl.getError() !== gl.NO_ERROR) { /* clear stale errors */ }
+      state.bindFramebuffer(gl.READ_FRAMEBUFFER, srcFb);
+      state.bindFramebuffer(gl.DRAW_FRAMEBUFFER, grab.fb);
+      gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.COLOR_BUFFER_BIT | (grab.depth ? gl.DEPTH_BUFFER_BIT : 0), gl.NEAREST);
+      state.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+      state.bindFramebuffer(gl.DRAW_FRAMEBUFFER, srcFb);
+      sharedU.uRefr.value.z = grab.depth && ctx.params?.get?.('refract') !== '0' ? 1 : 0;
+      sharedU.uNearFar.value.set(camera.near, camera.far);
+      if (!grab.checked) {
+        // a format mismatch makes the blit a silent GL error; detect it once and fall back
+        grab.checked = true;
+        const err = gl.getError();
+        if (err !== gl.NO_ERROR) { console.warn('[water] refraction blit unsupported (gl error ' + err + '); using alpha water'); grab.ok = false; sharedU.uRefr.value.z = 0; }
+      }
+    } catch (e) {
+      console.warn('[water] refraction grab disabled', e);
+      grab.ok = false; sharedU.uRefr.value.z = 0;
+    }
+  }
 
   function makeMaterial(kind, extra = {}) {
     const uniforms = {
@@ -120,6 +182,8 @@ export async function init(ctx) {
     m.name = 'water-' + kind.toLowerCase();
     return m;
   }
+  function hookGrab(mesh) { mesh.onBeforeRender = grabScene;
+  }
 
   // ---------- ocean ----------
   const { geo: oceanGeo } = buildOceanGeometry();
@@ -129,6 +193,7 @@ export async function init(ctx) {
   ocean.receiveShadow = true;
   ocean.renderOrder = 1;
   ocean.name = 'water-ocean';
+  hookGrab(ocean);
   group.add(ocean);
 
   // ---------- lakes ----------
@@ -137,7 +202,7 @@ export async function init(ctx) {
     try {
       const m = new THREE.Mesh(buildLakeGeometry(world, L), makeMaterial('LAKE', { level: L.y, normal: 0.2 }));
       m.receiveShadow = true; m.renderOrder = 2; m.name = 'water-lake-' + L.name;
-      group.add(m); lakes.push(m);
+      hookGrab(m); group.add(m); lakes.push(m);
     } catch (e) { console.error('[water] lake build failed', L.name, e); }
   }
 
@@ -148,7 +213,7 @@ export async function init(ctx) {
     try {
       const m = new THREE.Mesh(buildRiverGeometry(world, i), riverMat);
       m.receiveShadow = true; m.renderOrder = 3; m.name = 'water-river-' + r.name;
-      group.add(m); rivers.push(m);
+      hookGrab(m); group.add(m); rivers.push(m);
     } catch (e) { console.error('[water] river build failed', r.name, e); }
   });
 
@@ -206,24 +271,25 @@ export async function init(ctx) {
   }
 
   // ---------- waterfall emitters ----------
+  let prewarmed = false;
   const falls = W.FALLS.map(f => ({ ...f, acc: 0, accD: 0, accT: 0 }));
   const camPos = new THREE.Vector3();
-  function emitFalls(dt) {
+  function emitFalls(dt, age = 0) {
     for (const f of falls) {
       const dx = f.bx - camPos.x, dz = f.bz - camPos.z;
       const d2 = dx * dx + dz * dz;
       if (d2 > 520 * 520) continue;
       const near = 1 - Math.sqrt(d2) / 520;
       const scale = Math.min(1.6, f.drop / 18);
-      f.acc += dt * (6 + 16 * near) * scale;
+      f.acc += dt * (4 + 10 * near) * scale;
       f.accD += dt * (10 + 30 * near) * scale;
-      f.accT += dt * 4 * scale;
+      f.accT += dt * 2.5 * scale;
       while (f.acc >= 1) {
         f.acc -= 1;
         const a = (Math.random() * 2 - 1) * f.w * 0.9;
         const x = f.bx - f.dirZ * a + f.dirX * (Math.random() * 4 - 1), z = f.bz + f.dirX * a + f.dirZ * (Math.random() * 4 - 1);
         parts.spawn(x, f.by + 0.5, z, f.dirX * 2.5 + (Math.random() - 0.5) * 2.5, 1.0 + Math.random() * 2, f.dirZ * 2.5 + (Math.random() - 0.5) * 2.5,
-          3.5 + Math.random() * 2.5, 3.5 + Math.random() * 3.5 * scale, 1);
+          3.5 + Math.random() * 2.5, 2.5 + Math.random() * 2.5 * scale, 1, age);
       }
       while (f.accD >= 1) {
         f.accD -= 1;
@@ -232,7 +298,7 @@ export async function init(ctx) {
         const sp = 2 + Math.random() * 4;
         const ang = Math.random() * Math.PI * 2;
         parts.spawn(x, f.by + 0.3, z, Math.cos(ang) * sp * 0.6 + f.dirX * 2, 3 + Math.random() * 5, Math.sin(ang) * sp * 0.6 + f.dirZ * 2,
-          0.8 + Math.random() * 0.7, 0.12 + Math.random() * 0.2, 0);
+          0.8 + Math.random() * 0.7, 0.12 + Math.random() * 0.2, 0, age);
       }
       while (f.accT >= 1) {
         // spray peeling off the lip / face of the fall
@@ -241,7 +307,7 @@ export async function init(ctx) {
         const a = (Math.random() * 2 - 1) * f.w;
         const x = f.x + (f.bx - f.x) * t - f.dirZ * a, z = f.z + (f.bz - f.z) * t + f.dirX * a;
         const y = f.top + (f.by - f.top) * t;
-        parts.spawn(x, y, z, f.dirX * 1.5, 0.3, f.dirZ * 1.5, 2.5 + Math.random() * 2, 1.6 + 2 * Math.random(), 1);
+        parts.spawn(x, y, z, f.dirX * 1.5, 0.3, f.dirZ * 1.5, 2.5 + Math.random() * 2, 1.6 + 2 * Math.random(), 1, age);
       }
     }
   }
@@ -281,7 +347,9 @@ export async function init(ctx) {
     colors,
     update(dt) {
       W.setWaterTime(U.uTime.value);
-      camPos.copy(ctx.cameraOverride?.pos || camera.position);
+      const nc = ctx.cameraOverride?.pos || camera.position;
+      if (nc.distanceToSquared(camPos) > 300 * 300) prewarmed = false;   // teleport / preset jump
+      camPos.copy(nc);
       // ocean grid follows the camera (snapped so the near grid doesn't crawl)
       ocean.position.set(Math.round(camPos.x / 2) * 2, 0, Math.round(camPos.z / 2) * 2);
       // sky state
@@ -289,6 +357,11 @@ export async function init(ctx) {
       const day = sky?.getDaylight ? sky.getDaylight() : THREE.MathUtils.smoothstep(U.uSunDir.value.y, -0.1, 0.15);
       skyState.value.x = du.uSky ? du.uSky.value.x : 1 - day;
       skyState.value.y = day;
+      if (!prewarmed) {
+        // fill the mist/spray volumes as if the falls had been running for a while
+        prewarmed = true;
+        for (let k = 60; k > 0; k--) emitFalls(0.1, k * 0.1);
+      }
       emitFalls(Math.min(dt, 0.1));
       playerWater(dt);
       parts.flush(camera, ctx.renderer);

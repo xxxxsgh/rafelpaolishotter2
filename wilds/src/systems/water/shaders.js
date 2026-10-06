@@ -101,11 +101,16 @@ uniform vec3 uCloudLit;
 uniform vec3 uCloudShade;
 uniform vec4 uSkyState;      // x night, y daylight, z cloud reflection on/off, w unused
 uniform vec3 cShallow, cMid, cDeep, cScatter, cFoam;
-uniform sampler2D tNormal, tNoise, tHeight;
+uniform sampler2D tNormal, tNoise, tHeight, tRefract;
+uniform vec4 uRefr;          // xy 1/resolution, z refraction+SSR available, w unused
+uniform sampler2D tRefractDepth;
+uniform mat4 uProj;
+uniform vec2 uNearFar;
 uniform vec4 uHeightXf;
 uniform float uLevel;
 uniform float uNormalStrength;
 uniform vec4 uRipples[8];    // x, z, start time, strength
+uniform vec4 uFalls[12];     // plunge pools: x, z, radius, strength
 #ifdef RIVER
 varying vec4 vFlow;
 #endif
@@ -117,6 +122,47 @@ varying vec3 vWave;
 float sat(float x) { return clamp(x, 0.0, 1.0); }
 float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 vec2 nrmTex(vec2 uv) { return texture2D(tNormal, uv).rg * 2.0 - 1.0; }
+
+float linZ(float d) {
+  float z = d * 2.0 - 1.0;
+  return 2.0 * uNearFar.x * uNearFar.y / (uNearFar.y + uNearFar.x - z * (uNearFar.y - uNearFar.x));
+}
+float sceneLin(vec2 uv) { return linZ(texture2D(tRefractDepth, uv).r); }
+
+// Screen-space reflection against the grabbed opaque scene (banks, trees, cliffs, ruins).
+// Geometric ray march in view space with growing steps + binary refinement. Sky misses fall
+// back to the analytic sky/cloud reflection.
+vec3 ssrTrace(vec3 vpos, vec3 Rv, float maxT, out float hit) {
+  hit = 0.0;
+  if (Rv.z > 0.25) return vec3(0.0);
+  float t = 0.35 + 0.004 * -vpos.z;
+  float tPrev = 0.0;
+  for (int i = 0; i < 22; i++) {
+    vec3 P = vpos + Rv * t;
+    vec4 c = uProj * vec4(P, 1.0);
+    vec2 uv = c.xy / c.w * 0.5 + 0.5;
+    if (c.w <= 0.0 || uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || t > maxT) break;
+    float sz = sceneLin(uv);
+    float diff = -P.z - sz;
+    if (diff > 0.0 && sz < uNearFar.y * 0.98 && diff < max(0.8, (t - tPrev) * 1.6)) {
+      float a = tPrev, b = t;
+      for (int k = 0; k < 5; k++) {
+        float m = 0.5 * (a + b);
+        vec3 Q = vpos + Rv * m;
+        vec4 cq = uProj * vec4(Q, 1.0);
+        vec2 uq = cq.xy / cq.w * 0.5 + 0.5;
+        if (-Q.z > sceneLin(uq)) { b = m; uv = uq; } else a = m;
+      }
+      vec2 e = smoothstep(vec2(0.0), vec2(0.07), uv) * smoothstep(vec2(1.0), vec2(0.93), uv);
+      hit = e.x * e.y * smoothstep(0.25, -0.05, Rv.z) * (1.0 - smoothstep(maxT * 0.6, maxT, t));
+      return texture2D(tRefract, uv).rgb;
+    }
+    tPrev = t;
+    t *= 1.42;
+  }
+  return vec3(0.0);
+}
+
 
 float terrainHF(vec2 xz) {
   vec2 uv = (xz + uHeightXf.x) * uHeightXf.y;
@@ -193,6 +239,10 @@ void main() {
   float nearD = 1.0 - smoothstep(10.0, 90.0, dist);
   vec3 Ng = normalize(vNrm);
   if (!gl_FrontFacing) Ng = -Ng;
+  bool refrOn = uRefr.z > 0.5;
+  vec3 vpos = (viewMatrix * vec4(wp, 1.0)).xyz;
+  float fragZ = -vpos.z;
+  vec2 suv = gl_FragCoord.xy * uRefr.xy;
 
   float depth, fade = 1.0, turb = 0.0, steep = 0.0;
 #ifdef OCEAN
@@ -200,6 +250,15 @@ void main() {
 #else
   depth = vWater.x; fade = vWater.y; turb = vWater.z; steep = vWater.w;
 #endif
+  // water thickness from the depth buffer (catches rocks, ruins, logs, legs — anything in the water)
+  float sceneZ = uNearFar.y;
+  float thick = 1e4;          // along the view ray (m)
+  float vThick = 1e4;         // ~vertical
+  if (refrOn) {
+    sceneZ = sceneLin(suv);
+    thick = max(0.0, (sceneZ - fragZ) * dist / max(fragZ, 1e-3));
+    vThick = thick * max(V.y, 0.08);
+  }
 
   // ---------------- surface normal ----------------
   vec2 slope = vec2(0.0);
@@ -237,11 +296,18 @@ void main() {
     slope = s * k;
   }
 #endif
+#ifdef OCEAN
+  slope *= mix(0.12, 1.0, 1.0 - smoothstep(20.0, 380.0, dist));
+#else
   slope *= mix(0.22, 1.0, detail);
+#endif
+  // grazing views: ripples foreshorten into a calmer, more mirror-like sheet
+  slope *= mix(0.45, 1.0, sat(V.y * 3.5));
 #ifdef OCEAN
   slope += vWave.xy * 0.85;
 #endif
-  if (uRain > 0.01) slope += rainRipples(wp.xz * 1.1, uTime) * uRain * 0.5 * (1.0 - smoothstep(15.0, 70.0, dist));
+  float rainK = uRain * (1.0 - smoothstep(15.0, 70.0, dist));
+  if (rainK > 0.01) slope += rainRipples(wp.xz * 1.1, uTime) * rainK * 0.5;
   float ringFoam;
   slope += splashRings(wp.xz, ringFoam);
   vec3 N = normalize(Ng + vec3(-slope.x, 0.0, -slope.y));
@@ -256,11 +322,17 @@ void main() {
 
   // ---------------- body colour (absorption by depth) ----------------
   float dpos = max(depth, 0.0);
+  float shoreD = min(dpos, vThick);
   // view-dependent optical path: grazing views see "deeper" water
   float path = dpos * mix(1.0, 1.0 / max(V.y, 0.25), 0.4);
-  float tD = 1.0 - exp(-path * 0.17);
-  vec3 body = mix(cShallow, cMid, smoothstep(0.0, 0.5, tD));
-  body = mix(body, cDeep, smoothstep(0.42, 1.0, tD));
+  if (refrOn) path = min(path, thick * 0.8 + 0.1);
+#ifdef OCEAN
+  float tD = 1.0 - exp(-path * 0.075);     // long turquoise shelf around the island
+#else
+  float tD = 1.0 - exp(-path * 0.12);
+#endif
+  vec3 body = mix(cShallow, cMid, smoothstep(0.0, 0.55, tD));
+  body = mix(body, cDeep, smoothstep(0.45, 1.0, tD));
 #ifdef RIVER
   body = mix(body, cShallow * vec3(0.9, 1.0, 0.95), 0.25 * sat(speed / 6.0));
 #endif
@@ -271,18 +343,19 @@ void main() {
   float ndlB = sat(L.y);
   vec3 bodyLit = body * (amb * 0.62 + sunI * ndlB * mix(0.45, 1.0, shadow) * 0.85);
   // forward scatter through wave crests when looking toward the light (glassy turquoise glow)
-  float towardSun = pow(sat(dot(-V, L) * 0.6 + 0.4 + 0.0), 3.0);
+  float towardSun = pow(sat(dot(-V, L) * 0.6 + 0.4), 3.0);
   float crestK = sat(vWave.z * 0.6 + 0.35 + (slope.x * L.x + slope.y * L.z) * 1.5);
   bodyLit += cScatter * sunI * towardSun * crestK * 0.35 * shadow * (1.0 - tD * 0.4);
 
-  // caustics on the shallow bed (seen through the water, so added where the body is clear)
+  // caustics on the shallow bed: soft, low contrast light web, broken up by big noise
   float caus = 0.0;
   {
-    vec2 cuv = wp.xz / 5.2 + slope * 0.35;
+    vec2 cuv = wp.xz / 4.2 + slope * 0.3;
     float c1 = texture2D(tNoise, cuv + vec2(uTime * 0.031, uTime * 0.017)).a;
     float c2 = texture2D(tNoise, cuv * 1.37 + vec2(-uTime * 0.023, uTime * 0.029) + 0.5).a;
-    caus = pow(1.0 - min(c1, c2), 5.0);
-    caus *= smoothstep(0.03, 0.35, dpos) * (1.0 - smoothstep(0.8, 4.5, dpos)) * nearD;
+    caus = pow(1.0 - min(c1, c2), 4.0);
+    caus *= smoothstep(0.03, 0.35, shoreD) * (1.0 - smoothstep(0.8, 4.0, dpos)) * nearD;
+    caus *= 0.45 + 0.55 * smoothstep(0.3, 0.7, texture2D(tNoise, wp.xz / 37.0).b);
   }
 
   // ---------------- reflection ----------------
@@ -294,14 +367,27 @@ void main() {
   vec3 refl = skyColour(R);
   #ifdef USE_FOG
   if (uSkyState.z > 0.5 && R.y > 0.015) {
-    vec2 cp = wp.xz + R.xz / max(R.y, 0.03) * (WB_CLOUD_H - wp.y);
-    float cd = wbCloudDensity(cp, 0.0) * smoothstep(0.015, 0.16, R.y);
+    // clouds are looked up along a calmer reflection vector so they stay soft painted shapes
+    vec3 Rc = reflect(-V, normalize(Ng + vec3(-slope.x, 0.0, -slope.y) * 0.35));
+    Rc.y = abs(Rc.y);
+    vec2 cp = wp.xz + Rc.xz / max(Rc.y, 0.03) * (WB_CLOUD_H - wp.y);
+    float cd = wbCloudDensity(cp, 0.0) * smoothstep(0.015, 0.16, Rc.y) * 0.8;
     vec3 cloudC = mix(uCloudShade, uCloudLit, 0.55 + 0.45 * sat(dot(R, L)));
     refl = mix(refl, cloudC, cd * 0.85);
   }
   #endif
   // the far bank / horizon: reflections fade toward haze at grazing distance (no hard mirror)
   refl = mix(refl, uHorizon, smoothstep(300.0, 2500.0, dist) * 0.3);
+  if (refrOn && dist < 1400.0) {
+    // reflected banks / trees / cliffs; a calmer normal keeps the mirror image coherent
+    vec3 Nr = normalize(Ng + vec3(-slope.x, 0.0, -slope.y) * 0.45);
+    vec3 Rv = reflect(normalize(vpos), normalize(mat3(viewMatrix) * Nr));
+    float hit;
+    vec3 sc = ssrTrace(vpos, Rv, 900.0, hit);
+    hit *= 1.0 - smoothstep(900.0, 1400.0, dist);
+    // slightly darker + cooler than the source, like a real reflection on tinted water
+    refl = mix(refl, sc * vec3(0.86, 0.92, 0.96), hit * 0.92);
+  }
 
   // ---------------- sun glint ----------------
   float sd = sat(dot(R, L));
@@ -319,15 +405,21 @@ void main() {
   float fcell = texture2D(tNoise, wp.xz / 2.6 + vec2(-uTime * 0.02, uTime * 0.015)).g;
   float fcell2 = texture2D(tNoise, wp.xz / 1.1 + vec2(uTime * 0.03, uTime * 0.02)).g;
   float foamShape = sat(fcell * 0.75 + fcell2 * 0.45);
-  float shore = 1.0 - smoothstep(0.0, 0.45 + 0.5 * fn, dpos);
-  float foam = smoothstep(0.35, 0.75, shore * (0.55 + 0.8 * foamShape));
+  float fallStreak = 0.0;
+  // thin contact line where the water meets banks / rocks, broken by bubbly cells
+  float contact = 1.0 - smoothstep(0.0, 0.07 + 0.12 * fn, shoreD);
+  float foam = contact * smoothstep(0.2, 0.55, foamShape + 0.15) * 0.95;
+  // a second, lacier band slightly off the edge that breathes in and out
+  float breathe = 0.5 + 0.5 * sin(uTime * 1.1 + fn * 9.0 + wp.x * 0.05);
+  float lace = (1.0 - smoothstep(0.08, 0.28 + 0.25 * fn + 0.12 * breathe, shoreD)) * smoothstep(0.08, 0.2, shoreD);
+  foam = max(foam, smoothstep(0.62, 0.8, foamShape) * lace * 0.75);
 #ifdef OCEAN
   {
     // lapping lines: depth contours that travel shoreward and break up as they go
-    float band = 1.0 - smoothstep(0.4, 3.2 + fn * 1.5, dpos);
-    float lap = fract(dpos * 0.6 - uTime * 0.11 + fn * 0.55);
-    float line = smoothstep(0.82, 0.97, lap) * (1.0 - smoothstep(0.97, 1.0, lap));
-    foam = max(foam, smoothstep(0.25, 0.6, line * band * (0.4 + foamShape)) * 0.9);
+    float band = 1.0 - smoothstep(0.3, 2.6 + fn * 1.5, dpos);
+    float lap = fract(dpos * 0.55 - uTime * 0.11 + fn * 0.55);
+    float line = smoothstep(0.84, 0.96, lap) * (1.0 - smoothstep(0.965, 1.0, lap));
+    foam = max(foam, smoothstep(0.3, 0.65, line * band * (0.35 + foamShape)) * 0.8);
     // whitecaps on crests out at sea when windy
     float cap = smoothstep(0.7, 1.05, vWave.z + (fcell - 0.5) * 0.4) * smoothstep(0.7, 1.4, uWindStrength);
     foam = max(foam, cap * smoothstep(0.45, 0.7, foamShape) * 0.7 * detail);
@@ -349,32 +441,72 @@ void main() {
     float rap = turb + sat(speed - 3.0) * 0.12;
     float streak = smoothstep(0.62 - rap * 0.5, 0.9 - rap * 0.4, fs * 0.7 + fc * 0.45);
     foam = max(foam, streak * sat(rap * 1.6 + 0.12) * 0.85);
-    // bank-side foam lines trailing downstream
-    float bank = 1.0 - smoothstep(0.0, 0.9 + 0.6 * fs, dpos);
-    foam = max(foam, smoothstep(0.45, 0.8, bank * (0.5 + fc)) * 0.8);
-    // falls: aerated white water with dark fast streaks
+    // bank-side foam lines trailing downstream (thin, streaky)
+    float bank = 1.0 - smoothstep(0.0, 0.25 + 0.35 * fs, shoreD);
+    foam = max(foam, smoothstep(0.55, 0.85, bank * (0.45 + fc * 0.8)) * 0.7);
+    // falls: aerated white water with darker glassy streaks racing down
     if (steep > 0.01) {
       float st = texture2D(tNoise, vec2(ruv.x / 1.4, ruv.y / 5.0 - uTime * (0.9 + speed * 0.12))).r;
       float st2 = texture2D(tNoise, vec2(ruv.x / 0.6, ruv.y / 2.3 - uTime * (1.5 + speed * 0.2))).g;
-      float white = smoothstep(0.2, 0.65, st * 0.7 + st2 * 0.5 + steep * 0.35);
-      foam = max(foam, steep * mix(0.55, 1.0, white));
+      float st3 = texture2D(tNoise, vec2(ruv.x / 2.7, ruv.y / 11.0 - uTime * (0.6 + speed * 0.08)) + 0.37).b;
+      float white = smoothstep(0.3, 0.75, st * 0.7 + st2 * 0.5 + steep * 0.2 - (st3 - 0.5) * 0.8);
+      foam = max(foam, steep * mix(0.3, 1.0, white));
+      fallStreak = steep * (1.0 - white);
     }
+  }
+#endif
+#ifdef RIVER
+  // churning plunge pools under the falls
+  for (int i = 0; i < 12; i++) {
+    vec4 pf = uFalls[i];
+    if (pf.w <= 0.0) continue;
+    vec2 d = wp.xz - pf.xy;
+    float r = length(d) / pf.z;
+    if (r > 1.6) continue;
+    float boil = texture2D(tNoise, d / 3.5 + vec2(uTime * 0.21, -uTime * 0.17)).g;
+    float boil2 = texture2D(tNoise, d / 1.3 - vec2(uTime * 0.33, uTime * 0.29)).r;
+    float ringW = fract(r * 2.2 - uTime * 0.6 + boil * 0.3);
+    float k = (1.0 - smoothstep(0.35, 1.5, r)) * pf.w;
+    foam = max(foam, k * smoothstep(0.25, 0.6, boil * 0.65 + boil2 * 0.5 + (1.0 - r) * 0.3 - ringW * 0.15));
   }
 #endif
   foam = max(foam, ringFoam * 0.8 * smoothstep(0.3, 0.6, foamShape + 0.3));
   foam *= 1.0 - smoothstep(600.0, 1800.0, dist) * 0.7;
   vec3 foamCol = cFoam * (amb * 0.8 + sunI * (0.35 + 0.65 * shadow) * (0.55 + 0.45 * sat(N.y)) * 1.15);
+  // foam in the slope shadow of its own bubbles: a touch of blue at the low end
+  foamCol = mix(foamCol * vec3(0.78, 0.9, 1.0), foamCol, smoothstep(0.3, 0.9, foamShape));
+  // glassy green-blue sheets between the white ropes of a fall
+  foamCol = mix(foamCol, mix(cMid, cShallow, 0.5) * (amb * 0.9 + sunI * 0.6), fallStreak * 0.55);
 
   // ---------------- transparency ----------------
-  float aBody = 1.0 - exp(-dpos * 0.6);
+  float aBody = 1.0 - exp(-path * 0.55);
   aBody = mix(aBody, 1.0, smoothstep(150.0, 900.0, dist));        // far water reads as a solid colour
-  aBody = max(aBody, 0.12);
+  aBody = max(aBody, 0.1);
   float edge = smoothstep(0.0, 0.18, depth) * fade;
+  if (refrOn) edge *= smoothstep(0.0, 0.06, vThick);               // soft intersection with rocks / banks
 
-  vec3 C = bodyLit * aBody * (1.0 - F) + refl * F + glint;
-  C += sunI * caus * (1.0 - aBody * 0.7) * 0.55 * shadow * dayK;
-  float A = 1.0 - (1.0 - aBody) * (1.0 - F);
-  A = sat(max(A, luma(glint) * 0.5));
+  vec3 C;
+  float A;
+  vec3 causL = sunI * caus * 0.5 * shadow * dayK;
+  if (refrOn) {
+    // screen-space refraction: the bed seen through a wobbling surface, tinted by absorption
+    float dk = sat(shoreD * 0.9) * (1.0 - smoothstep(40.0, 400.0, dist));
+    vec2 offs = slope * (0.04 * dk) * vec2(1.0, 1.6) * (0.5 + 0.5 * nearD);
+    vec2 ruv2 = clamp(suv + offs, vec2(0.001), vec2(0.999));
+    // never pull in things that are in front of the water surface
+    if (sceneLin(ruv2) < fragZ) ruv2 = suv;
+    vec3 bed = texture2D(tRefract, ruv2).rgb;
+    vec3 trans = exp(-path * vec3(0.5, 0.15, 0.1));
+    vec3 bedT = (bed + causL * (0.3 + bed)) * trans;
+    vec3 under = mix(bedT, bodyLit, aBody);
+    C = under * (1.0 - F) + refl * F + glint;
+    A = 1.0;
+  } else {
+    C = bodyLit * aBody * (1.0 - F) + refl * F + glint;
+    C += causL * (1.0 - aBody * 0.7);
+    A = 1.0 - (1.0 - aBody) * (1.0 - F);
+    A = sat(max(A, luma(glint) * 0.5));
+  }
   C = mix(C, foamCol, foam);
   A = mix(A, 1.0, foam);
   if (!gl_FrontFacing) { C = mix(cDeep, cShallow, 0.4) * amb * 0.9; A = 0.85; }

@@ -32,7 +32,7 @@ void main() {
   } else if (vKind < 1.5) {
     float k = (1.0 - exp(-t * 1.2)) / 1.2;
     p += aVel * k + vec3(uWindDir.x, 0.0, uWindDir.y) * uWindStrength * 1.6 * t + vec3(0.0, 0.55 * t, 0.0);
-    vAlpha = sin(3.14159 * u) * sin(3.14159 * u) * 0.5;
+    vAlpha = sin(3.14159 * u) * sin(3.14159 * u) * 0.26;
     size *= 0.7 + 1.4 * u;
   } else {
     float k = (1.0 - exp(-t * 2.0)) / 2.0;
@@ -63,14 +63,14 @@ void main() {
   if (vKind > 1.5) a *= smoothstep(0.05, 0.4, abs(pc.y - 0.5) * 2.0 + 0.2);  // flecks: flattened
   if (a < 0.004) discard;
   float sunUp = smoothstep(-0.05, 0.2, uSunDir.y);
-  vec3 light = uSkyColor * 0.95 + uSunColor * (0.55 + 0.25 * sunUp);
+  vec3 light = uSkyColor * 0.75 + uSunColor * (0.42 + 0.2 * sunUp);
   vec3 col = (vKind > 0.5 && vKind < 1.5) ? light * vec3(0.92, 0.97, 1.02) : light * 1.05;
   gl_FragColor = vec4(col, a);
   #include <fog_fragment>
 }
 `;
 
-export function createParticles(ctx, spriteTex, max = 4096) {
+export function createParticles(ctx, spriteTex, max = 8192) {
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(max * 3);
   const vel = new Float32Array(max * 3);
@@ -101,12 +101,12 @@ export function createParticles(ctx, spriteTex, max = 4096) {
   points.name = 'water-particles';
 
   let head = 0, lo = max, hi = -1;
-  function spawn(x, y, z, vx, vy, vz, life, size, kind) {
+  function spawn(x, y, z, vx, vy, vz, life, size, kind, age = 0) {
     const i = head;
     head = (head + 1) % max;
     pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
     vel[i * 3] = vx; vel[i * 3 + 1] = vy; vel[i * 3 + 2] = vz;
-    info[i * 4] = u.uTime.value; info[i * 4 + 1] = life; info[i * 4 + 2] = size; info[i * 4 + 3] = kind;
+    info[i * 4] = u.uTime.value - age; info[i * 4 + 1] = life; info[i * 4 + 2] = size; info[i * 4 + 3] = kind;
     if (i < lo) lo = i;
     if (i > hi) hi = i;
   }
