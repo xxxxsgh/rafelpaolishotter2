@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>UI bench</title>
+<!-- ui system dev bench: the real ui system over a still frame, with mocked systems (no 3D cost).
+     ?screen=hud|inventory|map|pause|title  &bg=<image url> -->
+<link rel="stylesheet" href="../../ui/style.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #6f9a4a center/cover no-repeat; }
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+</style>
+<script type="importmap">{ "imports": { "three": "../../../lib/three.module.js", "three/addons/": "../../../lib/addons/" } }</script>
+</head>
+<body>
+<div id="hud"></div>
+<script type="module">
+import * as THREE from 'three';
+import { world } from '../../world/heightfield.js';
+import { Events } from '../../core/events.js';
+import { ITEMS, EFFECTS, CATEGORIES, cook, setCookSeed } from '../gameplay/items.js';
+import { getIcon } from '../gameplay/icons.js';
+import { createInventory } from '../gameplay/inventory.js';
+import { WEAPONS } from '../combat/weapons.js';
+import { init } from './index.js';
+
+const q = new URLSearchParams(location.search);
+if (q.get('bg')) document.body.style.backgroundImage = `url(${q.get('bg')})`;
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 5000);
+camera.position.set(150, 60, 262); camera.lookAt(140, 55, 230);
+const events = new Events();
+const params = new URLSearchParams('shot=dev');
+const ctx = { THREE, camera, world, events, params, systems: {}, hud: document.getElementById('hud'), focus: new THREE.Vector3(150, 0, 250),
+  input: { look: () => ({ dx: 0, dy: 0 }) }, engine: { resize() {} }, renderer: {} };
+const mk = (id, dur) => { const d = WEAPONS[id]; return { uid: id + '#1', id, name: d.name, type: d.type, dmg: d.dmg, dur: dur ?? d.dur, maxDur: d.dur }; };
+const W = { weapons: [mk('wayfarer_blade', 19), mk('ember_saber'), mk('thorn_spear', 4), mk('boulder_maul')], bows: [mk('ash_bow', 22), mk('horn_bow')], shields: [mk('bark_shield', 3), mk('shell_shield')] };
+W.equipped = { weapon: W.weapons[0], bow: W.bows[0], shield: W.shields[0] };
+ctx.systems.combat = { getInventoryWeapons: () => ({ ...W, arrows: 23, blastcaps: 4 }), getEquipped: () => W.equipped, camps: [{ x: 120, z: 190, name: 'Bramblehorn Camp' }, { x: -165, z: 150, name: 'Ashen Ridge Camp', cleared: true }, { x: 335, z: -45, name: 'Thornwall Camp' }],
+  equip(k) { for (const c of ['weapons', 'bows', 'shields']) { const w = W[c].find(x => x.uid === k); if (w) W.equipped[c === 'weapons' ? 'weapon' : c === 'bows' ? 'bow' : 'shield'] = w; } } };
+const inv = createInventory(ctx);
+for (const [k, n] of Object.entries({ hearthcap: 6, emberbell: 3, frostgill: 2, swiftstool: 4, lanterncap: 3, dewleaf: 9, sunpetal: 5, bravebloom: 2, russetpome: 7, duskberry: 12, goldplum: 2, silverfin: 3, roast_haunch: 2, speckledegg: 4, highwheat: 3, flint: 8, amberite: 2, 'wind-sail': 1, 'spire-chart': 1 })) inv.add(k, n);
+setCookSeed(7);
+for (const r of [['roast_haunch', 'hearthcap', 'emberbell', 'emberbell'], ['silverfin', 'dewleaf'], ['russetpome', 'highwheat'], ['swiftstool', 'swiftstool', 'dewleaf'], ['bravebloom', 'bravebloom', 'roast_haunch'], ['speckledegg', 'dewleaf', 'hearthcap']]) { const d = cook(r); if (d) inv.addDish(d); }
+inv.addShards(1240);
+const spires = [{ id: 'plateau', name: 'Meadowheart Spire', x: 330, z: 420, active: true }, { id: 'wildwood', name: 'Wildwood Spire', x: -760, z: 600 }, { id: 'redrock', name: 'Redrock Spire', x: 820, z: 560 }, { id: 'highmoor', name: 'Highmoor Spire', x: -420, z: -620 }];
+ctx.systems.gameplay = { inventory: inv, items: ITEMS, effects: EFFECTS, categories: CATEGORIES, getIcon, get shards() { return inv.shards; },
+  temperature: { value: 17, state: 'mild' }, buffs: new Map([['warmth', { level: 2, time: 312 }], ['swift', { level: 1, time: 95 }]]),
+  spires, revealed: [{ x: 330, z: 420, r: 760 }], beacon: { x: -260, z: -1290, lit: false },
+  campfires: [{ pos: { x: 168, z: 268 }, lit: true }, { pos: { x: 92, z: -40 }, lit: false }, { pos: { x: -640, z: 700 }, lit: true }],
+  quests: { current: () => ({ quest: { title: 'The Windborne Path', desc: 'An ember sleeps on the summit, waiting for a traveller strong enough to wake it.' }, step: { text: 'Climb the Wildwood Spire and wake its windstone' } }),
+    objectives: () => [{ id: 'wildwood', label: 'Wildwood Spire', x: -760, z: 600, kind: 'spire' }] },
+  eat() {}, save: () => true };
+ctx.systems.physics = { sanctums: [{ id: 1, name: 'Sanctum of Balance', x: 260, z: 120, solved: true }, { id: 2, name: 'Sanctum of Currents', x: -560, z: 420 }, { id: 3, name: 'Sanctum of Embers', x: 980, z: 760 }] };
+ctx.systems.player = { position: new THREE.Vector3(150, 40, 250), yaw: 2.6, health: +(q.get('hp') || 9), maxHealth: 12, stamina: 70, maxStamina: 100, state: 'ground', setInputEnabled() {} };
+ctx.systems.sky = { getTime: () => 10.4, getDaylight: () => 1, getWeather: () => q.get('wx') || 'clear', getDay: () => 2, timeScale: 1 };
+const ui = await init(ctx);
+ctx.systems.ui = ui;
+const screen = q.get('screen') || 'hud';
+if (screen === 'title') ui.showTitle(); else if (screen !== 'hud') ui.open(screen);
+if (screen === 'hud') { ui.prompt('Pick up Hearthcap'); ui.toast('Hearthcap ×2'); ui.toast('Dewleaf'); ui.banner('Meadowheart Spire', 'The wind carries the land to your chart', 'Windstone awakened'); }
+let last = performance.now();
+function loop() { const now = performance.now(); ui.update(Math.min(0.1, (now - last) / 1000)); last = now; requestAnimationFrame(loop); }
+loop();
+setTimeout(() => { window.__ready = true; }, +(q.get('wait') || 4500));
+</script>
+</body>
+</html>
